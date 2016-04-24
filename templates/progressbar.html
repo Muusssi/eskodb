@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript">
+
+      google.load('visualization', '1.0', {'packages':['corechart']});
+
+      // Set a callback to run when the Google Visualization API is loaded.
+      google.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        document.getElementById("loading_message").innerHTML = "Loading data, please wait."
+        var pathArray = window.location.pathname.split('/');
+        $.ajax({
+          type: "POST",
+          url: pathArray[0]+"/data/",
+          dataTableType: "json",
+          success: handleDataTable,
+          error: function(x, t, m) {
+            document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
+          }
+        });
+
+        function handleDataTable(jsonData) {
+          var dataTable = new google.visualization.DataTable();
+          dataTable.addColumn('number', 'Run');
+          dataTable.addColumn('number', 'Passed');
+          dataTable.addColumn({type: 'string', role: 'tooltip'});
+          dataTable.addColumn('number', 'Failed');
+          dataTable.addColumn({type: 'string', role: 'tooltip'});
+          //console.log(jsonData.data);
+          dataTable.addRows(jsonData.data);
+
+          // Set chart options
+          var options = {
+            'title': 'Robottest pass rate:',
+            'height': 900,
+            isStacked: true,
+            colors: ['#006B24', '#B82500'],
+            bar: {groupWidth: '80%'},
+            focustarget: 'category',
+          }
+          document.getElementById("loading_message").innerHTML = ""
+          var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+          chart.draw(dataTable, options);
+
+        }
+      }
+
+    </script>
+  </head>
+
+  <body>
+    <!--Div that will hold the pie chart-->
+    <div id="chart_div"><p id="loading_message"></p></div>
+  </body>
+</html>

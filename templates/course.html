@@ -1,0 +1,79 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['table']});
+      google.charts.setOnLoadCallback(drawTables);
+
+      function drawTables() {
+        document.getElementById("loading_message").innerHTML = "Loading data, please wait."
+        var pathArray = window.location.pathname.split('/');
+        $.ajax({
+          type: "POST",
+          url: pathArray[0]+"/data/{{course[2]}}/",
+          dataTableType: "json",
+          success: handleDataTable,
+          error: function(x, t, m) {
+            document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
+          }
+        });
+
+        function handleDataTable(jsonData) {
+          var dataTable = new google.visualization.DataTable();
+          dataTable.addColumn('string', 'Date');
+          dataTable.addColumn('string', 'Player');
+          for (var i=1; i<=jsonData.course.holes; i++) {
+            dataTable.addColumn('number', i);
+          }
+          dataTable.addColumn('number', 'sum');
+          dataTable.addRows(jsonData.rows);
+          dataTable.setProperty(0, 1, "className", "ParCell");
+          dataTable.addColumn('number', '+');
+
+          // Set par coloring
+          for (var row=1; row<dataTable.getNumberOfRows(); row++) {
+            for (var col=2; col<dataTable.getNumberOfColumns()-2; col++) {
+              var diff = dataTable.getValue(row, col)-dataTable.getValue(0, col);
+              dataTable.setProperty(row, col, "className", "par"+diff);
+            }
+          }
+          for (var row=1; row<dataTable.getNumberOfRows(); row++) {
+            dataTable.setCell(row, dataTable.getNumberOfColumns()-1,
+              dataTable.getValue(row, dataTable.getNumberOfColumns()-2)-dataTable.getValue(0, dataTable.getNumberOfColumns()-2)
+            );
+          }
+
+          document.getElementById("loading_message").innerHTML = ""
+
+          // Set chart options
+          var table = new google.visualization.Table(document.getElementById('table_div'));
+
+          var options = {
+            showRowNumber: true,
+            //width: '100%',
+            //height: '100%',
+          }
+
+          //sorting event
+          google.visualization.events.addListener(table, 'sort', function (ev) {
+            var parentRow = $('#table_div td.ParCell').parent();
+            if (!parentRow.is(':first-child')) {
+                parentRow.siblings().first().before(parentRow);
+            }
+          });
+
+          table.draw(dataTable, options);
+
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h2><a href="/">Esko</a></h2>
+    <h1>{{ course[0] }}</h1>
+    <p id="loading_message"></p>
+    <div id="table_div"></div>
+  </body>
+</html>

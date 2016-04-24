@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <title>Eskon tulospalvelu</title>
+  </head>
+
+  <body>
+    <H1>Eskon tulospalvelu</H1>
+    <img src="http://maunula.net/2005/luonto/palokarki.jpg">
+
+    {% for course in courses %}
+      <a href="/course/{{course[2]}}/">{{course[0]}}</a>
+    {% end %}
+
+
+  </body>
+</html>
