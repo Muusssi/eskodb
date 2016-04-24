@@ -33,16 +33,19 @@
           dataTable.addColumn('number', '+');
 
           // Set par coloring
-          for (var row=1; row<dataTable.getNumberOfRows(); row++) {
-            for (var col=2; col<dataTable.getNumberOfColumns()-2; col++) {
-              var diff = dataTable.getValue(row, col)-dataTable.getValue(0, col);
-              dataTable.setProperty(row, col, "className", "par"+diff);
+          console.log(dataTable.getValue(0, 2));
+          if (dataTable.getValue(0, 2) != null) {
+            for (var row=1; row<dataTable.getNumberOfRows(); row++) {
+              for (var col=2; col<dataTable.getNumberOfColumns()-2; col++) {
+                var diff = dataTable.getValue(row, col)-dataTable.getValue(0, col);
+                dataTable.setProperty(row, col, "className", "par"+diff);
+              }
             }
-          }
-          for (var row=1; row<dataTable.getNumberOfRows(); row++) {
-            dataTable.setCell(row, dataTable.getNumberOfColumns()-1,
-              dataTable.getValue(row, dataTable.getNumberOfColumns()-2)-dataTable.getValue(0, dataTable.getNumberOfColumns()-2)
-            );
+            for (var row=1; row<dataTable.getNumberOfRows(); row++) {
+              dataTable.setCell(row, dataTable.getNumberOfColumns()-1,
+                dataTable.getValue(row, dataTable.getNumberOfColumns()-2)-dataTable.getValue(0, dataTable.getNumberOfColumns()-2)
+              );
+            }
           }
 
           document.getElementById("loading_message").innerHTML = ""

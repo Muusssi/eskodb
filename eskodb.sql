@@ -39,6 +39,8 @@ INSERT INTO players VALUES ('Tommi');
 INSERT INTO players VALUES ('Oskari');
 INSERT INTO players VALUES ('Tapio');
 INSERT INTO players VALUES ('Jonne');
+INSERT INTO players VALUES ('Antti');
+INSERT INTO players VALUES ('Eve');
 
 
 
@@ -201,12 +203,111 @@ INSERT INTO results VALUES (3, 'Jonne', 13, 6, 0, '2016-04-20', 2);
 INSERT INTO results VALUES (3, 'Jonne', 14, 3, 0, '2016-04-20', 2);
 
 
+INSERT INTO results VALUES (2, 'Tommi', 1, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 2, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 3, 5, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 4, 4, 1, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 5, 4, 1, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 6, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 7, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 8, 2, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 9, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 10, 4, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 11, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 12, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 13, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Tommi', 14, 3, 0, '2016-04-20', 1);
+
+INSERT INTO results VALUES (2, 'Antti', 1, 5, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 2, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 3, 4, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 4, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 5, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 6, 8, 1, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 7, 4, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 8, 5, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 9, 5, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 10, 5, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 11, 4, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 12, 3, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 13, 5, 0, '2016-04-20', 1);
+INSERT INTO results VALUES (2, 'Antti', 14, 4, 0, '2016-04-20', 1);
 
 
 
 
+INSERT INTO results VALUES (1, 'Tommi', 1, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 2, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 3, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 4, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 5, 5, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 6, 7, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 7, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 8, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 9, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 10, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 11, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 12, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 13, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 14, 5, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 15, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 16, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 17, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Tommi', 18, 3, 0, '2016-04-24', 1);
 
+INSERT INTO results VALUES (1, 'Oskari', 1, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 2, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 3, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 4, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 5, 5, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 6, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 7, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 8, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 9, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 10, 5, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 11, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 12, 2, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 13, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 14, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 15, 3, 1, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 16, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 17, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Oskari', 18, 3, 0, '2016-04-24', 1);
 
+INSERT INTO results VALUES (1, 'Jonne', 1, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 2, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 3, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 4, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 5, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 6, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 7, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 8, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 9, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 10, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 11, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 12, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 13, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 14, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 15, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 16, 5, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 17, 5, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Jonne', 18, 4, 0, '2016-04-24', 1);
 
-
-
+INSERT INTO results VALUES (1, 'Eve', 1, 3, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 2, 7, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 3, 11, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 4, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 5, 7, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 6, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 7, 7, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 8, 5, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 9, 5, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 10, 7, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 11, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 12, 5, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 13, 4, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 14, 7, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 15, 3, 1, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 16, 8, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 17, 6, 0, '2016-04-24', 1);
+INSERT INTO results VALUES (1, 'Eve', 18, 6, 0, '2016-04-24', 1);
