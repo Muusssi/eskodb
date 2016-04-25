@@ -71,7 +71,7 @@ class Database(object):
         res_rows = []
         query = ("SELECT player, hole, throws, penalty, game_date, game_of_day "
                  "FROM results WHERE course=%s AND player<>'par' "
-                 "ORDER BY game_date, game_of_day, player, -hole DESC")
+                 "ORDER BY game_date, game_of_day, player, hole ASC")
         cursor.execute(query, (course_id, ))
         index = -1
         for p, h, t, b, d, n in cursor.fetchall():

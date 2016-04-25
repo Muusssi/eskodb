@@ -1,16 +1,61 @@
 <html>
   <head>
     <title>Eskon tulospalvelu</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+
+    <script type="text/javascript">
+    /* When the user clicks on the button,
+    toggle between hiding and showing the dropdown content */
+    function myFunction() {
+      document.getElementById("results_Dropdown").classList.toggle("show");
+    }
+
+    function myFunction2() {
+      console.log("clicked")
+      document.getElementById("new_game_Dropdown").classList.toggle("show");
+    }
+
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function(event) {
+      if (!event.target.matches('.dropbtn')) {
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        var i;
+        for (i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+          }
+        }
+      }
+    }
+    </script>
   </head>
 
   <body>
-    <H1>Eskon tulospalvelu</H1>
-    <img src="http://maunula.net/2005/luonto/palokarki.jpg">
 
-    {% for course in courses %}
-      <a href="/course/{{course[2]}}/">{{course[0]}}</a>
-    {% end %}
+    <H1>Eskon tulospalvelu</H1>
+    <!-- <img src="http://maunula.net/2005/luonto/palokarki.jpg"> -->
+
+
+    <div class="dropdown">
+      <button onclick="myFunction()" class="dropbtn">Tulokset</button>
+      <div id="results_Dropdown" class="dropdown-content">
+        {% for course in courses %}
+          <a href="/course/{{course[2]}}/">{{course[0]}} {{course[1]}}</a>
+        {% end %}
+      </div>
+    </div>
+
+    <div class="dropdown">
+      <button onclick="myFunction2()" class="dropbtn">Uusi peli</button>
+      <div id="new_game_Dropdown" class="dropdown-content">
+        {% for course in courses %}
+          <a href="/new/{{course[2]}}/">{{course[0]}} {{course[1]}}</a>
+        {% end %}
+      </div>
+    </div>
 
 
   </body>
 </html>
+
