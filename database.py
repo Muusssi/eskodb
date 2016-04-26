@@ -82,8 +82,12 @@ class Database(object):
                 res_rows.append([None for k in range(holes+3)])
                 res_rows[index][0] = game
                 res_rows[index][1] = p
-                res_rows[index][1+h] = t
                 res_rows[index][holes+2] = 0
+            if b>0:
+                penalty = ''
+                for k in range(b):
+                    penalty += '*'
+                res_rows[index][1+h] = {'v':t, 'f':str(t)+penalty }
             else:
                 res_rows[index][1+h] = t
             res_rows[index][holes+2] += t
