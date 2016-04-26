@@ -91,7 +91,7 @@ class Database(object):
             else:
                 res_rows[index][1+h] = t
             res_rows[index][holes+2] += t
-        results['rows'].extend(res_rows)
+        results['rows'].extend(reversed(res_rows))
 
         cursor.close()
         return results
