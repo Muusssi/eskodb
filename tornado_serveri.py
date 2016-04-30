@@ -16,7 +16,10 @@ class Application(tornado.web.Application):
         handlers = [
                 (r"/$", MainPageHandler),
                 (r"/data/(?P<course_id>[^\/]+)/$", DataHandler),
+                (r"/course/new/$", NewCourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/$", CourseHandler),
+                (r"/player/new/$", NewPlayerHandler),
+
             ]
 
         settings = dict(
@@ -30,29 +33,55 @@ class Application(tornado.web.Application):
 
 class BaseHandler(tornado.web.RequestHandler):
     @property
-    def database(self):
+    def db(self):
         return self.application.database
 
 
 class MainPageHandler(BaseHandler):
     def get(self):
-        self.render(
-                "mainpage.html",
-                players = self.database.get_players(),
-                courses = self.database.get_courses(),
+        self.render("mainpage.html",
+                players = self.db.get_players(),
+                courses = self.db.get_courses(),
             )
 
 class CourseHandler(BaseHandler):
     def get(self, course_id):
-        self.render(
-                "course.html",
-                course=self.database.get_course(course_id),
+        self.render("course.html",
+                course=self.db.get_course(course_id),
+            )
+
+class NewCourseHandler(BaseHandler):
+    def get(self):
+        self.render("new_course.html",
+                message="",
+            )
+
+    def post(self):
+        if self.db.add_course(self.get_argument("name"), self.get_argument("holes")):
+            self.redirect("/")
+        else:
+            self.render("new_course.html",
+                message="Rata on jo tietokannassa!",
+            )
+
+class NewPlayerHandler(BaseHandler):
+    def get(self):
+        self.render("new_player.html",
+                message="",
+            )
+
+    def post(self):
+        if self.db.add_player(self.get_argument("name")):
+            self.redirect("/")
+        else:
+            self.render("new_player.html",
+                message="Pelaaja on jo tietokannassa!",
             )
 
 
 class DataHandler(BaseHandler):
     def post(self, course_id):
-        self.write(self.database.get_results(int(course_id)))
+        self.write(self.db.get_results(int(course_id)))
 
     get = post
 

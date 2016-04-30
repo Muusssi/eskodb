@@ -1,9 +1,13 @@
 <html>
   <head>
-    <title>Eskon tulos palvelu</title>
+    <title>Esko - {% block title_block %}{% end %}</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    {% block head %}{% end %}
   </head>
 
   <body>
+    <h2><a href="/">Esko</a></h2>
+    {% block body %}{% end %}
 
   </body>
 </html>

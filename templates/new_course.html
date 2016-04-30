@@ -1,0 +1,14 @@
+{% extends esko_template.html %}
+{% block title_block %}Uusi rata{% end %}
+{% block body %}
+  <p class="error_message">{{message}}</p>
+  <form method="post">
+    <label for="male">Radan nimi</label>
+    <input type="text" name="name" id="course_name"><br>
+
+    <label for="holes">Väyliä</label>
+    <input type="number" name="holes" id="holes" value="18" min="1" max="36"><br>
+
+    <input type="submit" value="Submit" method="POST">
+  </form>
+{% end %}

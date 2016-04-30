@@ -1,8 +1,5 @@
-<html>
-  <head>
-    <title>Eskon tulospalvelu</title>
-    <link rel="stylesheet" type="text/css" href="/static/style.css">
-
+{% extends esko_template.html %}
+{% block head %}
     <script type="text/javascript">
     /* When the user clicks on the button,
     toggle between hiding and showing the dropdown content */
@@ -29,9 +26,8 @@
       }
     }
     </script>
-  </head>
-
-  <body>
+{% end %}
+{% block body %}
 
     <H1>Eskon tulospalvelu</H1>
     <!-- <img src="http://maunula.net/2005/luonto/palokarki.jpg"> -->
@@ -55,7 +51,14 @@
       </div>
     </div>
 
+    <div class="dropdown">
+      <a href="/player/new/" class="dropbtn">Uusi pelaaja</a>
+    </div>
 
-  </body>
-</html>
+    <div class="dropdown">
+      <a href="/course/new/" class="dropbtn">Uusi rata</a>
+    </div>
+
+
+{% end %}
 

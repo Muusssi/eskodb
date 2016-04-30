@@ -16,6 +16,9 @@ class Database(object):
     def _close_connection(self):
         self._conn.close()
 
+    def _commit(self):
+        self._conn.commit()
+
     def get_players(self):
         query = ("SELECT name FROM players ORDER BY name")
         cursor = self._cursor()
@@ -40,6 +43,34 @@ class Database(object):
         res = cursor.fetchone()
         cursor.close()
         return res
+
+    def add_course(self, name, holes):
+        query = ("SELECT version FROM courses WHERE name=%s AND holes=%s")
+        cursor = self._cursor()
+        cursor.execute(query, (name, holes))
+        if cursor.fetchall():
+            cursor.close()
+            return False
+        else:
+            query = ("INSERT INTO courses(name, holes) VALUES (%s, %s);")
+            cursor.execute(query, (name, holes))
+            self._commit()
+            cursor.close()
+            return True
+
+    def add_player(self, name):
+        query = ("SELECT name FROM players WHERE name=%s")
+        cursor = self._cursor()
+        cursor.execute(query, (name, ))
+        if cursor.fetchall():
+            cursor.close()
+            return False
+        else:
+            query = ("INSERT INTO players(name) VALUES (%s);")
+            cursor.execute(query, (name, ))
+            self._commit()
+            cursor.close()
+            return True
 
     def get_results(self, course_id):
         cursor = self._cursor()
