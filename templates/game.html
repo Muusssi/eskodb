@@ -1,6 +1,6 @@
 {% extends esko_template.html %}
 
-{% block title_block %}tulokset {{ course[0] }}{% end %}
+{% block title_block %}Peli {{ course[0] }}{% end %}
 
 {% block head %}
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -14,7 +14,7 @@
       var pathArray = window.location.pathname.split('/');
       $.ajax({
         type: "POST",
-        url: pathArray[0]+"/data/{{course[2]}}/",
+        url: pathArray[0]+"/game/data/{{course[2]}}/",
         dataTableType: "json",
         success: handleDataTable,
         error: function(x, t, m) {
@@ -24,7 +24,6 @@
 
       function handleDataTable(jsonData) {
         var dataTable = new google.visualization.DataTable();
-        dataTable.addColumn('string', 'Date');
         dataTable.addColumn('string', 'Player');
         for (var i=1; i<=jsonData.course.holes; i++) {
           dataTable.addColumn('number', i);
@@ -35,20 +34,20 @@
         dataTable.addColumn('number', '+');
 
         // Set par coloring
-        console.log(dataTable.getValue(0, 2));
-        if (dataTable.getValue(0, 2) != null) {
-          for (var row=1; row<dataTable.getNumberOfRows(); row++) {
-            for (var col=2; col<dataTable.getNumberOfColumns()-2; col++) {
-              var diff = dataTable.getValue(row, col)-dataTable.getValue(0, col);
-              dataTable.setProperty(row, col, "className", "par"+diff);
-            }
-          }
-          for (var row=1; row<dataTable.getNumberOfRows(); row++) {
-            dataTable.setCell(row, dataTable.getNumberOfColumns()-1,
-              dataTable.getValue(row, dataTable.getNumberOfColumns()-2)-dataTable.getValue(0, dataTable.getNumberOfColumns()-2)
-            );
-          }
-        }
+        // TODO Rethink
+        // if (dataTable.getValue(0, 2) != null) {
+        //   for (var row=1; row<dataTable.getNumberOfRows(); row++) {
+        //     for (var col=2; col<dataTable.getNumberOfColumns()-2; col++) {
+        //       var diff = dataTable.getValue(row, col)-dataTable.getValue(0, col);
+        //       dataTable.setProperty(row, col, "className", "par"+diff);
+        //     }
+        //   }
+        //   for (var row=1; row<dataTable.getNumberOfRows(); row++) {
+        //     dataTable.setCell(row, dataTable.getNumberOfColumns()-1,
+        //       dataTable.getValue(row, dataTable.getNumberOfColumns()-2)-dataTable.getValue(0, dataTable.getNumberOfColumns()-2)
+        //     );
+        //   }
+        // }
 
         document.getElementById("loading_message").innerHTML = ""
 
@@ -81,4 +80,25 @@
   <h1>{{ course[0] }}</h1>
   <p id="loading_message"></p>
   <div id="table_div"></div>
+  {% for hole in range(1,course[1]+1) %}
+    <form method="post">
+      <p>{{hole}}</p>
+      <input type="hidden" name="hole" value="{{hole}}">
+      {% for player in players %}
+      <!-- TODO -->
+        <input type="hidden" name="player" value="{{player[0]}}">
+        <label for="throws">{{player[0]}}</label>
+        <input type="number" name="throws" id="throws_input" value="3" min="1" max="36">
+        <label for="throws">penalty</label>
+        <input type="number" name="penalty" id="penalty_input" value="0" min="0" max="5">
+      {% end %}
+      <input type="submit" value="Julkaise" method="POST">
+    </form>
+    <br>
+  {% end %}
+
+  <a href="/game/end/">End game</a>
+
 {% end %}
+
+

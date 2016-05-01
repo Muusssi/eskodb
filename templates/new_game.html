@@ -1,0 +1,24 @@
+{% extends esko_template.html %}
+
+{% block title_block %}Uusi peli{% end %}
+{% block body %}
+  <p class="error_message">{{message}}</p>
+  <form method="post">
+    <label for="course">Radan nimi</label>
+    <select name="course">
+      {% for course in courses %}
+      <option value="{{course[2]}}">{{course[0]}} - {{course[1]}}</option>
+      {% end %}
+    </select>
+    <br>
+
+    <label for="player">Pelaajat</label>
+    <div>
+      {% for player in players %}
+      <input type="checkbox" name="player" value="{{player[0]}}"> {{player[0]}}<br>
+      {% end %}
+    </div>
+
+    <input type="submit" value="Aloita" method="POST">
+  </form>
+{% end %}

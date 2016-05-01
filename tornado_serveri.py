@@ -19,6 +19,10 @@ class Application(tornado.web.Application):
                 (r"/course/new/$", NewCourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/$", CourseHandler),
                 (r"/player/new/$", NewPlayerHandler),
+                (r"/game/new/$", NewGameHandler),
+                (r"/game/end/$", EndGameHandler),
+                (r"/game/(?P<course_id>[^\/]+)/$", GameHandler),
+                (r"/game/data/(?P<course_id>[^\/]+)/$", GameDataHandler),
 
             ]
 
@@ -40,8 +44,9 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainPageHandler(BaseHandler):
     def get(self):
         self.render("mainpage.html",
-                players = self.db.get_players(),
-                courses = self.db.get_courses(),
+                players=self.db.get_players(),
+                courses=self.db.get_courses(),
+                actives= self.db.get_courses(True),
             )
 
 class CourseHandler(BaseHandler):
@@ -78,6 +83,55 @@ class NewPlayerHandler(BaseHandler):
                 message="Pelaaja on jo tietokannassa!",
             )
 
+class NewGameHandler(BaseHandler):
+    def get(self):
+        self.render("new_game.html",
+                message="",
+                players=self.db.get_players(),
+                courses=self.db.get_courses(),
+            )
+
+    def post(self):
+        players = self.get_arguments("player")
+        course_id = self.get_argument("course")
+        if players:
+            self.db.activate_players(players, course_id)
+            self.redirect("/game/%s/" % (course_id, ))
+            # self.render("game.html",
+            #         players=players,
+            #         course=self.db.get_course(course_id),
+            #     )
+        else:
+            self.render("new_game.html",
+                    message="Pelaajia on valittava",
+                    players=self.db.get_players(),
+                    courses=self.db.get_courses(),
+                )
+
+class GameHandler(BaseHandler):
+    def get(self, course_id):
+        self.render("game.html",
+                players=self.db.get_players(course_id),
+                course=self.db.get_course(course_id),
+            )
+
+    def post(self, course_id):
+        self.db.add_results(course_id,
+                self.get_argument("hole"),
+                self.get_arguments("player"),
+                self.get_arguments("throws"),
+                self.get_arguments("penalty"),
+            )
+        self.render("game.html",
+                players=self.db.get_players(course_id),
+                course=self.db.get_course(course_id),
+            )
+
+class EndGameHandler(BaseHandler):
+    def get(self):
+        self.db.end_game()
+        self.redirect("/")
+
 
 class DataHandler(BaseHandler):
     def post(self, course_id):
@@ -85,6 +139,11 @@ class DataHandler(BaseHandler):
 
     get = post
 
+class GameDataHandler(BaseHandler):
+    def post(self, course_id):
+        self.write(self.db.get_results(int(course_id), True))
+
+    get = post
 
 if __name__ == "__main__":
     if (len(sys.argv) != 2):
