@@ -80,24 +80,35 @@
   <h1>{{ course[0] }}</h1>
   <p id="loading_message"></p>
   <div id="table_div"></div>
-  {% for hole in range(1,course[1]+1) %}
     <form method="post">
-      <p>{{hole}}</p>
-      <input type="hidden" name="hole" value="{{hole}}">
+      <p>{{current_hole}}</p>
+      <input type="hidden" name="hole" value="{{current_hole}}">
       {% for player in players %}
       <!-- TODO -->
         <input type="hidden" name="player" value="{{player[0]}}">
         <label for="throws">{{player[0]}}</label>
-        <input type="number" name="throws" id="throws_input" value="3" min="1" max="36">
+        <!-- <input type="number" name="throws" id="throws_input" value="3" min="1" max="36"> -->
+        <select>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3" selected>3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
         <label for="throws">penalty</label>
         <input type="number" name="penalty" id="penalty_input" value="0" min="0" max="5">
+        <br>
       {% end %}
       <input type="submit" value="Julkaise" method="POST">
     </form>
     <br>
-  {% end %}
 
-  <a href="/game/end/">End game</a>
+  <a href="/game/end/{{course[2]}}/">End game</a>
 
 {% end %}
 

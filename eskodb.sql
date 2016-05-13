@@ -27,4 +27,4 @@ CREATE TABLE results (
 );
 
 -- ALTER TABLE results ADD COLUMN in_play boolean default false;
--- ALTER TABLE players ADD COLUMN active boolean default false;
+-- ALTER TABLE players ADD COLUMN active integer REFERENCES courses(id) default NULL;

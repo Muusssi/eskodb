@@ -174,31 +174,58 @@ class Database(object):
         cursor.close()
         return results
 
+    def _check_game_of_day(self, course_id):
+        cursor = self._cursor()
+        query = ("SELECT DISTINCT game_of_day FROM results "
+                 "WHERE course=%s AND game_date=%s AND in_play=false "
+                 "ORDER BY game_of_day DESC LIMIT 1")
+        cursor.execute(query, (course_id, datetime.date.today()))
+        game_of_day = cursor.fetchone()
+        cursor.close()
+        if game_of_day:
+            return int(game_of_day[0]) + 1
+        else:
+            return 1
+
+    def check_curent_hole(self, course_id):
+        cursor = self._cursor()
+        query = ("SELECT DISTINCT hole FROM results "
+                 "WHERE course=%s AND game_date=%s AND in_play=true "
+                 "ORDER BY hole DESC LIMIT 1")
+        cursor.execute(query, (course_id, datetime.date.today()))
+        current_hole = cursor.fetchone()
+        cursor.close()
+        if current_hole:
+            return int(current_hole[0]) + 1
+        else:
+            return 1
+
     def add_results(self, course_id, hole, players, throws, penalties):
         cursor = self._cursor()
-        query = ("INSERT INTO results VALUES (%s, %s, %s, %s, %s, %s, %s, %s);")
+        query = ("INSERT INTO results VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+        game_of_day = self._check_game_of_day(course_id)
         for i in range(0, len(players)):
             cursor.execute(query, (course_id, players[i], hole, throws[i],
-                    penalties[i], datetime.date.today(), 1, True)
+                    penalties[i], datetime.date.today(), game_of_day, True)
                 )
         self._commit()
+        cursor.close()
 
 
-
-    def end_game(self):
-        query = ("UPDATE players SET active=NULL")
+    def end_game(self, course_id):
+        query = ("UPDATE players SET active=NULL WHERE active=%s")
         cursor = self._cursor()
-        cursor.execute(query)
+        cursor.execute(query, course_id)
         self._commit()
-        query = ("UPDATE results SET in_play=false")
+        query = ("UPDATE results SET in_play=false WHERE course=%s")
         cursor = self._cursor()
-        cursor.execute(query)
+        cursor.execute(query, course_id)
         self._commit()
         cursor.close()
 
 
 if __name__ == '__main__':
     db = Database("kopsupullo")
-    res = db.activate_players(['Tommi', 'Oskari'])
+    print db._check_game_of_day(5)
     db._close_connection()
 
