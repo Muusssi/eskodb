@@ -215,11 +215,11 @@ class Database(object):
     def end_game(self, course_id):
         query = ("UPDATE players SET active=NULL WHERE active=%s")
         cursor = self._cursor()
-        cursor.execute(query, course_id)
+        cursor.execute(query, (course_id, ))
         self._commit()
         query = ("UPDATE results SET in_play=false WHERE course=%s")
         cursor = self._cursor()
-        cursor.execute(query, course_id)
+        cursor.execute(query, (course_id, ))
         self._commit()
         cursor.close()
 
