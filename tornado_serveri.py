@@ -15,6 +15,7 @@ class Application(tornado.web.Application):
     def __init__(self, database):
         handlers = [
                 (r"/", MainPageHandler),
+                (r"/restart/", RestartHandler),
                 (r"/data/(?P<course_id>[^\/]+)/", DataHandler),
                 (r"/course/new/", NewCourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/", CourseHandler),
@@ -162,6 +163,11 @@ class GameDataHandler(BaseHandler):
         self.write(self.db.get_results(int(course_id), True))
 
     get = post
+
+class RestartHandler(BaseHandler):
+    def get(self):
+        self.db.reconnect()
+        self.redirect("/")
 
 if __name__ == "__main__":
     if (len(sys.argv) != 2):

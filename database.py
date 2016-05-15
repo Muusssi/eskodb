@@ -6,9 +6,13 @@ GAME_TEMPLATE = "%s #%s"
 class Database(object):
 
     def __init__(self, pw):
+        self.pw = pw
+        self._connect()
+
+    def _connect(self):
         self._conn = psycopg2.connect(
                 "dbname='eskodb' user='esko' host='localhost' password='%s'" %
-                (pw, )
+                (self.pw, )
             )
 
     def _cursor(self):
@@ -19,6 +23,10 @@ class Database(object):
 
     def _commit(self):
         self._conn.commit()
+
+    def reconnect(self):
+        self._close_connection()
+        self._connect()
 
     def get_players(self, course_id=None):
         cursor = self._cursor()
