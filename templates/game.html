@@ -8,8 +8,45 @@
   <script type="text/javascript">
     google.charts.load('current', {'packages':['table']});
     google.charts.setOnLoadCallback(drawTables);
+    var current_hole = {{current_hole}};
+
+    function publish() {
+      console.log("juljetaan")
+      $.ajax({
+        type: "POST",
+        url: "/game/{{course[2]}}/",
+        data: $("#results_form").serialize(),
+        error: function(x, t, m) {
+          document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
+        }
+      });
+      if (current_hole<{{course[1]}}) {
+        current_hole++;
+        document.getElementById("current_hole_input").value = current_hole;
+        document.getElementById("current_hole_p").innerHTML = current_hole;
+      }
+      drawTables();
+    }
+
+    function move_to_next() {
+      if (current_hole<{{course[1]}}) {
+        current_hole++;
+        document.getElementById("current_hole_input").value = current_hole;
+        document.getElementById("current_hole_p").innerHTML = current_hole;
+      }
+    }
+
+    function previous() {
+      if (current_hole>1) {
+        current_hole--;
+        document.getElementById("current_hole_input").value = current_hole;
+        document.getElementById("current_hole_p").innerHTML = current_hole;
+      }
+
+    }
 
     function drawTables() {
+      console.log("drawing")
       document.getElementById("loading_message").innerHTML = "Loading data, please wait."
       var pathArray = window.location.pathname.split('/');
       $.ajax({
@@ -80,31 +117,33 @@
   <h1>{{ course[0] }}</h1>
   <p id="loading_message"></p>
   <div id="table_div"></div>
-    <form method="post">
-      <p>{{current_hole}}</p>
-      <input type="hidden" name="hole" value="{{current_hole}}">
+    <form id="results_form" method="post">
+      <h2 id="current_hole_p">{{current_hole}}</h2>
+      <input id="current_hole_input" type="hidden" name="hole" value="{{current_hole}}">
       {% for player in players %}
-      <!-- TODO -->
-        <input type="hidden" name="player" value="{{player[0]}}">
-        <label for="throws">{{player[0]}}</label>
-        <!-- <input type="number" name="throws" id="throws_input" value="3" min="1" max="36"> -->
-        <select name="throws">
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3" selected>3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
-        </select>
-        <label for="throws">penalty</label>
-        <input type="number" name="penalty" id="penalty_input" value="0" min="0" max="5">
-        <br>
+        <div>
+          <input class="game_input" type="hidden" name="player" value="{{player[0]}}">
+          <label class="game_input" for="throws">{{player[0]}}</label>
+          <select class="game_input" name="throws">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+          <label for="throws">penalty</label>
+          <input type="number" name="penalty" id="penalty_input" value="0" min="0" max="5">
+        </div>
       {% end %}
-      <input type="submit" value="Julkaise" method="POST">
+      <input class="game_input" id="previous_btn" type="button" value="Edellinen" onclick="previous();">
+      <input class="game_input" id="publish_btn" type="button" value="julkaise" onclick="publish();">
+      <input class="game_input" id="continue_btn" type="button" value="Jatka" onclick="move_to_next();">
+
     </form>
     <br>
 

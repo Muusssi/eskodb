@@ -16,15 +16,16 @@ class Application(tornado.web.Application):
         handlers = [
                 (r"/", MainPageHandler),
                 (r"/restart/", RestartHandler),
-                (r"/data/(?P<course_id>[^\/]+)/", DataHandler),
+                (r"/data/(?P<course_id>[^\/]+)/", ResultsHandler),
                 (r"/course/new/", NewCourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/", CourseHandler),
+                (r"/course/(?P<course_id>[^\/]+)/statistics/", CourseStatisticsHandler),
                 (r"/player/new/", NewPlayerHandler),
                 (r"/game/new/", NewGameHandler),
                 (r"/game/end/(?P<course_id>[^\/]+)/", EndGameHandler),
                 (r"/game/results/(?P<course_id>[^\/]+)/", ResultHandler),
                 (r"/game/(?P<course_id>[^\/]+)/", GameHandler),
-                (r"/game/data/(?P<course_id>[^\/]+)/", GameDataHandler),
+                (r"/game/data/(?P<course_id>[^\/]+)/", GameResultsHandler),
 
             ]
 
@@ -140,11 +141,7 @@ class GameHandler(BaseHandler):
                 self.get_arguments("throws"),
                 self.get_arguments("penalty"),
             )
-        self.render("game.html",
-                players=self.db.get_players(course_id),
-                course=self.db.get_course(course_id),
-                current_hole=self.db.check_curent_hole(course_id),
-            )
+        self.write(self.db.get_results(int(course_id), True))
 
 class EndGameHandler(BaseHandler):
     def get(self, course_id):
@@ -152,13 +149,13 @@ class EndGameHandler(BaseHandler):
         self.redirect("/course/%s/" % (course_id, ))
 
 
-class DataHandler(BaseHandler):
+class ResultsHandler(BaseHandler):
     def post(self, course_id):
         self.write(self.db.get_results(int(course_id)))
 
     get = post
 
-class GameDataHandler(BaseHandler):
+class GameResultsHandler(BaseHandler):
     def post(self, course_id):
         self.write(self.db.get_results(int(course_id), True))
 
@@ -168,6 +165,10 @@ class RestartHandler(BaseHandler):
     def get(self):
         self.db.reconnect()
         self.redirect("/")
+
+class CourseStatisticsHandler(BaseHandler):
+    pass
+
 
 if __name__ == "__main__":
     if (len(sys.argv) != 2):

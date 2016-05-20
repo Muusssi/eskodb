@@ -61,7 +61,6 @@ class Database(object):
         cursor.execute(query)
         res = cursor.fetchall()
         cursor.close()
-        print res
         return res
 
     def get_course(self, id):
@@ -175,8 +174,6 @@ class Database(object):
                     res_rows[index][1+h] = t
                 res_rows[index][holes+2] += t
 
-
-
         results['rows'].extend(reversed(res_rows))
 
         cursor.close()
@@ -210,12 +207,21 @@ class Database(object):
 
     def add_results(self, course_id, hole, players, throws, penalties):
         cursor = self._cursor()
-        query = ("INSERT INTO results VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
-        game_of_day = self._check_game_of_day(course_id)
-        for i in range(0, len(players)):
-            cursor.execute(query, (course_id, players[i], hole, throws[i],
-                    penalties[i], datetime.date.today(), game_of_day, True)
-                )
+        query = ("SELECT * FROM results WHERE course=%s AND in_play=true AND hole=%s")
+        cursor.execute(query, (course_id, hole))
+        if cursor.fetchall():
+            query = ("UPDATE results SET throws=%s, penalty=%s "
+                     "WHERE course=%s AND hole=%s AND player=%s AND in_play=true")
+            game_of_day = self._check_game_of_day(course_id)
+            for i in range(0, len(players)):
+                cursor.execute(query, (throws[i], penalties[i], course_id, hole, players[i]))
+        else:
+            query = ("INSERT INTO results VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+            game_of_day = self._check_game_of_day(course_id)
+            for i in range(0, len(players)):
+                cursor.execute(query, (course_id, players[i], hole, throws[i],
+                        penalties[i], datetime.date.today(), game_of_day, True)
+                    )
         self._commit()
         cursor.close()
 
@@ -234,6 +240,6 @@ class Database(object):
 
 if __name__ == '__main__':
     db = Database("kopsupullo")
-    print db._check_game_of_day(5)
+    print db.get_results(5)
     db._close_connection()
 
