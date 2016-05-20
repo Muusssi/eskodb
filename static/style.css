@@ -1,8 +1,10 @@
 .game_input {
     /*display: block;*/
+    -webkit-appearance: none; -moz-appearance: none;
     line-height: 40px; font-size: 17px;
     border: 1px solid #bbb;
-    width: 30%; height: 40px;
+    margin: 5px;
+    width: 15%; height: 40px;
 }
 
 .error_message {
