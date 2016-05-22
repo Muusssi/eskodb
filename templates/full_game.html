@@ -1,0 +1,83 @@
+{% extends esko_template.html %}
+{% block title_block %}Kokonainen peli{% end %}
+
+{% block head %}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script type="text/javascript">
+  // var today = new Date();
+  // var d = today.getDate();
+  // var m = today.getMonth()+1;
+  // if (m)
+  // var y = today.getFullYear();
+  // alert(d+"-"+m+"-"+y);
+
+
+  $(function() {
+    $( "#datepicker" ).datepicker({ dateFormat: 'yy-mm-dd' });
+    var currentDate = new Date();
+    $("#datepicker").datepicker("setDate",currentDate);
+  });
+
+
+  function add_player(name) {
+    document.getElementById("submit_btn").hidden = false;
+    document.getElementById(name+"_button").style.visibility = 'hidden';
+    var table = document.getElementById("full_game_table")
+    var row = table.insertRow(-1);
+    var cell = row.insertCell(-1);
+    var player_name = document.createElement("p");
+    player_name.innerHTML = name;
+    cell.appendChild(player_name);
+
+    var player_input = document.createElement("input");
+    player_input.name = "player";
+    player_input.value = name;
+    player_input.hidden = true;
+    cell.appendChild(player_input);
+
+    for (var i=1; i<={{course[1]}}; i++) {
+      cell = row.insertCell(-1);
+      var input = document.createElement("input");
+      input.type = "text";
+      input.name = name+"_throws";
+      input.value = 3;
+      input.size = 3;
+      cell.appendChild(input);
+
+      input = document.createElement("input");
+      input.type = "text";
+      input.name = name+"_penalty";
+      input.value = 0;
+      input.size = 3;
+      cell.appendChild(input);
+    }
+  }
+</script>
+{% end %}
+
+{% block body %}
+
+  <h2>Peli: {{course[0]}} {{course[1]}}</h2>
+
+  {% for player in players %}
+    <button id="{{player[0]}}_button" onclick="add_player('{{player[0]}}');">{{player[0]}}</button>
+  {% end %}
+
+
+  <form id="full_game_form" method="post">
+    <input id="datepicker" type="date" required="true">
+
+    <table id="full_game_table">
+      <tr>
+        <th>Pelaaja</th>
+        {% for hole in range(1, course[1]+1) %}
+        <th>{{hole}}</th>
+        {% end %}
+      </tr>
+    </table>
+
+    <input id="submit_btn" type="submit" value="Lähetä" method="POST" hidden="true">
+  </form>
+{% end %}

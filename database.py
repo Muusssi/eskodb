@@ -37,7 +37,6 @@ class Database(object):
             query = ("SELECT name FROM players ORDER BY name")
             cursor.execute(query)
 
-
         res = cursor.fetchall()
         cursor.close()
         return res
@@ -205,11 +204,12 @@ class Database(object):
         else:
             return 1
 
-    def add_results(self, course_id, hole, players, throws, penalties):
+    def add_results(self, course_id, hole, players, throws, penalties, insert_only=False):
         cursor = self._cursor()
-        query = ("SELECT * FROM results WHERE course=%s AND in_play=true AND hole=%s")
-        cursor.execute(query, (course_id, hole))
-        if cursor.fetchall():
+        if not insert_only:
+            query = ("SELECT * FROM results WHERE course=%s AND in_play=true AND hole=%s")
+            cursor.execute(query, (course_id, hole))
+        if not insert_only and cursor.fetchall():
             query = ("UPDATE results SET throws=%s, penalty=%s "
                      "WHERE course=%s AND hole=%s AND player=%s AND in_play=true")
             game_of_day = self._check_game_of_day(course_id)
