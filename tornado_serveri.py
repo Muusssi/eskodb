@@ -144,6 +144,7 @@ class FullGameHandler(BaseHandler):
                         [penalties[hole]],
                         insert_only=True,
                     )
+        self.db.end_game(course_id)
         self.redirect("/course/%s/" % (course_id, ))
 
 class EndGameHandler(BaseHandler):
