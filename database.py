@@ -178,12 +178,14 @@ class Database(object):
         cursor.close()
         return results
 
-    def _check_game_of_day(self, course_id):
+    def _check_game_of_day(self, course_id, game_date=None):
         cursor = self._cursor()
+        if not game_date:
+            game_date = datetime.date.today()
         query = ("SELECT DISTINCT game_of_day FROM results "
                  "WHERE course=%s AND game_date=%s AND in_play=false "
                  "ORDER BY game_of_day DESC LIMIT 1")
-        cursor.execute(query, (course_id, datetime.date.today()))
+        cursor.execute(query, (course_id, game_date))
         game_of_day = cursor.fetchone()
         cursor.close()
         if game_of_day:
@@ -204,7 +206,7 @@ class Database(object):
         else:
             return 1
 
-    def add_results(self, course_id, hole, players, throws, penalties, insert_only=False):
+    def add_results(self, course_id, hole, players, throws, penalties, insert_only=False, game_date=None):
         cursor = self._cursor()
         if not insert_only:
             query = ("SELECT * FROM results WHERE course=%s AND in_play=true AND hole=%s")
@@ -217,10 +219,12 @@ class Database(object):
                 cursor.execute(query, (throws[i], penalties[i], course_id, hole, players[i]))
         else:
             query = ("INSERT INTO results VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
-            game_of_day = self._check_game_of_day(course_id)
+            if not game_date:
+                game_date = datetime.date.today()
+            game_of_day = self._check_game_of_day(course_id, game_date)
             for i in range(0, len(players)):
                 cursor.execute(query, (course_id, players[i], hole, throws[i],
-                        penalties[i], datetime.date.today(), game_of_day, True)
+                        penalties[i], game_date, game_of_day, True)
                     )
         self._commit()
         cursor.close()

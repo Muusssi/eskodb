@@ -133,6 +133,7 @@ class FullGameHandler(BaseHandler):
             )
 
     def post(self, course_id):
+        game_date = self.get_argument("game_date")
         for p in self.get_arguments("player"):
             throws = self.get_arguments("%s_throws" % (p, ))
             penalties = self.get_arguments("%s_penalty" % (p, ))
@@ -143,6 +144,7 @@ class FullGameHandler(BaseHandler):
                         [throws[hole]],
                         [penalties[hole]],
                         insert_only=True,
+                        game_date=game_date,
                     )
         self.db.end_game(course_id)
         self.redirect("/course/%s/" % (course_id, ))
