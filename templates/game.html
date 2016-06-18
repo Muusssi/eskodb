@@ -9,7 +9,7 @@
     google.charts.load('current', {'packages':['table']});
     google.charts.setOnLoadCallback(drawTables);
     var current_hole = {{current_hole}};
-    var dataTable;
+    var dataTable = null;
 
     function publish() {
       $.ajax({
@@ -25,8 +25,15 @@
         document.getElementById("current_hole_input").value = current_hole;
         document.getElementById("current_hole_p").innerHTML = current_hole;
       }
+      update_inputs();
       drawTables();
     }
+
+    function end_game() {
+      if (confirm("Haluatko varmasti lopettaa?")) {
+        window.location.href = "/game/end/{{course[2]}}/";
+      }
+    };
 
     function move_to_next() {
       if (current_hole<{{course[1]}}) {
@@ -34,6 +41,7 @@
         document.getElementById("current_hole_input").value = current_hole;
         document.getElementById("current_hole_p").innerHTML = current_hole;
       }
+      update_inputs();
     }
 
     function previous() {
@@ -42,21 +50,39 @@
         document.getElementById("current_hole_input").value = current_hole;
         document.getElementById("current_hole_p").innerHTML = current_hole;
       }
+      update_inputs();
     }
 
-    function adjust_input() {
-      // Adjust the default inputs
-      // if (dataTable.getValue(0, current_hole)) {
-      //   for (var row=dataTable.getNumberOfRows()-1; row>1; row--) {
-      //     document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
-      //   }
-      // }
-      // else if () {
-
-      // }
-      // else {
-
-      // }
+    function update_inputs() {
+      if (dataTable != null) {
+        if (dataTable.getNumberOfRows()>1 && dataTable.getValue(1,current_hole) != null) {
+          console.log("case 1");
+          for (var row=1; row<dataTable.getNumberOfRows(); row++) {
+            var player = dataTable.getValue(row,0);
+            document.getElementById("throws_"+player).value = dataTable.getValue(row,current_hole);
+            document.getElementById("penalty_"+player).value = "0";
+          }
+        }
+        else if (dataTable.getValue(0,current_hole) != null) {
+          console.log("case 2");
+          var throw_inputs = document.getElementsByClassName("throws_input");
+          var penalty_inputs = document.getElementsByClassName("penalty_input");
+          var par = dataTable.getValue(0, current_hole).toString();
+          for (var i=0; i<throw_inputs.length; i++) {
+            throw_inputs[i].value = par;
+            penalty_inputs[i].value = 0;
+          }
+        }
+        else {
+          console.log("case 3");
+          var throw_inputs = document.getElementsByClassName("throws_input");
+          var penalty_inputs = document.getElementsByClassName("penalty_input");
+          for (var i=0; i<throw_inputs.length; i++) {
+            throw_inputs[i].value = "3";
+            penalty_inputs[i].value = 0;
+          }
+        }
+      }
     }
 
 
@@ -126,7 +152,6 @@
         });
 
         table.draw(dataTable, options);
-
       }
     }
   </script>
@@ -139,34 +164,63 @@
     <form id="results_form" method="post">
       <h2 id="current_hole_p">{{current_hole}}</h2>
       <input id="current_hole_input" type="hidden" name="hole" value="{{current_hole}}">
-      {% for player in players %}
-        <div>
-          <input class="game_input" type="hidden" name="player" value="{{player[0]}}">
-          <label class="game_input" for="throws">{{player[0]}}</label>
-          <select id="throws_{{player}}" class="game_input" name="throws">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3" selected>3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-          </select>
-          <label for="throws">penalty</label>
-          <input type="number" name="penalty" id="penalty_input" value="0" min="0" max="5">
-        </div>
-      {% end %}
+      <table>
+
+        {% for (player, ) in reversed(players) %}
+        <tr>
+          <div>
+            <th>
+              <input type="hidden" name="player" value="{{player}}">
+              <h3>{{player}}</h3>
+            </th>
+            <td>
+              <select id="throws_{{player}}" class="throws_input game_input" name="throws">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+              </select>
+            </td>
+            <td>
+              <label for="throws">penalty</label>
+              <select id="penalty_{{player}}" class="penalty_input game_input" name="penalty">
+                <option value="0" selected>0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+              </select>
+            </td>
+          </div>
+        </tr>
+        {% end %}
+      </table>
+      </form>
       <input class="game_input" id="previous_btn" type="button" value="Edellinen" onclick="previous();">
       <input class="game_input" id="publish_btn" type="button" value="julkaise" onclick="publish();">
       <input class="game_input" id="continue_btn" type="button" value="Jatka" onclick="move_to_next();">
-
-    </form>
+    <br>
     <br>
 
-  <a href="/game/end/{{course[2]}}/">End game</a>
+  <button class="game_input" onclick="end_game();" >Lopeta peli</button>
+  <!-- <a href="/game/end/{{course[2]}}/">End game</a> -->
 
 {% end %}
 

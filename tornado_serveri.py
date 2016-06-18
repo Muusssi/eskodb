@@ -129,7 +129,6 @@ class FullGameHandler(BaseHandler):
         self.render("full_game.html",
                 players=self.db.get_players(),
                 course=self.db.get_course(course_id),
-                #current_hole=self.db.check_curent_hole(course_id),
             )
 
     def post(self, course_id):

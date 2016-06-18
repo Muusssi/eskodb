@@ -4,8 +4,10 @@
     line-height: 40px; font-size: 17px;
     border: 1px solid #bbb;
     margin: 5px;
-    width: 15%; height: 40px;
+    width: 7em; height: 60px;
 }
+
+.
 
 .error_message {
     color: #ff0000;
@@ -14,33 +16,29 @@
 .par-2 {
     background-color: #0066ff;
 }
-
 .par-1 {
     background-color: #00ff00;
 }
-
 .par0 {
     background-color: #009933;
 }
-
 .par1 {
     background-color: #ffff00;
 }
-
 .par2 {
     background-color: #ff9933;
 }
-
 .par3 {
     background-color: #ff0000;
 }
-
 .par4 {
     background-color: #cc0099;
 }
-
 .par5 {
-    background-color: #ff33cc;
+    background-color: #ff99bb;
+}
+.par6 {
+    background-color: #000000;
 }
 
 

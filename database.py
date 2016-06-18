@@ -229,6 +229,9 @@ class Database(object):
         self._commit()
         cursor.close()
 
+    def delete_players_game(course_id, player, game_date, game_of_day):
+        pass
+
 
     def end_game(self, course_id):
         query = ("UPDATE players SET active=NULL WHERE active=%s")
