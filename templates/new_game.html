@@ -7,8 +7,13 @@
   <form method="post">
     <label class="game_input" for="course">Radan nimi</label>
     <select name="course">
+      <option value="">---</option>
       {% for course in courses %}
-      <option value="{{course[2]}}">{{course[0]}} - {{course[1]}}</option>
+        {% if course[2] == chosen_course %}
+          <option value="{{course[2]}}" selected>{{course[0]}} - {{course[1]}}</option>
+        {% else %}
+          <option value="{{course[2]}}">{{course[0]}} - {{course[1]}}</option>
+        {% end %}
       {% end %}
     </select>
     <br>
@@ -16,10 +21,15 @@
     <label for="player">Pelaajat</label>
     <div>
       {% for player in players %}
-      <input class="player_cb" type="checkbox" name="player" value="{{player[0]}}"> {{player[0]}}<br>
+        {% if player[0] in chosen_players %}
+          <input class="player_cb" type="checkbox" name="player" value="{{player[0]}}" checked>
+        {% else %}
+          <input class="player_cb" type="checkbox" name="player" value="{{player[0]}}">
+        {% end %}
+        {{player[0]}}<br>
       {% end %}
     </div>
 
-    <input type="submit" value="Aloita" method="POST">
+    <input class="game_input" type="submit" value="Aloita" method="POST">
   </form>
 {% end %}

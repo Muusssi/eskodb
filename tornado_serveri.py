@@ -92,20 +92,33 @@ class NewGameHandler(BaseHandler):
                 message="",
                 players=self.db.get_players(),
                 courses=self.db.get_courses(),
+                chosen_players=[],
+                chosen_course=None,
             )
 
     def post(self):
         players = self.get_arguments("player")
         course_id = self.get_argument("course")
-        if players:
-            self.db.activate_players(players, course_id)
-            self.redirect("/game/%s/" % (course_id, ))
-        else:
+        if not players:
             self.render("new_game.html",
                     message="Pelaajia on valittava",
                     players=self.db.get_players(),
                     courses=self.db.get_courses(),
+                    chosen_players=players,
+                    chosen_course=course_id,
                 )
+        elif not course_id:
+            self.render("new_game.html",
+                    message="Rata on valittava",
+                    players=self.db.get_players(),
+                    courses=self.db.get_courses(),
+                    chosen_players=players,
+                    chosen_course=course_id,
+                )
+        else:
+            self.db.activate_players(players, course_id)
+            self.redirect("/game/%s/" % (course_id, ))
+
 
 class GameHandler(BaseHandler):
     def get(self, course_id):
