@@ -184,7 +184,7 @@ class Database(object):
                  "FROM "
                  "(SELECT sum(throws) as res, player, game_date, game_of_day, course "
                  "FROM results WHERE game_date>(date 'today' -14) AND player<>'par' "
-                 "GROUP BY player, game_date, game_of_day, course) as latest"
+                 "GROUP BY player, game_date, game_of_day, course) as latest "
                  "JOIN (SELECT sum(throws) as par, course "
                  "FROM results "
                  "WHERE player='par' "
