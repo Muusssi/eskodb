@@ -60,6 +60,30 @@
     <a href="/course/new/" class="dropbtn">Uusi rata</a>
   </div>
 
+  <table>
+    <tr>
+      <th colspan="6">Viimeisimmät pelit</th>
+    </tr>
+    <tr>
+      <th>päivämäärä</th>
+      <th>#</th>
+      <th>rata</th>
+      <th>pelaaja</th>
+      <th>tulos</th>
+      <th>par</th>
+    </tr>
+    {% for game_date, game_of_day, course_name, player, res, par in latest %}
+      <tr>
+        <td>{{game_date}}</td>
+        <td>{{game_of_day}}</td>
+        <td>{{course_name}}</td>
+        <td>{{player}}</td>
+        <td>{{res}}</td>
+        <td>{{par}}</td>
+      </tr>
+    {% end %}
+  </table>
+
 
 
 {% end %}

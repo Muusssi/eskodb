@@ -49,7 +49,8 @@ class MainPageHandler(BaseHandler):
         self.render("mainpage.html",
                 players=self.db.get_players(),
                 courses=self.db.get_courses(),
-                actives= self.db.get_courses(True),
+                actives=self.db.get_courses(True),
+                latest=self.db.get_latest_games(),
             )
 
 class CourseHandler(BaseHandler):

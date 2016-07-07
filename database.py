@@ -178,6 +178,29 @@ class Database(object):
         cursor.close()
         return results
 
+    def get_latest_games(self):
+        query = ("SELECT latest.game_date, latest.game_of_day, co.name, latest.player, "
+                 "latest.res, (latest.res-pars.par) as par "
+                 "FROM "
+                 "(SELECT sum(throws) as res, player, game_date, game_of_day, course "
+                 "FROM results WHERE game_date>(date 'today' -14) AND player<>'par' "
+                 "GROUP BY player, game_date, game_of_day, course) as latest"
+                 "JOIN (SELECT sum(throws) as par, course "
+                 "FROM results "
+                 "WHERE player='par' "
+                 "GROUP BY course) as pars "
+                 "ON pars.course=latest.course "
+                 "JOIN "
+                 "(SELECT name, id "
+                 "FROM courses) as co "
+                 "ON pars.course=co.id "
+                 "ORDER BY latest.game_date DESC, latest.game_of_day DESC, co.name, latest.player;")
+        cursor = self._cursor()
+        cursor.execute(query)
+        results = cursor.fetchall()
+        cursor.close()
+        return results
+
     def _check_game_of_day(self, course_id, game_date=None):
         cursor = self._cursor()
         if not game_date:
