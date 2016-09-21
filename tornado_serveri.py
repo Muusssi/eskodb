@@ -19,7 +19,8 @@ class Application(tornado.web.Application):
                 (r"/data/(?P<course_id>[^\/]+)/", ResultsHandler),
                 (r"/course/new/", NewCourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/", CourseHandler),
-                #(r"/course/(?P<course_id>[^\/]+)/statistics/", CourseStatisticsHandler),
+                (r"/hole_statistics/(?P<course_id>[^\/]+)/(?P<hole>[^\/]+)/", HoleStatisticsHandler),
+                (r"/hole_statistics/(?P<course_id>[^\/]+)/(?P<hole>[^\/]+)/data/", HoleDataHandler),
                 (r"/player/new/", NewPlayerHandler),
                 (r"/game/new/", NewGameHandler),
                 (r"/game/end/(?P<course_id>[^\/]+)/", EndGameHandler),
@@ -185,8 +186,18 @@ class RestartHandler(BaseHandler):
         self.db.reconnect()
         self.redirect("/")
 
-class CourseStatisticsHandler(BaseHandler):
-    pass
+class HoleStatisticsHandler(BaseHandler):
+    def get(self, course_id, hole):
+        self.render("hole_statistics.html",
+                course=self.db.get_course(course_id),
+                hole=hole,
+            )
+
+class HoleDataHandler(BaseHandler):
+    def post(self, course_id, hole):
+        self.write(self.db.get_hole_statistics(course_id, hole))
+
+    get = post
 
 
 if __name__ == "__main__":

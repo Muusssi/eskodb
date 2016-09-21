@@ -98,6 +98,20 @@ class Database(object):
             cursor.close()
             return True
 
+    def get_hole_statistics(self, course, hole):
+        query = ("SELECT throws, player, game_date, game_of_day "
+                "FROM results "
+                "WHERE course=%s AND hole=%s AND player<>'par' "
+                "AND player not like 'Target%s'") % (course, hole, '%')
+        cursor = self._cursor()
+        cursor.execute(query)
+        results = []
+        for throws, player, game_date, game_of_day in cursor.fetchall():
+            results.append(["%s: %s #%s" % (player, game_date, game_of_day), throws])
+        cursor.close()
+        return {'rows': results}
+
+
     def get_results(self, course_id, in_play=False):
         cursor = self._cursor()
         results = {}
@@ -164,11 +178,11 @@ class Database(object):
                     res_rows[index][0] = game
                     res_rows[index][1] = p
                     res_rows[index][holes+2] = 0
-                if b>0:
+                if b > 0:
                     penalty = ''
                     for k in range(b):
                         penalty += '*'
-                    res_rows[index][1+h] = {'v':t, 'f':str(t)+penalty }
+                    res_rows[index][1+h] = {'v':t, 'f':str(t)+penalty}
                 else:
                     res_rows[index][1+h] = t
                 res_rows[index][holes+2] += t
@@ -247,8 +261,8 @@ class Database(object):
             game_of_day = self._check_game_of_day(course_id, game_date)
             for i in range(0, len(players)):
                 cursor.execute(query, (course_id, players[i], hole, throws[i],
-                        penalties[i], game_date, game_of_day, True)
-                    )
+                                       penalties[i], game_date, game_of_day, True)
+                              )
         self._commit()
         cursor.close()
 
@@ -269,7 +283,7 @@ class Database(object):
 
 
 if __name__ == '__main__':
-    db = Database("kopsupullo")
-    print db.get_results(5)
-    db._close_connection()
+    DB = Database("kopsupullo")
+    print DB.get_results(5)
+    DB._close_connection()
 
