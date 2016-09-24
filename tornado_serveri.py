@@ -93,7 +93,7 @@ class NewGameHandler(BaseHandler):
         self.render("new_game.html",
                 message="",
                 players=self.db.get_players(),
-                courses=self.db.get_courses(),
+                courses=self.db.get_current_courses(),
                 chosen_players=[],
                 chosen_course=None,
             )
@@ -105,7 +105,7 @@ class NewGameHandler(BaseHandler):
             self.render("new_game.html",
                     message="Pelaajia on valittava",
                     players=self.db.get_players(),
-                    courses=self.db.get_courses(),
+                    courses=self.db.get_current_courses(),
                     chosen_players=players,
                     chosen_course=course_id,
                 )
@@ -113,7 +113,7 @@ class NewGameHandler(BaseHandler):
             self.render("new_game.html",
                     message="Rata on valittava",
                     players=self.db.get_players(),
-                    courses=self.db.get_courses(),
+                    courses=self.db.get_current_courses(),
                     chosen_players=players,
                     chosen_course=course_id,
                 )

@@ -48,6 +48,13 @@ class Database(object):
         self._commit()
         cursor.close()
 
+    def get_current_courses(self):
+        query = ("SELECT name, holes, max(id) FROM courses GROUP BY name, holes ORDER BY name, holes;")
+        cursor = self._cursor()
+        cursor.execute(query)
+        res = cursor.fetchall()
+        cursor.close()
+        return res
 
     def get_courses(self, in_play=False):
         if in_play:
