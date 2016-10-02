@@ -2,13 +2,55 @@
   <head>
     <title>Esko - {% block title_block %}{% end %}</title>
     <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
     <meta charset="UTF-8">
     {% block head %}{% end %}
   </head>
 
   <body>
-    <h2><a href="/">Esko</a></h2>
-    {% block body %}{% end %}
+
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="/">Esko tulos palvelu</a>
+        </div>
+
+        <ul class="nav navbar-nav">
+          <li>
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Tulokset
+            <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              {% for list_course in courses_list %}
+                <li><a href="/course/{{list_course[2]}}/">{{list_course[0]}} {{list_course[1]}}</a></li>
+              {% end %}
+            </ul>
+          </li>
+          {% if 'actives' in globals() and actives %}
+            <li>
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">Aktiiviset
+              <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+
+                {% for active in actives %}
+                  <li><a href="/game/{{active[2]}}/">{{active[0]}} {{active[1]}}</a></li>
+                {% end %}
+              </ul>
+            </li>
+          {% end %}
+          <li><a href="/game/new/">Uusi peli</a></li>
+          <li><a href="/player/new/">Uusi pelaaja</a></li>
+          <li><a href="/course/new/">Uusi rata</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <dir id="page_body">
+      {% block body %}{% end %}
+    </dir>
+
 
   </body>
 </html>

@@ -27,7 +27,6 @@ class Application(tornado.web.Application):
                 (r"/game/(?P<course_id>[^\/]+)/", GameHandler),
                 (r"/game/data/(?P<course_id>[^\/]+)/", GameResultsHandler),
                 (r"/full/(?P<course_id>[^\/]+)/", FullGameHandler),
-
             ]
 
         settings = dict(
@@ -49,7 +48,7 @@ class MainPageHandler(BaseHandler):
     def get(self):
         self.render("mainpage.html",
                 players=self.db.get_players(),
-                courses=self.db.get_courses(),
+                courses_list=self.db.get_courses(),
                 actives=self.db.get_courses(True),
                 latest=self.db.get_latest_games(),
             )
@@ -58,12 +57,16 @@ class CourseHandler(BaseHandler):
     def get(self, course_id):
         self.render("course.html",
                 course=self.db.get_course(course_id),
+                courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
             )
 
 class NewCourseHandler(BaseHandler):
     def get(self):
         self.render("new_course.html",
                 message="",
+                courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
             )
 
     def post(self):
@@ -72,12 +75,16 @@ class NewCourseHandler(BaseHandler):
         else:
             self.render("new_course.html",
                 message="Rata on jo tietokannassa!",
+                courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
             )
 
 class NewPlayerHandler(BaseHandler):
     def get(self):
         self.render("new_player.html",
                 message="",
+                courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
             )
 
     def post(self):
@@ -86,6 +93,8 @@ class NewPlayerHandler(BaseHandler):
         else:
             self.render("new_player.html",
                 message="Pelaaja on jo tietokannassa!",
+                courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
             )
 
 class NewGameHandler(BaseHandler):
@@ -96,6 +105,8 @@ class NewGameHandler(BaseHandler):
                 courses=self.db.get_current_courses(),
                 chosen_players=[],
                 chosen_course=None,
+                courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
             )
 
     def post(self):
@@ -108,6 +119,8 @@ class NewGameHandler(BaseHandler):
                     courses=self.db.get_current_courses(),
                     chosen_players=players,
                     chosen_course=course_id,
+                    courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
                 )
         elif not course_id:
             self.render("new_game.html",
@@ -116,6 +129,8 @@ class NewGameHandler(BaseHandler):
                     courses=self.db.get_current_courses(),
                     chosen_players=players,
                     chosen_course=course_id,
+                    courses_list=self.db.get_courses(),
+                    actives=self.db.get_courses(True),
                 )
         else:
             self.db.activate_players(players, course_id)
@@ -128,6 +143,8 @@ class GameHandler(BaseHandler):
                 players=self.db.get_players(course_id),
                 course=self.db.get_course(course_id),
                 current_hole=self.db.check_curent_hole(course_id),
+                courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
             )
 
     def post(self, course_id):
@@ -144,6 +161,8 @@ class FullGameHandler(BaseHandler):
         self.render("full_game.html",
                 players=self.db.get_players(),
                 course=self.db.get_course(course_id),
+                courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
             )
 
     def post(self, course_id):
@@ -191,6 +210,8 @@ class HoleStatisticsHandler(BaseHandler):
         self.render("hole_statistics.html",
                 course=self.db.get_course(course_id),
                 hole=hole,
+                courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
             )
 
 class HoleDataHandler(BaseHandler):

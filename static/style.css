@@ -81,3 +81,19 @@
 #histo_div {
     height: 100%;
 }
+
+#table_div {
+    margin-top: 2em;
+}
+
+#page_body {
+    margin-left: 1%;
+}
+
+#recent_results_table th,
+#recent_results_table td {
+    padding: 5px;
+}
+
+
+

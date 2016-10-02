@@ -27,42 +27,9 @@
   <H1>Eskon tulospalvelu</H1>
   <!-- <img id="logo" src="http://maunula.net/2005/luonto/palokarki.jpg"> -->
 
-
-  <div class="dropdown">
-    <button onclick="toggleDropDown('results_Dropdown')" class="dropbtn">Tulokset</button>
-    <div id="results_Dropdown" class="dropdown-content">
-      {% for course in courses %}
-        <a href="/course/{{course[2]}}/">{{course[0]}} {{course[1]}}</a>
-      {% end %}
-    </div>
-  </div>
-
-  {% if actives %}
-  <div class="dropdown">
-    <button onclick="toggleDropDown('active_Dropdown')" class="dropbtn">Aktiiviset</button>
-    <div id="active_Dropdown" class="dropdown-content">
-      {% for active in actives %}
-        <a href="/game/{{active[2]}}/">{{active[0]}} {{active[1]}}</a>
-      {% end %}
-    </div>
-  </div>
-  {% end %}
-
-  <div class="dropdown">
-    <a href="/game/new/" class="dropbtn">Uusi peli</a>
-  </div>
-
-  <div class="dropdown">
-    <a href="/player/new/" class="dropbtn">Uusi pelaaja</a>
-  </div>
-
-  <div class="dropdown">
-    <a href="/course/new/" class="dropbtn">Uusi rata</a>
-  </div>
-
-  <table>
+  <table id="recent_results_table">
     <tr>
-      <th colspan="6">Viimeisimmät pelit</th>
+      <th colspan="6">Viimeisimmät pelit:</th>
     </tr>
     <tr>
       <th>päivämäärä</th>

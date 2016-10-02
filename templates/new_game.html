@@ -5,8 +5,8 @@
 {% block body %}
   <p class="error_message">{{message}}</p>
   <form method="post">
-    <label class="game_input" for="course">Radan nimi</label>
-    <select name="course">
+    <label for="coure_select">Rata: </label>
+    <select id="coure_select" class="game_input" name="course">
       <option value="">---</option>
       {% for course in courses %}
         {% if course[2] == chosen_course %}
@@ -22,11 +22,11 @@
     <div>
       {% for player in players %}
         {% if player[0] in chosen_players %}
-          <input class="player_cb" type="checkbox" name="player" value="{{player[0]}}" checked>
+          <input id="{{player[0]}}_cb" class="player_cb" type="checkbox" name="player" value="{{player[0]}}" checked>
         {% else %}
-          <input class="player_cb" type="checkbox" name="player" value="{{player[0]}}">
+          <input id="{{player[0]}}_cb" class="player_cb" type="checkbox" name="player" value="{{player[0]}}">
         {% end %}
-        {{player[0]}}<br>
+        <label for="{{player[0]}}_cb">{{player[0]}}</label><br>
       {% end %}
     </div>
 

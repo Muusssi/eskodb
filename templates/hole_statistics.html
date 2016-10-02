@@ -45,7 +45,6 @@
           // },
            histogram: {
             bucketSize: 1,
-            //maxNumBuckets: 200,
             minValue: 1,
             maxValue: 8
           }
@@ -59,7 +58,18 @@
 {% end %}
 
 {% block body %}
-  <h1>{{ course[0] }}</h1>
+  <h1>{{ course[0] }} väylä {{hole}}
+    {% if int(hole) > 1 %}
+      <a class="btn btn-info" href="/hole_statistics/{{course[2]}}/{{int(hole)-1}}/">Edellinen väylä</a>
+    {% else %}
+      <a class="btn btn-info disabled" href="/hole_statistics/{{course[2]}}/{{int(hole)-1}}/">Edellinen väylä ei</a>
+    {% end %}
+    {% if int(hole) < course[1] %}
+      <a class="btn btn-info" href="/hole_statistics/{{course[2]}}/{{int(hole)+1}}/">Seuraava väylä</a>
+    {% else %}
+      <a class="btn btn-info disabled" href="/hole_statistics/{{course[2]}}/{{int(hole)+1}}/" >Seuraava väylä ei</a>
+    {% end %}
+  </h1>
   <p id="loading_message"></p>
   <div id="histo_div"></div>
 {% end %}

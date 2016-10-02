@@ -12,22 +12,17 @@
     var dataTable = null;
 
     function publish() {
-      if (current_hole<{{course[1]}}) {
-        current_hole++;
-        document.getElementById("current_hole_input").value = current_hole;
-        document.getElementById("current_hole_p").innerHTML = current_hole;
-      }
-      update_inputs();
       $.ajax({
         type: "POST",
         url: "/game/{{course[2]}}/",
         data: $("#results_form").serialize(),
+        success: move_to_next,
         error: function(x, t, m) {
           document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
         }
       });
       drawTables();
-      update_inputs();
+
     }
 
     function end_game() {
@@ -220,7 +215,8 @@
     <br>
     <br>
 
-  <button class="game_input" onclick="end_game();" >Lopeta</button>
+  <button class="game_input" onclick="end_game();" >Lopeta peli</button>
+  <!-- <a href="/game/end/{{course[2]}}/">End game</a> -->
 
 {% end %}
 
