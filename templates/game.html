@@ -52,7 +52,7 @@
     function update_inputs() {
       if (dataTable != null) {
         if (dataTable.getNumberOfRows()>1 && dataTable.getValue(1,current_hole) != null) {
-          console.log("case 1");
+          // console.log("case 1");
           for (var row=1; row<dataTable.getNumberOfRows(); row++) {
             var player = dataTable.getValue(row,0);
             document.getElementById("throws_"+player).value = dataTable.getValue(row,current_hole);
@@ -60,7 +60,7 @@
           }
         }
         else if (dataTable.getValue(0,current_hole) != null) {
-          console.log("case 2");
+          // console.log("case 2");
           var throw_inputs = document.getElementsByClassName("throws_input");
           var penalty_inputs = document.getElementsByClassName("penalty_input");
           var par = dataTable.getValue(0, current_hole).toString();
@@ -70,7 +70,7 @@
           }
         }
         else {
-          console.log("case 3");
+          // console.log("case 3");
           var throw_inputs = document.getElementsByClassName("throws_input");
           var penalty_inputs = document.getElementsByClassName("penalty_input");
           for (var i=0; i<throw_inputs.length; i++) {
@@ -106,27 +106,6 @@
         dataTable.setProperty(0, 1, "className", "ParCell");
         dataTable.addColumn('number', '+');
 
-        // Set par coloring
-        if (dataTable.getValue(0, 2) != null) {
-          for (var row=1; row<dataTable.getNumberOfRows(); row++) {
-            var diff_sum = 0;
-            var par;
-            var result;
-            for (var col=1; col<dataTable.getNumberOfColumns()-2; col++) {
-              par = dataTable.getValue(0, col);
-              result = dataTable.getValue(row, col);
-              if (result) {
-                var diff = result-par;
-                dataTable.setProperty(row, col, "className", "par"+diff);
-                diff_sum = diff_sum+diff;
-              }
-
-            }
-            console.log(diff_sum);
-            dataTable.setCell(row, dataTable.getNumberOfColumns()-1, diff_sum);
-          }
-        }
-
         document.getElementById("loading_message").innerHTML = ""
 
         // Set chart options
@@ -135,7 +114,7 @@
         var options = {
           showRowNumber: false,
           width: '100%',
-          //height: '100%',
+          allowHtml: true,
         }
 
         //sorting event
@@ -146,6 +125,22 @@
           }
           resetStyling('table_div');
         });
+
+        // Set coloring formatters
+        for (var col=1; col<dataTable.getNumberOfColumns()-2; col++) {
+          par = dataTable.getValue(0, col);
+          var formatter = new google.visualization.ColorFormat();
+          formatter.addRange(par-2, par-1, 'black', '#0066ff');
+          formatter.addRange(par-1, par, 'black', '#00ff00');
+          formatter.addRange(par, par+1, 'black', '#009933');
+          formatter.addRange(par+1, par+2, 'black', '#ffff00');
+          formatter.addRange(par+2, par+3, 'black', '#ff9933');
+          formatter.addRange(par+3, par+4, 'black', '#ff0000');
+          formatter.addRange(par+4, par+5, 'black', '#cc0099');
+          formatter.addRange(par+5, par+6, 'black', '#ff99bb');
+          formatter.addRange(par+6, par+7, 'black', 'black');
+          formatter.format(dataTable, col);
+        }
 
         table.draw(dataTable, options);
       }
@@ -216,7 +211,6 @@
     <br>
 
   <button class="game_input" onclick="end_game();" >Lopeta peli</button>
-  <!-- <a href="/game/end/{{course[2]}}/">End game</a> -->
 
 {% end %}
 
