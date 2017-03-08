@@ -55,11 +55,19 @@ class MainPageHandler(BaseHandler):
 
 class CourseHandler(BaseHandler):
     def get(self, course_id):
+        course, holes, _ = self.db.get_course(int(course_id))
+        (pars, par_sum), rows = self.db.get_results2(int(course_id))
         self.render("course.html",
-                course=self.db.get_course(course_id),
+                course_id=course_id,
+                course=course,
+                holes=holes,
+                pars=pars,
+                par_sum=par_sum,
+                results=rows,
                 courses_list=self.db.get_courses(),
                 actives=self.db.get_courses(True),
             )
+
 
 class NewCourseHandler(BaseHandler):
     def get(self):

@@ -7,6 +7,14 @@
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <script type="text/javascript">
 
+  $(document).on('keyup keypress', function(e) {
+    var keyCode = e.keyCode || e.which;
+    if (keyCode === 13) {
+      e.preventDefault();
+      return false;
+    }
+  });
+
   $(function() {
     $( "#datepicker" ).datepicker({
       dateFormat: 'yy-mm-dd',
