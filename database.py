@@ -246,7 +246,7 @@ class Database(object):
             else:
                 row.append((t, b, t-3))
             row_sum += t
-
+        res_rows.append((current_game, current_player, row, row_sum, row_sum-par_sum))
         cursor.close()
         return pars, reversed(res_rows)
 
