@@ -59,6 +59,7 @@ class CourseHandler(BaseHandler):
         (pars, par_sum), rows = self.db.get_results2(int(course_id))
         self.render("course.html",
                 course_id=course_id,
+                players=self.db.get_players(),
                 course=course,
                 holes=holes,
                 pars=pars,

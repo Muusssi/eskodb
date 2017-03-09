@@ -6,6 +6,8 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script src={{static_url("sorttable.js")}}></script>
   <script type="text/javascript">
+    var holes = {{holes}};
+
     window.onload = function() {
       var table_head = document.getElementById('result_head');
       var row = table_head.insertRow(1);
@@ -16,7 +18,47 @@
         row.insertCell(2).outerHTML = "<th>{{par}}</th>";
       {% end %}
 
+      filter();
+
     }
+
+
+    function filter() {
+      var date_filter = document.getElementById("date_filter").value;
+      var player_filter = document.getElementById("player_filter").value.toLowerCase();
+      var table = document.getElementById("tbody");
+      var Nrows = 0;
+      var sums = Array.apply(null, Array(holes)).map(Number.prototype.valueOf,0);
+      var mins = Array.apply(null, Array(holes)).map(Number.prototype.valueOf,1000);
+      for (var i = 0; i < table.rows.length; i++) {
+        if (table.rows[i].cells[0].innerHTML.replace(/\s+/g, '').toLowerCase().indexOf(date_filter) == 0 &&
+            table.rows[i].cells[1].innerHTML.replace(/\s+/g, '').toLowerCase().indexOf(player_filter) == 0) {
+          table.rows[i].hidden = false;
+          for (var hole = 1; hole <= holes; hole++) {
+            var throws = parseInt(table.rows[i].cells[hole+1].innerHTML);
+            sums[hole-1] += throws;
+            mins[hole-1] = Math.min(mins[hole-1], throws);
+          }
+          Nrows++;
+        }
+        else {
+          table.rows[i].hidden = true;
+        }
+      }
+
+      var avg_row = document.getElementById("avg_row");
+      var min_row = document.getElementById("min_row");
+      var avg_sum = 0;
+      for (var hole = 1; hole <= holes; hole++) {
+        min_row.cells[hole+1].innerHTML = mins[hole-1];
+        avg_row.cells[hole+1].innerHTML = (sums[hole-1]/Nrows).toFixed(2);
+        avg_sum += sums[hole-1]/Nrows;
+      }
+      min_row.cells[holes+2].innerHTML = mins.reduce(function(a, b) { return a + b; }, 0).toFixed(2);
+      avg_row.cells[holes+2].innerHTML = avg_sum;
+    }
+
+
 
 
   </script>
@@ -30,6 +72,16 @@
 
   <p id="loading_message"></p>
   <div id="table_div">
+  <label for="date_filter">Filter date:</label>
+  <input type="text" id="date_filter" oninput="filter();">
+  <label for="player_filter">Filter player:</label>
+  <input type="text" id="player_filter" oninput="filter();" list="players">
+  <datalist id="players">
+    {% for (player, ) in players %}
+      <option value="{{player}}">
+    {% end %}
+  </datalist>
+
     <table id="foo_tabel" class="sortable table table-striped table-bordered table-condensed table-hover">
       <thead id="result_head">
         <tr>
@@ -43,22 +95,39 @@
         </tr>
 
       </thead>
-      <tbody>
+      <tbody id="tbody">
 
       {% for game, player, row, sum, sum_par in results %}
         <tr>
           <td>{{game}}</td>
           <td>{{player}}</td>
           {% for throws, penalty, dif in row %}
-              <td class="par{{dif}}">{{str(throws)+ '*'*penalty}}</td>
+              <td class="par{{dif}}" value="{{throws}}">{{str(throws)+ '*'*penalty}}</td>
           {% end %}
           <td>{{sum}}</td>
           <td>{{sum_par}}</td>
         </tr>
       {% end %}
       </tbody>
-      <tfoot>
-
+      <tfoot id="footer">
+        <tr id="min_row">
+          <td></td>
+          <td>Min:</td>
+          {% for _ in range(1, holes+1) %}
+            <th></th>
+          {% end %}
+          <th></th>
+          <th></th>
+        </tr>
+        <tr id="avg_row">
+          <td></td>
+          <td>Avg:</td>
+          {% for _ in range(1, holes+1) %}
+            <th></th>
+          {% end %}
+          <th></th>
+          <th></th>
+        </tr>
       </tfoot>
     </table>
 
