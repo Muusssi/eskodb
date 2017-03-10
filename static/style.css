@@ -48,6 +48,11 @@
     background-color: #000000;
 }
 
+tbody#tbody td {
+    border: 1px solid black;
+    /*background-color: #000000;*/
+}
+
 .show {display:block;}
 
 #histo_div {

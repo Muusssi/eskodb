@@ -8,6 +8,9 @@
   <script type="text/javascript">
     var holes = {{holes}};
 
+    var pars = [];
+    var course_par = null;
+
     window.onload = function() {
       var table_head = document.getElementById('result_head');
       var row = table_head.insertRow(1);
@@ -15,11 +18,38 @@
       row.insertCell(1).outerHTML = "<th>par</th>";
       row.insertCell(2).outerHTML = "<th>{{par_sum}}</th>";
       {% for par in reversed(pars) %}
+        pars.push({{par}});
         row.insertCell(2).outerHTML = "<th>{{par}}</th>";
       {% end %}
+      course_par = pars.reduce(function(a, b) { return a + b; }, 0);
+      pars.reverse();
 
       filter();
 
+    }
+
+    function mode(array) {
+      //array.sort();
+      console.log(array);
+      if(array.length == 0)
+          return null;
+      var modeMap = {};
+      var maxEl = array[0], maxCount = 1;
+      for(var i = 0; i < array.length; i++) {
+        var el = array[i];
+        if(modeMap[el] == null)
+            modeMap[el] = 1;
+        else
+            modeMap[el]++;
+
+        if(modeMap[el] > maxCount || (modeMap[el] >= maxCount && el > maxEl)) {
+            console.log(el);
+            maxEl = el;
+            maxCount = modeMap[el];
+        }
+      }
+      console.log(maxEl);
+      return maxEl;
     }
 
 
@@ -28,16 +58,33 @@
       var player_filter = document.getElementById("player_filter").value.toLowerCase();
       var table = document.getElementById("tbody");
       var Nrows = 0;
-      var sums = Array.apply(null, Array(holes)).map(Number.prototype.valueOf,0);
-      var mins = Array.apply(null, Array(holes)).map(Number.prototype.valueOf,1000);
+      var filtered_rows = [];
+      var exact_matchin = true;
+      if (player_filter.endsWith(" ")) {
+        exact_matchin = false;
+        player_filter = player_filter.substring(0,player_filter.length-1);
+      }
+
+      // Filter
       for (var i = 0; i < table.rows.length; i++) {
-        if (table.rows[i].cells[0].innerHTML.replace(/\s+/g, '').toLowerCase().indexOf(date_filter) == 0 &&
-            table.rows[i].cells[1].innerHTML.replace(/\s+/g, '').toLowerCase().indexOf(player_filter) == 0) {
+        if (exact_matchin) {
+          var not_filtered = (
+            (table.rows[i].cells[0].innerHTML.replace(/\s+/g, '').toLowerCase().indexOf(date_filter) == 0 || date_filter == "") &&
+            (table.rows[i].cells[1].innerHTML.toLowerCase() == player_filter || player_filter == ""));
+        }
+        else {
+          var not_filtered = (
+            (table.rows[i].cells[0].innerHTML.replace(/\s+/g, '').toLowerCase().indexOf(date_filter) == 0 || date_filter == "") &&
+            (table.rows[i].cells[1].innerHTML.toLowerCase().indexOf(player_filter) == 0 || player_filter == ""));
+        }
+        if (not_filtered){
           table.rows[i].hidden = false;
           for (var hole = 1; hole <= holes; hole++) {
+            if (filtered_rows[hole-1] == null) {
+              filtered_rows[hole-1] = [];
+            }
             var throws = parseInt(table.rows[i].cells[hole+1].innerHTML);
-            sums[hole-1] += throws;
-            mins[hole-1] = Math.min(mins[hole-1], throws);
+            filtered_rows[hole-1].push(throws);
           }
           Nrows++;
         }
@@ -48,14 +95,30 @@
 
       var avg_row = document.getElementById("avg_row");
       var min_row = document.getElementById("min_row");
+      var mode_row = document.getElementById("mode_row");
       var avg_sum = 0;
+      var mode_sum = 0;
+      var min_sum = 0;
       for (var hole = 1; hole <= holes; hole++) {
-        min_row.cells[hole+1].innerHTML = mins[hole-1];
-        avg_row.cells[hole+1].innerHTML = (sums[hole-1]/Nrows).toFixed(2);
-        avg_sum += sums[hole-1]/Nrows;
+        var avg = filtered_rows[hole-1].reduce(function(a, b) { return a + b; }, 0).toFixed(2);
+        avg_row.cells[hole+1].innerHTML = (avg/Nrows).toFixed(2);
+        avg_row.cells[hole+1].className = "par"+(Math.round(avg/Nrows)-pars[hole-1]);
+        avg_sum += avg/Nrows;
+        var mod = mode(filtered_rows[hole-1]);
+        mode_row.cells[hole+1].innerHTML = mod;
+        mode_row.cells[hole+1].className = "par"+(mod-pars[hole-1]);
+        mode_sum += mod;
+        var min = Math.min(...filtered_rows[hole-1]);
+        min_row.cells[hole+1].innerHTML = min;
+        min_row.cells[hole+1].className = "par"+(min-pars[hole-1]);
+        min_sum += min;
       }
-      min_row.cells[holes+2].innerHTML = mins.reduce(function(a, b) { return a + b; }, 0).toFixed(2);
-      avg_row.cells[holes+2].innerHTML = avg_sum;
+      min_row.cells[holes+2].innerHTML = min_sum;
+      min_row.cells[holes+3].innerHTML = min_sum - course_par;
+      avg_row.cells[holes+2].innerHTML = avg_sum.toFixed(2);
+      avg_row.cells[holes+3].innerHTML = (avg_sum - course_par).toFixed(2);
+      mode_row.cells[holes+2].innerHTML = mode_sum;
+      mode_row.cells[holes+3].innerHTML = mode_sum - course_par;
     }
 
 
@@ -108,11 +171,21 @@
           <td>{{sum_par}}</td>
         </tr>
       {% end %}
+
       </tbody>
       <tfoot id="footer">
         <tr id="min_row">
           <td></td>
           <td>Min:</td>
+          {% for _ in range(1, holes+1) %}
+            <th></th>
+          {% end %}
+          <th></th>
+          <th></th>
+        </tr>
+        <tr id="mode_row">
+          <td></td>
+          <td>Mode:</td>
           {% for _ in range(1, holes+1) %}
             <th></th>
           {% end %}
