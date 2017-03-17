@@ -39,14 +39,22 @@
       <th>tulos</th>
       <th>par</th>
     </tr>
-    {% for game_date, game_of_day, course_name, player, res, par in latest %}
+    {% for game_date, game_of_day, course_name, course_id, player, res, par in latest %}
       <tr>
         <td>{{game_date}}</td>
         <td>{{game_of_day}}</td>
         <td>{{course_name}}</td>
         <td>{{player}}</td>
-        <td>{{res}}</td>
-        <td>{{par}}</td>
+        {% if bests[course_id] == res %}
+          <td class="esko_best" title="Esko best">{{res}}</td>
+          <td class="esko_best" title="Esko best">{{par}}</td>
+        {% elif bests[(course_id, player)] == res %}
+          <td class="personal_best" title="Personal best">{{res}}</td>
+          <td class="personal_best" title="Personal best">{{par}}</td>
+        {% else %}
+          <td>{{res}}</td>
+          <td>{{par}}</td>
+        {% end %}
       </tr>
     {% end %}
   </table>

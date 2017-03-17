@@ -51,6 +51,7 @@ class MainPageHandler(BaseHandler):
                 courses_list=self.db.get_courses(),
                 actives=self.db.get_courses(True),
                 latest=self.db.get_latest_games(),
+                bests=self.db.get_course_bests(),
             )
 
 class CourseHandler(BaseHandler):

@@ -1,5 +1,6 @@
 import psycopg2
 import datetime
+from collections import defaultdict
 
 GAME_TEMPLATE = "%s #%s"
 
@@ -251,7 +252,7 @@ class Database(object):
         return pars, reversed(res_rows)
 
     def get_latest_games(self):
-        query = ("SELECT latest.game_date, latest.game_of_day, co.name, latest.player, "
+        query = ("SELECT latest.game_date, latest.game_of_day, co.name, co.id, latest.player, "
                  "latest.res, (latest.res-pars.par) as par "
                  "FROM "
                  "(SELECT sum(throws) as res, player, game_date, game_of_day, course "
@@ -272,6 +273,26 @@ class Database(object):
         results = cursor.fetchall()
         cursor.close()
         return results
+
+    def get_course_bests(self):
+        query = ("SELECT totals.course, totals.player, min(totals.res) as best "
+                "FROM ( "
+                "SELECT course, player, game_date, game_of_day, sum(throws) as res "
+                "FROM results "
+                "GROUP BY course, player, game_date, game_of_day "
+                "ORDER BY course, player, res DESC "
+                ") as totals "
+                "GROUP BY course, player "
+                "ORDER BY course, player;")
+        cursor = self._cursor()
+        cursor.execute(query)
+        bests = defaultdict(lambda : None)
+        for course, player, best in cursor.fetchall():
+            bests[(course, player)] = best
+            if bests[course] == None or bests[course] > best:
+                bests[course] = best
+        cursor.close()
+        return bests
 
     def _check_game_of_day(self, course_id, game_date=None):
         cursor = self._cursor()
