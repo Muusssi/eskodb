@@ -4,6 +4,7 @@ import tornado.httpserver
 import os
 import database as db
 import sys
+from datetime import date
 
 APP_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIRECTORY = os.path.abspath(os.path.join(APP_DIRECTORY, 'static'))
@@ -47,6 +48,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainPageHandler(BaseHandler):
     def get(self):
         self.render("mainpage.html",
+                current_season=date.today().year,
                 players=self.db.get_players(),
                 courses_list=self.db.get_courses(),
                 actives=self.db.get_courses(True),
@@ -59,6 +61,8 @@ class CourseHandler(BaseHandler):
         course, holes, _ = self.db.get_course(int(course_id))
         (pars, par_sum), rows = self.db.get_results2(int(course_id))
         self.render("course.html",
+                selected_game_date=self.get_argument("game_date", ""),
+                selected_player=self.get_argument("player", ""),
                 course_id=course_id,
                 players=self.db.get_players(),
                 course=course,

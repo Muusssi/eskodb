@@ -54,6 +54,20 @@ table#recent_results_table td.esko_best {
 table#recent_results_table td.personal_best {
     background-color: #00ff00;
 }
+table#recent_results_table td.season_best {
+    color: #ff33ff;
+}
+table#recent_results_table td.season_personal_best {
+    color: green;
+}
+
+table#recent_results_table tr.True {
+    background-color: #ffffff;
+}
+
+table#recent_results_table tr.False {
+    background-color: #dddddd;
+}
 
 
 tbody#tbody td {

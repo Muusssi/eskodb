@@ -256,7 +256,7 @@ class Database(object):
                  "latest.res, (latest.res-pars.par) as par "
                  "FROM "
                  "(SELECT sum(throws) as res, player, game_date, game_of_day, course "
-                 "FROM results WHERE game_date>(date 'today' -14) AND player<>'par' "
+                 "FROM results WHERE game_date>(date 'today' -14) AND player<>'par' AND in_play=false "
                  "GROUP BY player, game_date, game_of_day, course) as latest "
                  "JOIN (SELECT sum(throws) as par, course "
                  "FROM results "
@@ -275,22 +275,28 @@ class Database(object):
         return results
 
     def get_course_bests(self):
-        query = ("SELECT totals.course, totals.player, min(totals.res) as best "
+        query = ("SELECT totals.course, totals.player, min(totals.res) as best, EXTRACT(year FROM totals.game_date) as season "
                 "FROM ( "
                 "SELECT course, player, game_date, game_of_day, sum(throws) as res "
                 "FROM results "
                 "GROUP BY course, player, game_date, game_of_day "
                 "ORDER BY course, player, res DESC "
                 ") as totals "
-                "GROUP BY course, player "
+                "GROUP BY course, player, season "
                 "ORDER BY course, player;")
         cursor = self._cursor()
         cursor.execute(query)
         bests = defaultdict(lambda : None)
-        for course, player, best in cursor.fetchall():
-            bests[(course, player)] = best
-            if bests[course] == None or bests[course] > best:
+        for course, player, best, season in cursor.fetchall():
+            if not bests[(course, player)] or bests[(course, player)] > best:
+                bests[(course, player)] = best
+            if not bests[(course, player, season)] or bests[(course, player, season)] > best:
+                bests[(course, player, season)] = best
+            if not bests[course] or bests[course] > best:
                 bests[course] = best
+            if not bests[(course, season)] or bests[(course, season)] > best:
+                bests[(course, season)] = best
+
         cursor.close()
         return bests
 

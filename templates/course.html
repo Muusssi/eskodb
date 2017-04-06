@@ -136,9 +136,9 @@
   <p id="loading_message"></p>
   <div id="table_div">
   <label for="date_filter">Filter date:</label>
-  <input type="text" id="date_filter" oninput="filter();">
+  <input type="text" id="date_filter" oninput="filter();" value="{{selected_game_date}}">
   <label for="player_filter">Filter player:</label>
-  <input type="text" id="player_filter" oninput="filter();" list="players">
+  <input type="text" id="player_filter" oninput="filter();" list="players" value="{{selected_player}}">
   <datalist id="players">
     {% for (player, ) in players %}
       <option value="{{player}}">

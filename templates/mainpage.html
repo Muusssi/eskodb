@@ -1,33 +1,25 @@
 {% extends esko_template.html %}
 {% block head %}
   <script type="text/javascript">
-  /* When the user clicks on the button,
-  toggle between hiding and showing the dropdown content */
-  function toggleDropDown(dropdown_name) {
-    document.getElementById(dropdown_name).classList.toggle("show");
+  function see_game_day(course_id, game_date) {
+    window.location.href = "/course/"+course_id+"/?game_date="+encodeURI(game_date);
   }
 
-  // Close the dropdown if the user clicks outside of it
-  window.onclick = function(event) {
-    if (!event.target.matches('.dropbtn')) {
-      var dropdowns = document.getElementsByClassName("dropdown-content");
-      var i;
-      for (i = 0; i < dropdowns.length; i++) {
-        var openDropdown = dropdowns[i];
-        if (openDropdown.classList.contains('show')) {
-          openDropdown.classList.remove('show');
-        }
-      }
-    }
+  function see_player(course_id, player) {
+    window.location.href = "/course/"+course_id+"/?player="+encodeURI(player);
   }
+
+  function see_course(course_id) {
+    window.location.href = "/course/"+course_id+"/";
+  }
+
   </script>
 {% end %}
 {% block body %}
 
   <H1>Eskon tulospalvelu</H1>
-  <!-- <img id="logo" src="http://maunula.net/2005/luonto/palokarki.jpg"> -->
 
-  <table id="recent_results_table" class="table-striped table-hover">
+  <table id="recent_results_table" class="">
     <tr>
       <th colspan="6">Viimeisimmät pelit:</th>
     </tr>
@@ -39,22 +31,18 @@
       <th>tulos</th>
       <th>par</th>
     </tr>
+    <!-- {{prev_course = None}} -->
+    <!-- {{prev_game_date = None}} -->
+    <!-- {{prev_game_of_day = None}} -->
+    <!-- {{current_color = True}} -->
     {% for game_date, game_of_day, course_name, course_id, player, res, par in latest %}
-      <tr>
-        <td>{{game_date}}</td>
-        <td>{{game_of_day}}</td>
-        <td>{{course_name}}</td>
-        <td>{{player}}</td>
-        {% if bests[course_id] == res %}
-          <td class="esko_best" title="Esko best">{{res}}</td>
-          <td class="esko_best" title="Esko best">{{par}}</td>
-        {% elif bests[(course_id, player)] == res %}
-          <td class="personal_best" title="Personal best">{{res}}</td>
-          <td class="personal_best" title="Personal best">{{par}}</td>
-        {% else %}
-          <td>{{res}}</td>
-          <td>{{par}}</td>
-        {% end %}
+      <tr class="{% if prev_game_date != game_date or prev_game_of_day != game_of_day or prev_course != course_name%}{{current_color = not current_color}}{% else %}{{current_color}}{% end %}">
+        <td onclick="see_game_day({{course_id}},'{{game_date}}');">{{prev_game_date = game_date}}</td>
+        <td onclick="see_game_day({{course_id}},'{{game_date}}');">{{prev_game_of_day = game_of_day}}</td>
+        <td onclick="see_course({{course_id}});">{{prev_course = course_name}}</td>
+        <td onclick="see_player({{course_id}},'{{player}}');">{{player}}</td>
+        <td class="{% if bests[course_id] == res %}esko_best{% elif bests[(course_id, player)] == res %}personal_best{% end %} {% if bests[(course_id, current_season)] == res %}season_best{% elif bests[(course_id, player,current_season)] == res %}season_personal_best{% end %}" title="{% if bests[course_id] == res %}Esko best{% elif bests[(course_id, player)] == res %}Personal best{% end %}{% if bests[(course_id, current_season)] == res %} - Season best{% elif bests[(course_id, player,current_season)] == res %} - Personal Season Best{% end %}">{{res}}</td>
+        <td class="{% if bests[course_id] == res %}esko_best{% elif bests[(course_id, player)] == res %}personal_best{% end %} {% if bests[(course_id, current_season)] == res %}season_best{% elif bests[(course_id, player,current_season)] == res %}season_personal_best{% end %}" title="{% if bests[course_id] == res %}Esko best{% elif bests[(course_id, player)] == res %}Personal best{% end %}{% if bests[(course_id, current_season)] == res %} - Season best{% elif bests[(course_id, player,current_season)] == res %} - Personal Season Best{% end %}">{{par}}</td>
       </tr>
     {% end %}
   </table>
