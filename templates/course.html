@@ -145,7 +145,7 @@
     {% end %}
   </datalist>
 
-    <table id="foo_tabel" class="sortable table table-striped table-bordered table-condensed table-hover">
+    <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">
       <thead id="result_head">
         <tr>
           <th>Date</th>
@@ -162,7 +162,7 @@
 
       {% for game, player, row, sum, sum_par in results %}
         <tr>
-          <td>{{game}}</td>
+          <td class="date_cell">{{game}}</td>
           <td>{{player}}</td>
           {% for throws, penalty, dif in row %}
               <td class="par{{dif}}" value="{{throws}}">{{str(throws)+ '*'*penalty}}</td>

@@ -48,6 +48,10 @@
     background-color: #000000;
 }
 
+table#results_table tr td.date_cell {
+    font-size: 75%;
+}
+
 table#recent_results_table td.esko_best {
     background-color: #0066ff;
 }
