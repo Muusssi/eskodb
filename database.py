@@ -70,11 +70,19 @@ class Database(object):
         cursor.close()
         return res
 
-    def get_course(self, id):
+    def get_course(self, course_id):
         query = ("SELECT name, holes, id FROM courses WHERE id=%s")
         cursor = self._cursor()
-        cursor.execute(query, (id, ))
+        cursor.execute(query, (course_id, ))
         res = cursor.fetchone()
+        cursor.close()
+        return res
+
+    def get_par(self, course_id):
+        query = ("SELECT sum(throws) FROM results WHERE course=%s AND player='par'")
+        cursor = self._cursor()
+        cursor.execute(query, (course_id, ))
+        (res, ) = cursor.fetchone()
         cursor.close()
         return res
 
@@ -278,7 +286,7 @@ class Database(object):
         query = ("SELECT totals.course, totals.player, min(totals.res) as best, EXTRACT(year FROM totals.game_date) as season "
                 "FROM ( "
                 "SELECT course, player, game_date, game_of_day, sum(throws) as res "
-                "FROM results "
+                "FROM results WHERE player<>'par' "
                 "GROUP BY course, player, game_date, game_of_day "
                 "ORDER BY course, player, res DESC "
                 ") as totals "
@@ -355,6 +363,43 @@ class Database(object):
         pass
 
 
+    def get_probabilities(self, course_id, player):
+        cursor = self._cursor()
+        query = ("SELECT hole, throws, CAST (count(*) AS FLOAT)/( "
+                "SELECT count(*) FROM ( "
+                "SELECT DISTINCT game_date, game_of_day "
+                "FROM results "
+                "WHERE course=%s AND player=%s) as games) "
+                "FROM results "
+                "WHERE course=%s AND player=%s "
+                "GROUP BY hole, throws "
+                "ORDER BY hole, throws")
+        cursor.execute(query, (course_id, player, course_id, player))
+        max_throws = 1
+        prev_level = dict()
+        new_level = {0: 1}
+        current_hole = 0
+        for hole, throws, prob in cursor.fetchall():
+            if throws > max_throws:
+                max_throws = throws
+            if current_hole != hole:
+                current_hole = hole
+                prev_level = new_level
+                new_level = dict()
+
+            for res in prev_level:
+                new_res = res+throws
+                if new_res in new_level:
+                    new_level[new_res] += prev_level[res]*prob
+                else:
+                    new_level[new_res] = prev_level[res]*prob
+        cursor.close()
+        probs = []
+        for x in sorted(new_level.keys()):
+            probs.append((x, new_level[x]))
+        return probs
+
+
     def end_game(self, course_id):
         query = ("UPDATE players SET active=NULL WHERE active=%s")
         cursor = self._cursor()
@@ -369,8 +414,6 @@ class Database(object):
 
 if __name__ == '__main__':
     DB = Database("kopsupullo")
-    par, rows = DB.get_results2(1)
-    for row in rows:
-        print row
+    print DB.get_par(1)
     DB._close_connection()
 

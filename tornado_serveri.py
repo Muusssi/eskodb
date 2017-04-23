@@ -27,6 +27,8 @@ class Application(tornado.web.Application):
                 (r"/game/end/(?P<course_id>[^\/]+)/", EndGameHandler),
                 (r"/game/(?P<course_id>[^\/]+)/", GameHandler),
                 (r"/game/data/(?P<course_id>[^\/]+)/", GameResultsHandler),
+                (r"/probabilities/(?P<course_id>[^\/]+)/(?P<player>[^\/]+)/", ProbabilityHandler),
+                (r"/probabilities/data/(?P<course_id>[^\/]+)/(?P<player>[^\/]+)/", ProbabilityDataHandler),
                 (r"/full/(?P<course_id>[^\/]+)/", FullGameHandler),
             ]
 
@@ -211,6 +213,36 @@ class ResultsHandler(BaseHandler):
 class GameResultsHandler(BaseHandler):
     def post(self, course_id):
         self.write(self.db.get_results(int(course_id), True))
+
+    get = post
+
+class ProbabilityHandler(BaseHandler):
+    def get(self, course_id, player):
+        self.render("probabilities.html",
+                course=self.db.get_course(course_id),
+                player=player,
+                players=self.db.get_players(),
+                courses_list=self.db.get_courses(),
+                actives=self.db.get_courses(True),
+            )
+
+class ProbabilityDataHandler(BaseHandler):
+    def post(self, course_id, player):
+        course_id = int(course_id)
+        bests = self.db.get_course_bests()
+        season = date.today().year
+        esko_best = bests[course_id]
+        esko_season_best = bests[(course_id, season)]
+        personal_best = bests[(course_id, player)]
+        personal_season_best = bests[(course_id, player, season)]
+        self.write({
+                'probs': self.db.get_probabilities(course_id, player),
+                'par': self.db.get_par(course_id),
+                'esko_best': esko_best,
+                'esko_season_best': esko_season_best,
+                'personal_best': personal_best,
+                'personal_season_best': personal_season_best,
+            })
 
     get = post
 

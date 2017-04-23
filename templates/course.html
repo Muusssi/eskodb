@@ -29,8 +29,6 @@
     }
 
     function mode(array) {
-      //array.sort();
-      console.log(array);
       if(array.length == 0)
           return null;
       var modeMap = {};
@@ -48,7 +46,6 @@
             maxCount = modeMap[el];
         }
       }
-      console.log(maxEl);
       return maxEl;
     }
 
@@ -131,6 +128,7 @@
   <h1>{{ course }}
     <a class="btn btn-info" href="/full/{{course_id}}/">Lisää koko pelin tulos</a>
     <a class="btn btn-info" href="/hole_statistics/{{course_id}}/1/">Histogrammi</a>
+    <a class="btn btn-info" href="/probabilities/{{course_id}}/par/">Tuloksen todennäköisyydet</a>
   </h1>
 
   <p id="loading_message"></p>

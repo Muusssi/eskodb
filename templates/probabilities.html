@@ -1,0 +1,98 @@
+{% extends esko_template.html %}
+
+{% block title_block %}tulokset {{ course[0] }}{% end %}
+
+{% block head %}
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawTables);
+
+    function drawTables() {
+      document.getElementById("loading_message").innerHTML = "Loading data, please wait."
+      var pathArray = window.location.pathname.split('/');
+      $.ajax({
+        type: "POST",
+        url: pathArray[0]+"/probabilities/data/{{course[2]}}/{{player}}/",
+        dataTableType: "json",
+        success: handleDataTable,
+        error: function(x, t, m) {
+          document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
+        }
+      });
+
+      function handleDataTable(jsonData) {
+        var dataTable = new google.visualization.DataTable();
+        dataTable.addColumn('number', 'Throws');
+        dataTable.addColumn('number', 'Probability');
+        dataTable.addColumn({ type:'string', role: 'style' });
+        dataTable.addColumn({ type:'string', role: 'annotation' });
+
+        for (var i = 0; i < jsonData.probs.length; i++) {
+          if (jsonData.probs[i][1] > 0.0001) {
+            var row = jsonData.probs[i];
+            var format_comment = "";
+            if (row[0] == jsonData.esko_best) {
+              row.push('color: #0066ff');
+              row.push("Esko best");
+              format_comment = "Esko best";
+            }
+            else if (row[0] == jsonData.personal_best) {
+              row.push('color: #00ff00');
+              row.push("Personal best");
+              format_comment = "Personal best";
+            }
+            else if (row[0] == jsonData.esko_season_best) {
+              row.push('color: #ff33ff');
+              row.push("Esko season best");
+              format_comment = "Esko season best";
+            }
+            else if (row[0] == jsonData.personal_season_best) {
+              row.push('color: green');
+              row.push("Personal season best");
+              format_comment = "Personal season best";
+            }
+            else {
+              row.push('color: gray');
+              row.push('');
+            }
+            row[0] = {v: row[0], f: row[0].toString()+" ("+(row[0]-jsonData.par).toString()+") "+format_comment};
+            dataTable.addRow(row);
+          }
+        }
+
+        document.getElementById("loading_message").innerHTML = ""
+
+        var table = new google.visualization.BarChart(document.getElementById('histo_div'));
+
+        var options = {
+          width: '100%',
+          height: '100%',
+          legend: { position: "none" },
+          vAxis: {format: '0'},
+          focusTarget: 'category'
+        }
+
+        table.draw(dataTable, options);
+
+      }
+    }
+  </script>
+{% end %}
+
+{% block body %}
+  <h2>Tuloksen todennäköisyydet: {{course[0]}} {{course[1]}}</h2>
+  <label for="player_select">Pelaaja</label>
+  <select id="player_select" onchange="location = this.value;">
+    {% for (p, ) in players %}
+      {% if p == player %}
+        <option value="/probabilities/{{course[2]}}/{{p}}/" selected>{{p}}</option>
+      {% else %}
+        <option value="/probabilities/{{course[2]}}/{{p}}/">{{p}}</option>
+      {% end %}
+    {% end %}
+  </select>
+  <p id="loading_message"></p>
+  <div id="histo_div"></div>
+{% end %}
