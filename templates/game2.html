@@ -1,0 +1,299 @@
+{% extends esko_template.html %}
+
+{% block title_block %}tulokset {{ course.name }}{% end %}
+
+{% block head %}
+  <script type="text/javascript">
+
+    var holes = {{course.holes}};
+
+    var rows = null;
+
+    var pars = [];
+    var data_table = null;
+    var course_par = {{par_sum}};
+    var current_hole = {{min(current_hole, course.holes)}};
+    var current_hole_marker = null;
+
+    window.onload = function() {
+      var table_head = document.getElementById('result_head');
+      var row = table_head.insertRow(1);
+      row.insertCell(0).outerHTML = "<th>par</th>";
+      row.insertCell(1).outerHTML = "<th>{{par_sum}}</th>";
+      {% for hole in holes %}
+        pars.push({{hole.par}});
+        row.insertCell({{hole.hole}}).outerHTML = "<th>{{hole.par}}</th>";
+      {% end %}
+      row.insertCell({{course.holes}}+2).outerHTML = "<th></th>";
+
+      load();
+    }
+
+    function toggle_holes_info() {
+      document.getElementById('holes_info').hidden = !document.getElementById('holes_info').hidden;
+    }
+
+    function load() {
+      $.ajax({
+        type: "POST",
+        url: "/game/{{game.id}}/",
+        //data: $("#results_form").serialize(),
+        success: handleData,
+        error: function(x, t, m) {
+          document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
+        }
+      });
+    }
+
+    function publish() {
+      $.ajax({
+        type: "POST",
+        url: "/game/{{game.id}}/",
+        data: $("#results_form").serialize(),
+        success: handleData,
+        error: function(x, t, m) {
+          document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
+        }
+      });
+      next();
+    }
+
+    function handleData(jsonData) {
+      data_table = jsonData.results;
+      console.log(data_table);
+      rows = document.getElementById("tbody").rows;
+      for (var row = 0; row < rows.length; row++) {
+        var cur_par = 0;
+        var cur_sum = 0;
+        for (var col = 0; col < pars.length; col++) {
+          var throws = data_table[row][col][0];
+          var penalty = data_table[row][col][1];
+          if (throws != null) {
+            var cell = rows[row].cells[col+1];
+            cell.innerHTML = throws + '*'.repeat(penalty);
+            cell.className = 'par'+(throws - pars[col])
+
+            cur_par += throws - pars[col];
+            cur_sum += throws;
+          }
+        }
+        rows[row].cells[pars.length+1].innerHTML = cur_sum;
+        rows[row].cells[pars.length+2].innerHTML = cur_par;
+      }
+      update_inputs();
+    }
+
+
+    function end_game() {
+      if (confirm("Haluatko varmasti lopettaa?")) {
+        window.location.href = "/game/end/{{game.id}}/";
+      }
+    };
+
+    function next() {
+      if (current_hole<{{course.holes}}) {
+        var hole_header_row = document.getElementById('result_head').rows[0].cells;
+        hole_header_row[current_hole].className = "";
+        current_hole++;
+        hole_header_row[current_hole].className = "par-2";
+        document.getElementById("current_hole_p").innerHTML = current_hole;
+      }
+      update_inputs();
+    }
+
+    function previous() {
+      if (current_hole>1) {
+        var hole_header_row = document.getElementById('result_head').rows[0].cells;
+        hole_header_row[current_hole].className = "";
+        current_hole--;
+        hole_header_row[current_hole].className = "par-2";
+        document.getElementById("current_hole_p").innerHTML = current_hole;
+      }
+      update_inputs();
+    }
+
+    function update_inputs() {
+      var btn = document.getElementById("continue_btn");
+      if (current_hole == {{course.holes}}) {
+        btn.disabled = true;
+      }
+      else {
+        btn.disabled = false;
+      }
+      btn = document.getElementById("previous_btn");
+      if (current_hole == 1) {
+        btn.disabled = true;
+      }
+      else {
+        btn.disabled = false;
+      }
+
+      for (var row = 0; row < rows.length; row++) {
+        if (data_table[row][current_hole-1][0] != null) {
+          document.getElementById('throws_'+row).value = data_table[row][current_hole-1][0];
+          document.getElementById('penalty_'+row).value = data_table[row][current_hole-1][1];
+        }
+        else {
+          document.getElementById('throws_'+row).value = pars[current_hole-1];
+          document.getElementById('penalty_'+row).value = 0;
+        }
+        document.getElementById('result_'+row).value = data_table[row][current_hole-1][4];
+      }
+
+    }
+
+
+  </script>
+{% end %}
+
+{% block body %}
+  <h1>{{ course.name }}
+    <a class="btn btn-info" href="#" onclick="toggle_holes_info();">Väylien tiedot</a>
+    <!-- <a class="btn btn-info" href="/hole_statistics/{{course.id}}/1/">Histogrammi</a> -->
+    <!-- <a class="btn btn-info" href="/probabilities/{{course.id}}/par/">Tuloksen todennäköisyydet</a> -->
+  </h1>
+
+  <p id="loading_message"></p>
+
+  <table id="holes_info" class="table table-bordered table-condensed" hidden>
+    <tr>
+      <th></th>
+      {% for hole in holes %}
+        <th>{{hole.hole}}</th>
+      {% end %}
+    </tr>
+    <tr>
+      <th>Pituus</th>
+      {% for hole in holes %}
+        <td>{{hole.length}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>Korkeus</th>
+      {% for hole in holes %}
+        <td>{{hole.height}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>Tyyppi</th>
+      {% for hole in holes %}
+        <td>{{hole.type}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>Maasto</th>
+      {% for hole in holes %}
+        <td>{{hole.hole_terrain}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>Kuvaus</th>
+      {% for hole in holes %}
+        <td>{{hole.description}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>OB</th>
+      {% for hole in holes %}
+        <td>{{hole.penalty_info()}}</td>
+      {% end %}
+    </tr>
+  </table>
+
+  <div id="table_div">
+
+
+    <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">
+      <thead id="result_head">
+        <tr>
+          <th>Player</th>
+          {% for hole in holes %}
+
+            <th
+              {% if hole.hole == min(current_hole, course.holes) %}
+                class="par-2"
+              {% end %}>{{hole.hole}}</th>
+
+          {% end %}
+          <th>Sum</th>
+          <th>par</th>
+        </tr>
+
+      </thead>
+      <tbody id="tbody">
+        {% for player in players %}
+          <tr>
+            <th value="{{player.id}}">{{player.name}}</th>
+            {% for hole in holes %}
+              <td></td>
+            {% end %}
+            <td></td>
+            <td></td>
+          </tr>
+        {% end %}
+      </tbody>
+    </table>
+  </div>
+
+
+  <p id="loading_message"></p>
+  <form id="results_form">
+    <h2 id="current_hole_p">{{1}}</h2>
+    <table>
+      <!-- {{counter = -1}} -->
+      {% for player in players %}
+      <tr>
+        <input id="result_{{counter = counter + 1}}" type="text" name="result" value="" hidden>
+        <div>
+          <th>
+            <input type="text" name="player" value="{{player.id}}" hidden>
+            <h3>{{player.name}}</h3>
+          </th>
+          <td>
+            <select id="throws_{{counter}}" class="throws_input game_input" name="throws">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+            </select>
+          </td>
+          <td>
+            <label for="throws">penalty</label>
+            <select id="penalty_{{counter}}" class="penalty_input game_input" name="penalty">
+              <option value="0" selected>0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </td>
+        </div>
+      </tr>
+      {% end %}
+    </table>
+    <input class="game_input" id="previous_btn" type="button" value="Edellinen" onclick="previous();">
+    <input class="game_input" id="publish_btn" type="button" value="julkaise" onclick="publish();">
+    <input class="game_input" id="continue_btn" type="button" value="Jatka" onclick="next();">
+    <br>
+    <br>
+  </form>
+  <button class="game_input" onclick="end_game();" >Lopeta peli</button>
+</div>
+{% end %}

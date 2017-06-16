@@ -1,11 +1,62 @@
 {% extends esko_template.html %}
-{% block title_block %}Uusi rata{% end %}
+{% block title_block %}{{tittle}}{% end %}
 {% block body %}
 
   <p class="error_message">{{message}}</p>
   <form method="post">
-    <label for="male">Pelaajan nimi</label>
-    <input type="text" name="name" id="course_name" required><br>
+
+    {% if hasattr(player, 'id') %}
+      <input type="text" name="id" value="{{player.id}}" hidden>
+    {% end %}
+
+    <label for="name_input">Pelaajan nimi</label>
+    <input type="text" name="name" id="name_input"
+      {% if hasattr(player, 'name') %}
+        value="{{player.name}}"
+      {% end %}
+     required><br>
+
+    {% if user and (user.priviledges == 'admin' or (player and player.id == user.id)) %}
+      <label for="user_name_input">Käyttäjä</label>
+      <input type="text" name="user_name" id="user_name_input"
+        {% if hasattr(player, 'user_name') %}
+          value="{{player.user_name}}"
+        {% end %}><br>
+
+      <label for="password_input">Salasana</label>
+      <input type="text" name="password" id="password_input"><br>
+    {% end %}
+
+    <label for="user_name_input">Jäsen</label>
+    <input type="checkbox" name="member" id="user_name_input"
+      {% if hasattr(player, 'member') and player.member %}
+        checked
+      {% end %}
+      {% if not (user and user.priviledges in ('admin', 'hallitus')) %}
+        disabled
+      {% end %}><br>
+
+    {% if user and user.priviledges == 'admin'  %}
+      <label for="priviledges_input">Käyttäjä</label>
+      <select name="priviledges" id="priviledges_input">
+        <option value="member"
+        {% if hasattr(player, 'priviledges') and player.priviledges == 'member' %}
+          selected
+        {% end %}>Jäsen</option>
+        <option value="hallitus"
+        {% if hasattr(player, 'priviledges') and player.priviledges == 'hallitus' %}
+          selected
+        {% end %}>Hallitus</option>
+        <option value="admin"
+        {% if hasattr(player, 'priviledges') and player.priviledges == 'admin' %}
+          selected
+        {% end %}>Admin</option>
+        <option value=""
+        {% if hasattr(player, 'priviledges') and player.priviledges == None %}
+          selected
+        {% end %}>---</option>
+      </select><br>
+    {% end %}
 
     <input type="submit" value="Submit" method="POST">
   </form>

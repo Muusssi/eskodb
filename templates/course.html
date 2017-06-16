@@ -1,12 +1,11 @@
 {% extends esko_template.html %}
 
-{% block title_block %}tulokset {{ course }}{% end %}
+{% block title_block %}tulokset {{ course.name }}{% end %}
 
 {% block head %}
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script src={{static_url("sorttable.js")}}></script>
   <script type="text/javascript">
-    var holes = {{holes}};
+
+    var holes = {{course.holes}};
 
     var pars = [];
     var course_par = null;
@@ -17,15 +16,13 @@
       row.insertCell(0);
       row.insertCell(1).outerHTML = "<th>par</th>";
       row.insertCell(2).outerHTML = "<th>{{par_sum}}</th>";
-      {% for par in reversed(pars) %}
-        pars.push({{par}});
-        row.insertCell(2).outerHTML = "<th>{{par}}</th>";
+      {% for hole in holes %}
+        pars.push({{hole.par}});
+        row.insertCell(1+{{hole.hole}}).outerHTML = "<th>{{hole.par}}</th>";
       {% end %}
       course_par = pars.reduce(function(a, b) { return a + b; }, 0);
-      pars.reverse();
 
       filter();
-
     }
 
     function mode(array) {
@@ -41,7 +38,6 @@
             modeMap[el]++;
 
         if(modeMap[el] > maxCount || (modeMap[el] >= maxCount && el > maxEl)) {
-            console.log(el);
             maxEl = el;
             maxCount = modeMap[el];
         }
@@ -118,38 +114,89 @@
       mode_row.cells[holes+3].innerHTML = mode_sum - course_par;
     }
 
-
+    function toggle_holes_info() {
+      document.getElementById('holes_info').hidden = !document.getElementById('holes_info').hidden
+    }
 
 
   </script>
 {% end %}
 
 {% block body %}
-  <h1>{{ course }}
-    <a class="btn btn-info" href="/full/{{course_id}}/">Lisää koko pelin tulos</a>
-    <a class="btn btn-info" href="/hole_statistics/{{course_id}}/1/">Histogrammi</a>
-    <a class="btn btn-info" href="/probabilities/{{course_id}}/par/">Tuloksen todennäköisyydet</a>
+  <h1>{{ course.name }}
+    <a class="btn btn-info" href="#" onclick="toggle_holes_info();">Väylien tiedot</a>
+    <a class="btn btn-info" href="/holes/{{course.id}}/update">Muokkaa väylien tietoja</a>
+    <!-- <a class="btn btn-primary" href="/full/{{course.id}}/">Lisää koko pelin tulos</a> -->
+    <!-- <a class="btn btn-info" href="/hole_statistics/{{course.id}}/1/">Histogrammi</a> -->
+    <!-- <a class="btn btn-info" href="/probabilities/{{course.id}}/par/">Tuloksen todennäköisyydet</a> -->
   </h1>
 
   <p id="loading_message"></p>
+
+  <table id="holes_info" class="table table-bordered table-condensed" hidden>
+    <tr>
+      <th></th>
+      {% for hole in holes %}
+        <th>{{hole.hole}}</th>
+      {% end %}
+    </tr>
+    <tr>
+      <th>Pituus</th>
+      {% for hole in holes %}
+        <td>{{hole.length}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>Korkeus</th>
+      {% for hole in holes %}
+        <td>{{hole.height}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>Tyyppi</th>
+      {% for hole in holes %}
+        <td>{{hole.type}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>Maasto</th>
+      {% for hole in holes %}
+        <td>{{hole.hole_terrain}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>Kuvaus</th>
+      {% for hole in holes %}
+        <td>{{hole.description}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>OB</th>
+      {% for hole in holes %}
+        <td>{{hole.penalty_info()}}</td>
+      {% end %}
+    </tr>
+  </table>
+
   <div id="table_div">
   <label for="date_filter">Filter date:</label>
   <input type="text" id="date_filter" oninput="filter();" value="{{selected_game_date}}">
   <label for="player_filter">Filter player:</label>
   <input type="text" id="player_filter" oninput="filter();" list="players" value="{{selected_player}}">
   <datalist id="players">
-    {% for (player, ) in players %}
-      <option value="{{player}}">
+    {% for name in player_dict %}
+      <option value="{{name}}">
     {% end %}
   </datalist>
+
 
     <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">
       <thead id="result_head">
         <tr>
           <th>Date</th>
           <th>Player</th>
-          {% for hole in range(1, holes+1) %}
-            <th>{{hole}}</th>
+          {% for hole in holes %}
+            <th>{{hole.hole}}</th>
           {% end %}
           <th>Sum</th>
           <th>par</th>
@@ -158,15 +205,18 @@
       </thead>
       <tbody id="tbody">
 
-      {% for game, player, row, sum, sum_par in results %}
+      {% for row in result_table %}
         <tr>
-          <td class="date_cell">{{game}}</td>
-          <td>{{player}}</td>
-          {% for throws, penalty, dif in row %}
-              <td class="par{{dif}}" value="{{throws}}">{{str(throws)+ '*'*penalty}}</td>
+          <td class="date_cell" title="{{game_dict[row[0].game].start_time}}">{{game_dict[row[0].game].label()}}</td>
+          <td>{{player_dict[row[0].player].name}}</td>
+          {% for result in row %}
+              <td class="par{{result.throws - hole_dict[result.hole].par }}"
+                  value="{{result.throws}}">
+                {{str(result.throws)+ '*'*result.penalty}}
+              </td>
           {% end %}
-          <td>{{sum}}</td>
-          <td>{{sum_par}}</td>
+          <td>{{row_sum = sum([res.throws for res in row])}}</td>
+          <td>{{row_sum - par_sum}}</td>
         </tr>
       {% end %}
 
@@ -175,7 +225,7 @@
         <tr id="min_row">
           <td></td>
           <td>Min:</td>
-          {% for _ in range(1, holes+1) %}
+          {% for _ in range(1, course.holes+1) %}
             <th></th>
           {% end %}
           <th></th>
@@ -184,7 +234,7 @@
         <tr id="mode_row">
           <td></td>
           <td>Mode:</td>
-          {% for _ in range(1, holes+1) %}
+          {% for _ in range(1, course.holes+1) %}
             <th></th>
           {% end %}
           <th></th>
@@ -193,7 +243,7 @@
         <tr id="avg_row">
           <td></td>
           <td>Avg:</td>
-          {% for _ in range(1, holes+1) %}
+          {% for _ in range(1, course.holes+1) %}
             <th></th>
           {% end %}
           <th></th>

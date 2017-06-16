@@ -11,6 +11,11 @@
     color: #ff0000;
 }
 
+.par-3 {
+    background-color: silver;
+    color: gold;
+}
+
 .par-2 {
     background-color: #0066ff;
 }
@@ -35,15 +40,8 @@
 .par5 {
     background-color: #ff99bb;
 }
-.par6 {
-    color: #000000;
-    background-color: #000000;
-}
-.par7 {
-    color: #000000;
-    background-color: #000000;
-}
-.par8 {
+.par6, .par7, .par8, .par9,
+.par10, .par11, .par12, .par13 {
     color: #000000;
     background-color: #000000;
 }
@@ -96,6 +94,11 @@ tbody#tbody td {
 #recent_results_table th,
 #recent_results_table td {
     padding: 5px;
+}
+
+label.disabled {
+    color: lightgray;
+    text-decoration: line-through;
 }
 
 

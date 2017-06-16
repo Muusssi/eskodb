@@ -1,0 +1,32 @@
+{% extends esko_template.html %}
+{% block title_block %}Pelaajat{% end %}
+{% block body %}
+
+<table class="sortable table table-striped table-bordered table-condensed table-hover">
+  <tr>
+    <th>Id</th>
+    <th>Nimi</th>
+    <th>Jäsen</th>
+    {% if user and user.priviledges == 'admin' %}
+      <th>Käyttäjänimi</th>
+    {% end %}
+    <th>Oikeudet</th>
+    <th>Aktiivinen</th>
+    <th></th>
+  </tr>
+  {% for player in players %}
+    <tr>
+      <td>{{player.id}}</td>
+      <td>{{player.name}}</td>
+      <td>{{player.member}}</td>
+      {% if user and user.priviledges == 'admin' %}
+        <td>{{player.user_name}}</td>
+      {% end %}
+      <td>{{player.priviledges}}</td>
+      <td>{{player.active}}</td>
+      <td><a href="player/{{player.id}}/update">Muokkaa</a></td>
+    </tr>
+  {% end %}
+</table>
+
+{% end %}

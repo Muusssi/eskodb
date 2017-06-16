@@ -1,0 +1,15 @@
+{% extends esko_template.html %}
+{% block title_block %}Uusi rata{% end %}
+{% block body %}
+
+  <p class="error_message">{{message}}</p>
+  <form method="post">
+    <label for="user_name_input">Käyttäjä</label>
+    <input type="text" name="user_name" id="user_name_input" required><br>
+
+    <label for="password_input">Salasana</label>
+    <input type="password" name="password" id="password_input" required><br>
+
+    <input type="submit" value="Submit" method="POST">
+  </form>
+{% end %}

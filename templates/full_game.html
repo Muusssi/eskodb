@@ -2,9 +2,6 @@
 {% block title_block %}Kokonainen peli{% end %}
 
 {% block head %}
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <script type="text/javascript">
 
   $(document).on('keyup keypress', function(e) {
@@ -33,7 +30,7 @@
   });
 
 
-  function add_player(name) {
+  function add_player(name, player_id) {
     document.getElementById("submit_btn").hidden = false;
     document.getElementById(name+"_button").style.visibility = 'hidden';
     var table = document.getElementById("full_game_table")
@@ -49,7 +46,7 @@
     player_input.hidden = true;
     cell.appendChild(player_input);
 
-    for (var i=1; i<={{course[1]}}; i++) {
+    for (var i=1; i<={{course.holes}}; i++) {
       cell = row.insertCell(-1);
       var input = document.createElement("input");
       input.type = "text";
@@ -72,10 +69,10 @@
 
 {% block body %}
 
-  <h2>Peli: {{course[0]}} {{course[1]}}</h2>
+  <h2>Peli: {{course.name}} {{course.holes}}</h2>
 
   {% for player in players %}
-    <button id="{{player[0]}}_button" onclick="add_player('{{player[0]}}');">{{player[0]}}</button>
+    <button id="{{player.id}}_button" onclick="add_player('{{player.name}}', {{player.id}});">{{player.name}}</button>
   {% end %}
 
 
@@ -85,7 +82,7 @@
     <table id="full_game_table">
       <tr>
         <th>Pelaaja</th>
-        {% for hole in range(1, course[1]+1) %}
+        {% for hole in range(1, course.holes+1) %}
         <th>{{hole}}</th>
         {% end %}
       </tr>

@@ -1,0 +1,100 @@
+{% extends esko_template.html %}
+{% block title_block %}Radan väylät{% end %}
+
+{% block head %}
+  <script type="text/javascript">
+  function toggle(field, hole) {
+    document.getElementById(field+'_hidden_input'+hole).value = document.getElementById(field+'_input'+hole).checked;
+  }
+  </script>
+{% end %}
+
+{% block body %}
+
+  <p class="error_message">{{message}}</p>
+  <form method="post">
+
+    {% for hole in holes %}
+      <input type="text" name="id" value="{{hole.id}}" hidden>
+
+      <h3>{{hole.hole}}</h3>
+
+      <label for="par_input{{hole.hole}}">Par</label>
+      <input type="number" name="par" id="par_input{{hole.hole}}" min="2"
+        {% if hasattr(hole, 'par') %}
+          value="{{hole.par}}"
+        {% end %} required><br>
+
+      <label for="length_input{{hole.hole}}">Pituus [m]</label>
+      <input type="number" name="length" id="length_input{{hole.hole}}" min="0"
+        {% if hasattr(hole, 'length') %}
+          value="{{hole.length}}"
+        {% end %}><br>
+
+      <label for="height_input{{hole.hole}}">Korkeus ero [m]</label>
+      <input type="number" name="height" id="height_input{{hole.hole}}"
+        {% if hasattr(hole, 'height') %}
+          value="{{hole.height}}"
+        {% end %}><br>
+
+      <label for="description_input{{hole.hole}}">Väylän kuvaus</label>
+      <input type="text" name="description" id="description_input{{hole.hole}}"
+        {% if hasattr(hole, 'description') %}
+          value="{{hole.description}}"
+        {% end %}><br>
+
+      <label for="hole_type_input{{hole.hole}}">Väylätyyppi</label>
+      <select name="hole_type" id="hole_type_input{{hole.hole}}">
+        <option value=""
+        {% if hasattr(hole, 'hole_type') and hole.hole_type == None %}
+          selected
+        {% end %}>---</option>
+        {% for hole_type in hole_types %}
+          <option value="{{hole_type}}"
+          {% if hasattr(hole, 'hole_type') and hole.hole_type == hole_type %}
+            selected
+          {% end %}>{{hole_type}}</option>
+        {% end %}
+      </select><br>
+
+      <label for="ob_area_input{{hole.hole}}">OB-alue</label>
+      <input type="checkbox" id="ob_area_input{{hole.hole}}"
+            onchange="toggle('ob_area', {{hole.hole}})"
+        {% if hasattr(hole, 'ob_area') and hole.ob_area %}
+          checked
+        {% end %}><br>
+      <input type="text" name="ob_area" id="ob_area_hidden_input{{hole.hole}}" hidden
+            value="{% if hasattr(hole, 'ob_area') and hole.ob_area %}true{% else %}false{% end %}">
+
+      <label for="mando_input{{hole.hole}}">Mando</label>
+      <input type="checkbox" id="mando_input{{hole.hole}}"
+            onchange="toggle('mando', {{hole.hole}})"
+        {% if hasattr(hole, 'mando') and hole.mando %}
+          checked
+        {% end %}><br>
+      <input type="text" name="mando" id="mando_hidden_input{{hole.hole}}" hidden
+            value="{% if hasattr(hole, 'mando') and hole.mando %}true{% else %}false{% end %}">
+
+      <label for="gate_input{{hole.hole}}">Portti</label>
+      <input type="checkbox" id="gate_input{{hole.hole}}"
+            onchange="toggle('gate', {{hole.hole}})"
+        {% if hasattr(hole, 'gate') and hole.gate %}
+          checked
+        {% end %}><br>
+      <input type="text" name="gate" id="gate_hidden_input{{hole.hole}}" hidden
+            value="{% if hasattr(hole, 'gate') and hole.gate %}true{% else %}false{% end %}">
+
+      <label for="island_input{{hole.hole}}">Saari</label>
+      <input type="checkbox" id="island_input{{hole.hole}}"
+            onchange="toggle('island', {{hole.hole}})"
+        {% if hasattr(hole, 'island') and hole.island %}
+          checked
+        {% end %}><br>
+      <input type="text" name="island" id="island_hidden_input{{hole.hole}}" hidden
+          value="{% if hasattr(hole, 'island') and hole.island %}true{% else %}false{% end %}">
+
+    {% end %}
+
+    <input type="submit" value="Submit" method="POST">
+  </form>
+{% end %}

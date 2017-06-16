@@ -9,11 +9,8 @@
     <select id="coure_select" class="game_input" name="course">
       <option value="">---</option>
       {% for course in courses %}
-        {% if course[2] == chosen_course %}
-          <option value="{{course[2]}}" selected>{{course[0]}} - {{course[1]}}</option>
-        {% else %}
-          <option value="{{course[2]}}">{{course[0]}} - {{course[1]}}</option>
-        {% end %}
+        <option value="{{course.id}}"
+        {% if chosen_course and course.id == int(chosen_course) %}selected{% end %}>{{course.name}} - {{course.holes}}</option>
       {% end %}
     </select>
     <br>
@@ -21,12 +18,10 @@
     <label for="player">Pelaajat</label>
     <div>
       {% for player in players %}
-        {% if player[0] in chosen_players %}
-          <input id="{{player[0]}}_cb" class="player_cb" type="checkbox" name="player" value="{{player[0]}}" checked>
-        {% else %}
-          <input id="{{player[0]}}_cb" class="player_cb" type="checkbox" name="player" value="{{player[0]}}">
-        {% end %}
-        <label for="{{player[0]}}_cb">{{player[0]}}</label><br>
+        <input id="cb_{{player.id}}" class="player_cb" type="checkbox" name="player" value="{{player.id}}"
+        {% if str(player.id) in chosen_players %}checked{% end %}
+        {% if player.active %}disabled{% end %}>
+        <label class="{% if player.active %}disabled{% end %}" for="cb_{{player.id}}">{{player.name}}</label><br>
       {% end %}
     </div>
 

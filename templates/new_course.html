@@ -1,14 +1,71 @@
 {% extends esko_template.html %}
-
-{% block title_block %}Uusi rata{% end %}
+{% block title_block %}{{tittle}}{% end %}
 {% block body %}
+
   <p class="error_message">{{message}}</p>
   <form method="post">
-    <label for="name">Radan nimi</label>
-    <input type="text" name="name" id="course_input" required><br>
 
-    <label for="holes">Väyliä</label>
-    <input type="number" name="holes" id="holes_input" value="18" min="1" max="36"><br>
+    {% if hasattr(course, 'id') %}
+      <input type="text" name="id" value="{{course.id}}" hidden>
+    {% end %}
+
+    <label for="name_input">Radan nimi</label>
+    <input type="text" name="name" id="name_input"
+      {% if hasattr(course, 'name') %}
+        value="{{course.name}}"
+      {% end %}
+      required><br>
+
+    <label for="holes_input">Väyliä</label>
+    <input type="number" name="holes" id="holes_input" min="1"
+      {% if hasattr(course, 'holes') %}
+        value="{{course.holes}}"
+      {% else %}
+        value="18"
+      {% end %}
+      required><br>
+
+    <label for="description_input">Rata kuvaus</label>
+    <input type="text" name="description" id="description_input"
+      {% if hasattr(course, 'description') %}
+        value="{{course.description}}"
+      {% end %}><br>
+
+
+    <label for="course_terrain_input">Radan maasto</label>
+    <select name="course_terrain" id="course_terrain_input">
+      <option value=""
+      {% if hasattr(course, 'course_terrain') and course.course_terrain == None %}
+        selected
+      {% end %}>---</option>
+      {% for terrain in terrains %}
+        <option value="{{terrain}}"
+        {% if hasattr(course, 'course_terrain') and course.course_terrain == terrain %}
+          selected
+        {% end %}>{{terrain}}</option>
+      {% end %}
+    </select><br>
+
+    <label for="town_input">Kaupunki</label>
+    <input type="text" name="town" id="town_input"
+      {% if hasattr(course, 'town') %}
+        value="{{course.town}}"
+      {% end %}><br>
+
+    <label for="weekly_day_input">Viikokisat</label>
+    <select name="weekly_day" id="weekly_day_input">
+      <option value=""
+      {% if hasattr(course, 'course_terrain') and course.course_terrain == None %}
+        selected
+      {% end %}>---</option>
+      {% for val, day in ((1,'ma'), (2,'ti'), (3,'ke'), (4,'to'), (5,'pe'), (6,'la'), (7,'su')) %}
+        <option value="{{val}}"
+        {% if hasattr(course, 'weekly_day') and course.weekly_day == val %}
+          selected
+        {% end %}>{{day}}</option>
+      {% end %}
+    </select><br>
+
 
     <input type="submit" value="Submit" method="POST">
   </form>
