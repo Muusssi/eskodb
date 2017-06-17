@@ -153,8 +153,8 @@ class Database(object):
         (players, ) = cursor.fetchone()
 
         sql = ("SELECT result.id, result.player, result.throws, result.penalty, result.drives, result.puts "
-                "FROM result JOIN hole on hole.id=result.hole WHERE result.game=%s "
-                "ORDER BY result.player, hole.hole")
+                "FROM result JOIN hole on hole.id=result.hole JOIN player ON player.id=result.player "
+                "WHERE result.game=%s ORDER BY player.name, hole.hole")
         cursor.execute(sql, (game_id, ))
         result_table = []
         row = []

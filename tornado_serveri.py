@@ -404,11 +404,12 @@ class GameHandler(BaseHandler):
     def post(self, game_id):
         results = self.get_arguments("result")
         if results:
-            models.update_game_results(game_id,
-                    results,
+            models.update_game_results(results,
                     self.get_arguments("player"),
                     self.get_arguments("throws"),
                     self.get_arguments("penalty"),
+                    self.get_arguments("drives"),
+                    self.get_arguments("puts"),
                 )
         self.write({'results': self.db.game_results(game_id)})
 

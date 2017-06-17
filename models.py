@@ -301,11 +301,13 @@ class Player(BaseModel):
         return pbkdf2_sha256.verify(password, self.password)
 
 
-def update_game_results(game_id, result_ids, player_ids, throws, penalties):
+def update_game_results(result_ids, player_ids, throws, penalties, drives, puts):
     for i in range(len(result_ids)):
         res = result(result_ids[i])
         res._values['throws'] = throws[i]
         res._values['penalty'] = penalties[i]
+        res._values['drives'] = drives[i] if drives[i] != "" else None
+        res._values['puts'] = puts[i] if puts[i] != "" else None
         res.save()
 
 def result(result_id):
