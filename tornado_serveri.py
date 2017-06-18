@@ -550,7 +550,6 @@ class EsKoCupHandler(BaseHandler):
         now = datetime.now()
         results, points = self.db.cup_results()
         self.render("esko_cup.html",
-                courses=models.playable_courses(),
                 cups=models.cups({'name': 'EsKo Cup', 'year':year}, 'month'),
                 players=models.players({'member':True}, 'name'),
                 course_dict=self.db.course_name_dict(),

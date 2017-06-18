@@ -18,8 +18,13 @@
         rows[row].cells[cups*2 + 2].innerHTML = point_sum;
       }
       // Invoke sorting
-      var myTH = document.getElementById("cup_sum");
-      sorttable.innerSortFunction.apply(myTH, []);
+      sorttable.innerSortFunction.apply(document.getElementById("point_sum"), []);
+      sorttable.innerSortFunction.apply(document.getElementById("point_sum"), []);
+      sorttable.innerSortFunction.apply(document.getElementById("cup_sum"), []);
+    }
+
+    function see_game(course_id, date, player_name) {
+      window.location.href = "/course/"+course_id+"/?game_date="+date+"&player="+encodeURI(player_name);;
     }
 
 
@@ -39,7 +44,7 @@
             <th class="sorttable_numeric">Pisteet</th>
           {% end %}
           <th id="cup_sum" class="sorttable_numeric">Sum</th>
-          <th class="sorttable_numeric">Pisteet</th>
+          <th id="point_sum" class="sorttable_numeric">Pisteet</th>
         </tr>
 
       </thead>
@@ -50,7 +55,11 @@
           <td>{{player.name}}</td>
           {% for cup in cups %}
               <!-- {{res = (results[(cup.id, player.id)][2] or cup.max_par)}} -->
-              <td class="cup{{point = (points[(cup.id, res)] if results[(cup.id, player.id)][2] else 0)}}">{{res}}</td>
+              <td
+              {% if results[(cup.id, player.id)][3] %}
+                onclick="see_game({{results[(cup.id, player.id)][0]}},'{{results[(cup.id, player.id)][3]}}','{{player.name}}');"
+              {% end %}
+              class="cup{{point = (points[(cup.id, res)] if results[(cup.id, player.id)][2] else 0)}}">{{res}}</td>
               <td >{{point}}</td>
           {% end %}
           <td></td>

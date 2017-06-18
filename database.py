@@ -294,14 +294,15 @@ class Database(object):
         return bests
 
     def cup_results(self):
-        sql = ("SELECT cup, player, cup_results.course, game, LEAST(cup_max, summa-pars.par) as res FROM ( "
+        sql = ("SELECT cup, player, cup_results.course, game, LEAST(cup_max, summa-pars.par) as res, time "
+                "FROM ( "
                     "SELECT course.id as course, sum(par) as par "
                     "FROM hole JOIN course ON hole.course=course.id "
                     "GROUP BY course.id "
                 ") as pars JOIN ( "
-                    "SELECT DISTINCT ON (cup, player) cup, player, course, game, cup_max, summa FROM ( "
+                    "SELECT DISTINCT ON (cup, player) cup, player, course, game, cup_max, summa, time FROM ( "
                         "SELECT cup.id as cup, player.id as player, course.id as course, game.id as game, "
-                               "cup.max_par as cup_max, sum(throws) as summa "
+                               "cup.max_par as cup_max, sum(throws) as summa, game.start_time as time "
                         "FROM course JOIN cup ON cup.course=course.id "
                                     "JOIN game ON game.course=course.id "
                                         "AND EXTRACT(year FROM game.start_time)=cup.year "
@@ -317,14 +318,14 @@ class Database(object):
                 "ORDER BY cup, res")
         cursor = self._cursor()
         cursor.execute(sql)
-        results = defaultdict(lambda : (None,None,None))
+        results = defaultdict(lambda : (None,None,None,None))
         points = defaultdict(lambda : 0)
         current_cup = None
         counter = 0
         POINTS = (5, 3, 2, 1)
-        for cup, player, course, game, cup_result in cursor.fetchall():
-            results[(cup, player)] = (course, game, cup_result)
-
+        for cup, player, course, game, cup_result, dt in cursor.fetchall():
+            time = dt.strftime("%Y-%m-%d")
+            results[(cup, player)] = (course, game, cup_result, time)
             if not current_cup:
                 current_cup = cup
             if current_cup != cup:
