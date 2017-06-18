@@ -371,6 +371,38 @@ class Result(BaseModel):
         )
 
 
+def cup(cup_id):
+    row = DATABASE.fetch_rows(Cup.TABLE_NAME, Cup.fields, {'id':cup_id})
+    return Cup(row[0])
+
+def cups(criteria={}, order_by=""):
+    cup_list = []
+    for values in DATABASE.fetch_rows(Cup.TABLE_NAME, Cup.fields, criteria, order_by):
+        cup_list.append(Cup(values))
+    return cup_list
+
+class Cup(BaseModel):
+
+    TABLE_NAME = 'cup'
+
+    fields = (
+            'id',
+            'name',
+            'course',
+            'month',
+            'year',
+            'max_par',
+        )
+
+    integer_fields = (
+            'id',
+            'course',
+            'month',
+            'year',
+            'max_par',
+        )
+
+
 if __name__ == '__main__':
 
     DATABASE = db.Database('foo')

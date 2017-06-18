@@ -4,7 +4,7 @@ import tornado.httpserver
 import os
 import database as db
 import sys
-from datetime import date
+from datetime import date, datetime
 
 import models
 
@@ -36,6 +36,8 @@ class Application(tornado.web.Application):
                 # (r"/probabilities/(?P<course_id>[^\/]+)/(?P<player>[^\/]+)/", ProbabilityHandler),
                 # (r"/probabilities/data/(?P<course_id>[^\/]+)/(?P<player>[^\/]+)/", ProbabilityDataHandler),
                 (r"/full/(?P<course_id>[^\/]+)/", FullGameHandler),
+                (r"/cup/new/", NewCupHandler),
+                (r"/eskocup/(?P<year>[^\/]+)/", EsKoCupHandler),
             ]
 
         settings = dict(
@@ -494,6 +496,73 @@ class RestartHandler(BaseHandler):
     def get(self):
         self.db.reconnect()
         self.redirect("/")
+
+
+class NewCupHandler(BaseHandler):
+
+    @property
+    def required_priviledges(self):
+        return ('hallitus', 'admin')
+
+    @tornado.web.authenticated
+    @authorized
+    def get(self):
+        now = datetime.now()
+        self.render("cup_form.html",
+                message="",
+                courses=models.playable_courses(),
+                cup=None,
+                year=now.year,
+                month=now.month,
+                # For template
+                courses_list=models.courses(order_by="name, version"),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user(),
+            )
+
+    @tornado.web.authenticated
+    @authorized
+    def post(self):
+        values = [self.get_argument(field, None) for field in models.Cup.fields]
+        cup = models.Cup(values)
+        try:
+            cup.save()
+            self.redirect("/")
+        except:
+            now = datetime.now()
+            self.render("cup_form.html",
+                    message="Virhe!",
+                    courses=models.playable_courses(),
+                    cup=cup,
+                    year=now.year,
+                    month=now.month,
+                    # For template
+                    courses_list=models.courses(order_by="name, version"),
+                    course_name_dict=self.db.course_name_dict(),
+                    active_games=models.games({'active':True}),
+                    user=self.get_current_user(),
+                )
+
+class EsKoCupHandler(BaseHandler):
+
+    def get(self, year):
+        now = datetime.now()
+        results, points = self.db.cup_results()
+        self.render("esko_cup.html",
+                courses=models.playable_courses(),
+                cups=models.cups({'name': 'EsKo Cup', 'year':year}, 'month'),
+                players=models.players({'member':True}, 'name'),
+                course_dict=self.db.course_name_dict(),
+                results=results,
+                points=points,
+                # For template
+                courses_list=models.courses(order_by="name, version"),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user(),
+            )
+
 
 # class HoleStatisticsHandler(BaseHandler):
 #     def get(self, course_id, hole):

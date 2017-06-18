@@ -1,0 +1,65 @@
+{% extends esko_template.html %}
+{% block title_block %}Cup{% end %}
+{% block body %}
+
+  <p class="error_message">{{message}}</p>
+  <form method="post">
+
+    {% if hasattr(cup, 'id') %}
+      <input type="text" name="id" value="{{cup.id}}" hidden>
+    {% end %}
+
+    <label for="name_input">Cupin nimi</label>
+    <input type="text" name="name" id="name_input"
+      {% if hasattr(cup, 'name') %}
+        value="{{cup.name}}"
+      {% else %}
+        value="EsKo Cup"
+      {% end %}
+      required><br>
+
+    <label for="course_input">Rata</label>
+    <select name="course" id="course_input">
+      <option value=""
+      {% if hasattr(cup, 'course') and cup.course == None %}
+        selected
+      {% end %}>---</option>
+      {% for course in courses %}
+        <option value="{{course.id}}"
+        {% if hasattr(cup, 'course') and cup.course == course.id %}
+          selected
+        {% end %}>{{course.name}} {{course.holes}}</option>
+      {% end %}
+    </select><br>
+
+    <label for="max_par_input">Maksimi tulos</label>
+    <input type="number" name="max_par" id="max_par_input"
+      {% if hasattr(cup, 'max_par') %}
+        value="{{cup.max_par}}"
+      {% else %}
+        value="15"
+      {% end %}><br>
+
+    <label for="month_input">Kuukausi</label>
+    <input type="number" name="month" id="month_input"
+      {% if hasattr(cup, 'month') %}
+        value="{{cup.month}}"
+      {% else %}
+        value="{{month}}"
+      {% end %}><br>
+
+    <label for="year_input">Vuosi</label>
+    <input type="number" name="year" id="year_input"
+      {% if hasattr(cup, 'year') %}
+        value="{{cup.year}}"
+      {% else %}
+        value="{{year}}"
+      {% end %}><br>
+
+
+
+
+
+    <input type="submit" value="Submit" method="POST">
+  </form>
+{% end %}

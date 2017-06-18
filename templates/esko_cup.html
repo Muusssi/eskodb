@@ -1,0 +1,65 @@
+{% extends esko_template.html %}
+
+{% block title_block %}EsKo Cup{% end %}
+
+{% block head %}
+  <script type="text/javascript">
+    var cups = {{len(cups)}};
+    window.onload = function() {
+      var rows = document.getElementById('tbody').rows;
+      for (var row = 0; row < rows.length; row++) {
+        var sum = 0;
+        var point_sum = 0;
+        for (var cup = 1; cup <= cups*2; cup += 2) {
+          sum += parseInt(rows[row].cells[cup].innerHTML);
+          point_sum += parseInt(rows[row].cells[cup+1].innerHTML);
+        }
+        rows[row].cells[cups*2 + 1].innerHTML = sum;
+        rows[row].cells[cups*2 + 2].innerHTML = point_sum;
+      }
+      // Invoke sorting
+      var myTH = document.getElementById("cup_sum");
+      sorttable.innerSortFunction.apply(myTH, []);
+    }
+
+
+  </script>
+{% end %}
+
+{% block body %}
+  <h1>EsKo Cup </h1>
+
+  <div id="table_div">
+    <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">
+      <thead id="result_head">
+        <tr>
+          <th>Player</th>
+          {% for cup in cups %}
+            <th class="sorttable_numeric">{{course_dict[cup.course]}} - (max: {{cup.max_par}})</th>
+            <th class="sorttable_numeric">Pisteet</th>
+          {% end %}
+          <th id="cup_sum" class="sorttable_numeric">Sum</th>
+          <th class="sorttable_numeric">Pisteet</th>
+        </tr>
+
+      </thead>
+      <tbody id="tbody">
+
+      {% for player in players %}
+        <tr>
+          <td>{{player.name}}</td>
+          {% for cup in cups %}
+              <!-- {{res = (results[(cup.id, player.id)][2] or cup.max_par)}} -->
+              <td class="cup{{point = (points[(cup.id, res)] if results[(cup.id, player.id)][2] else 0)}}">{{res}}</td>
+              <td >{{point}}</td>
+          {% end %}
+          <td></td>
+          <td>0</td>
+        </tr>
+      {% end %}
+
+      </tbody>
+    </table>
+
+  </div>
+{% end %}

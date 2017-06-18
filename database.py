@@ -293,7 +293,51 @@ class Database(object):
         cursor.close()
         return bests
 
+    def cup_results(self):
+        sql = ("SELECT cup, player, cup_results.course, game, LEAST(cup_max, summa-pars.par) as res FROM ( "
+                    "SELECT course.id as course, sum(par) as par "
+                    "FROM hole JOIN course ON hole.course=course.id "
+                    "GROUP BY course.id "
+                ") as pars JOIN ( "
+                    "SELECT DISTINCT ON (cup, player) cup, player, course, game, cup_max, summa FROM ( "
+                        "SELECT cup.id as cup, player.id as player, course.id as course, game.id as game, "
+                               "cup.max_par as cup_max, sum(throws) as summa "
+                        "FROM course JOIN cup ON cup.course=course.id "
+                                    "JOIN game ON game.course=course.id "
+                                        "AND EXTRACT(year FROM game.start_time)=cup.year "
+                                        "AND EXTRACT(month FROM game.start_time)=cup.month "
+                                    "JOIN result ON result.game=game.id "
+                                    "JOIN player ON result.player=player.id "
+                        "WHERE player.member=true "
+                        "GROUP BY cup.id, player.id, course.id, game.id, cup.max_par "
+                        "ORDER BY course.name, summa "
+                    ") as results "
+                    "ORDER BY cup, player, summa "
+                ") as cup_results ON cup_results.course=pars.course "
+                "ORDER BY cup, res")
+        cursor = self._cursor()
+        cursor.execute(sql)
+        results = defaultdict(lambda : (None,None,None))
+        points = defaultdict(lambda : 0)
+        current_cup = None
+        counter = 0
+        POINTS = (5, 3, 2, 1)
+        for cup, player, course, game, cup_result in cursor.fetchall():
+            results[(cup, player)] = (course, game, cup_result)
 
+            if not current_cup:
+                current_cup = cup
+            if current_cup != cup:
+                current_cup = cup
+                counter = 0
+
+            if counter < 4:
+                if points[(cup, cup_result)] == 0:
+                    points[(cup, cup_result)] = POINTS[counter]
+                    counter += 1
+            else:
+                points[(cup, cup_result)] = 1
+        return results, points
 
 
     # def get_probabilities(self, course_id, player):
