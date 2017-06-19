@@ -66,7 +66,7 @@ class Database(object):
         cursor.execute(sql, course_id)
         (res, ) = cursor.fetchone()
         if res:
-            next_game_of_day = int(res[0])+1
+            next_game_of_day = int(res)+1
         else:
             next_game_of_day = 1
         cursor.close()
@@ -120,7 +120,9 @@ class Database(object):
 
 
     def insert_row(self, table, values):
-        sql = "INSERT INTO %s(%s) VALUES (%s) RETURNING id" % (table, ','.join([col for col in values]), ','.join(['%s' for col in values]))
+        sql = "INSERT INTO %s(%s) VALUES (%s) RETURNING id" % (
+                table, ','.join([col for col in values]), ','.join(['%s' for col in values])
+            )
         cursor = self._cursor()
         cursor.execute(sql, values.values())
         (row_id, ) = cursor.fetchone()
@@ -336,6 +338,7 @@ class Database(object):
                 if points[(cup, cup_result)] == 0:
                     points[(cup, cup_result)] = POINTS[counter]
                     counter += 1
+
             else:
                 points[(cup, cup_result)] = 1
         return results, points
