@@ -77,7 +77,7 @@ CREATE TABLE player (
 CREATE TABLE player_group (
     id serial PRIMARY KEY,
     name text NOT NULL CHECK (name <> ''),
-    player text REFERENCES player(id)
+    player integer REFERENCES player(id)
 );
 
 

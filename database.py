@@ -6,14 +6,15 @@ GAME_TEMPLATE = "%s #%s"
 
 class Database(object):
 
-    def __init__(self, pw):
-        self.pw = pw
-        self._connect()
+    def __init__(self, database, password):
+        self._connect(database, password)
 
-    def _connect(self):
+    def _connect(self, database, password):
         self._conn = psycopg2.connect(
-                "dbname='eskodb2' user='esko' host='localhost' password='%s'" %
-                (self.pw, )
+                dbname=database,
+                user='esko',
+                password=password,
+                host='localhost',
             )
 
     def _cursor(self):
@@ -393,7 +394,7 @@ class Database(object):
 
 
 if __name__ == '__main__':
-    DB = Database("kopsupullo")
-    print DB.game_results(293)
+    DB = Database('test_eskodb', "kopsupullo")
+    DB.insert_row('course', {'name':'A-rata', 'holes':13})
     DB._close_connection()
 

@@ -2,15 +2,21 @@ import tornado.ioloop
 import tornado.web
 import tornado.httpserver
 import os
-import database as db
 import sys
+import json
 from datetime import date, datetime
 
+import database as db
 import models
 
 APP_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIRECTORY = os.path.abspath(os.path.join(APP_DIRECTORY, 'static'))
 TEMPLATES_DIRECTORY = os.path.abspath(os.path.join(APP_DIRECTORY, 'templates'))
+
+def load_config_file(config_file):
+    with open(config_file, 'r') as f:
+        return json.load(f)
+
 
 
 class Application(tornado.web.Application):
@@ -580,11 +586,16 @@ class EsKoCupHandler(BaseHandler):
 
 
 if __name__ == "__main__":
-    if (len(sys.argv) != 3):
-        print "error: missing password and/or cookie secret"
+    if (len(sys.argv) != 2):
+        print "error: missing config file"
         exit(0)
-
-    httpserver = tornado.httpserver.HTTPServer(Application(db.Database(sys.argv[1]), sys.argv[2]))
+    config = load_config_file(sys.argv[1])
+    httpserver = tornado.httpserver.HTTPServer(
+            Application(
+                    db.Database(config['database'], config['password']),
+                    config['cookie']
+                )
+        )
     httpserver.listen(8888)
     tornado.ioloop.IOLoop.current().start()
 
