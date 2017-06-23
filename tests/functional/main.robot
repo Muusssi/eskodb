@@ -26,6 +26,15 @@ Page should require login
     /players
     /player/1/update
 
+Adding player should work
+    Create session   local  http://localhost:8888
+    &{data}=  Create Dictionary  name=Seppo
+    &{headers}=  Create Dictionary  Content-Type=application/x-www-form-urlencoded
+    ${resp}=  Post Request  local  /player/new  allow_redirects=${true}  data=${data}  headers=${headers}
+    Should be equal as strings  ${resp.status_code}  200
+    Should be equal as strings  ${resp.url}  http://localhost:8888/
+    ${player_id}=  Get player by name  Seppo
+    Should not be equal as strings  ${player_id}  None
 
 *** Keywords ***
 Page status ok

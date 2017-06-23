@@ -7,6 +7,12 @@ DATABASE = 'test_eskodb'
 PASSWORD = 'password'
 USER = 'esko'
 
+def get_player_by_name(name):
+    players = models.players({'name': name})
+    if len(players) == 1:
+        return players[0].id
+    else:
+        return None
 
 def initialize_test_database():
     models.DATABASE = db.Database(DATABASE, PASSWORD)

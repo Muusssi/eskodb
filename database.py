@@ -139,11 +139,11 @@ class Database(object):
         for (hole_id, ) in cursor.fetchall():
             hole_ids.append(hole_id)
 
-        sql = "INSERT INTO result(game, player, hole) VALUES %s"
+        sql = "INSERT INTO result(game, player, hole,reported_at) VALUES %s"
         values = []
         for player_id in player_ids:
             for hole_id in hole_ids:
-                values.append("(%s,'%s',%s)" % (game.id, player_id, hole_id))
+                values.append("(%s,'%s',%s,null)" % (game.id, player_id, hole_id))
         sql = sql % ','.join(values)
         cursor.execute(sql)
         self._commit()
@@ -342,6 +342,7 @@ class Database(object):
 
             else:
                 points[(cup, cup_result)] = 1
+        cursor.close()
         return results, points
 
 
@@ -386,7 +387,7 @@ class Database(object):
         query = ("UPDATE player SET active=NULL WHERE active=%s")
         cursor = self._cursor()
         cursor.execute(query, (game_id, ))
-        query = ("UPDATE game SET active=false, end_time='now' WHERE id=%s")
+        query = ("UPDATE game SET active=false, end_time=now() WHERE id=%s")
         cursor = self._cursor()
         cursor.execute(query, (game_id, ))
         self._commit()

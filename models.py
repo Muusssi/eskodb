@@ -27,6 +27,7 @@ class BaseModel(object):
         self._check_fields()
         self._check_types()
 
+
     def _remove_null_fields(self):
         for field in self.__class__.fields:
             if field in self._values:
@@ -207,7 +208,6 @@ def new_game(course_id, player_ids):
     game = Game({'course':course_id, 'game_of_day':DATABASE.next_game_of_day(course_id)})
     game.save()
     DATABASE.activate_players(player_ids, game.id)
-    players_list = players({'active':game.id})
     DATABASE.generate_empty_results(game, player_ids)
     return game
 
@@ -304,6 +304,8 @@ class Player(BaseModel):
 def update_game_results(result_ids, player_ids, throws, penalties, drives, puts):
     for i in range(len(result_ids)):
         res = result(result_ids[i])
+        if not res.reported_at:
+            res._values['reported_at'] = 'now'
         res._values['throws'] = throws[i]
         res._values['penalty'] = penalties[i]
         res._values['drives'] = drives[i] if drives[i] != "" else None
@@ -358,6 +360,7 @@ class Result(BaseModel):
             'penalty',
             'drives',
             'puts',
+            'reported_at',
         )
 
     integer_fields = (
