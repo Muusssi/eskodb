@@ -10,9 +10,19 @@ USER = 'esko'
 def get_player_by_name(name):
     players = models.players({'name': name})
     if len(players) == 1:
-        return players[0].id
+        return players[0]
     else:
         return None
+
+def get_course_by_name(name):
+    courses = models.courses({'name': name})
+    if len(courses) == 1:
+        return courses[0]
+    else:
+        return None
+
+def get_games_by_course_id(course_id):
+    return models.games({'course': course_id})
 
 def initialize_test_database():
     models.DATABASE = db.Database(DATABASE, PASSWORD)

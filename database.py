@@ -16,6 +16,7 @@ class Database(object):
                 password=password,
                 host='localhost',
             )
+        self._conn.autocommit = True
 
     def _cursor(self):
         return self._conn.cursor()
@@ -77,7 +78,6 @@ class Database(object):
         sql = "UPDATE player SET active=%s WHERE id IN %s"
         cursor = self._cursor()
         cursor.execute(sql, (game_id, tuple(player_ids)))
-        self._commit()
         cursor.close()
 
     def next_hole(self, game_id):
@@ -116,7 +116,6 @@ class Database(object):
         sql = "UPDATE %s SET %s WHERE id=%s " % (table, ','.join(['%s=%s' % (col, '%s') for col in values]), row_id)
         cursor = self._cursor()
         cursor.execute(sql, values.values())
-        self._commit()
         cursor.close()
 
 
@@ -127,7 +126,6 @@ class Database(object):
         cursor = self._cursor()
         cursor.execute(sql, values.values())
         (row_id, ) = cursor.fetchone()
-        self._commit()
         cursor.close()
         return row_id
 
@@ -146,7 +144,6 @@ class Database(object):
                 values.append("(%s,'%s',%s,null)" % (game.id, player_id, hole_id))
         sql = sql % ','.join(values)
         cursor.execute(sql)
-        self._commit()
         cursor.close()
 
     def game_results(self, game_id):
@@ -390,7 +387,6 @@ class Database(object):
         query = ("UPDATE game SET active=false, end_time=now() WHERE id=%s")
         cursor = self._cursor()
         cursor.execute(query, (game_id, ))
-        self._commit()
         cursor.close()
 
 
