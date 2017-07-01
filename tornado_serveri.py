@@ -41,7 +41,7 @@ class Application(tornado.web.Application):
                 # (r"/game/data/(?P<course_id>[^\/]+)/", GameResultsHandler),
                 # (r"/probabilities/(?P<course_id>[^\/]+)/(?P<player>[^\/]+)/", ProbabilityHandler),
                 # (r"/probabilities/data/(?P<course_id>[^\/]+)/(?P<player>[^\/]+)/", ProbabilityDataHandler),
-                (r"/full/(?P<course_id>[^\/]+)/", FullGameHandler),
+                # (r"/full/(?P<course_id>[^\/]+)/", FullGameHandler),
                 (r"/cup/new/", NewCupHandler),
                 (r"/eskocup/(?P<year>[^\/]+)/", EsKoCupHandler),
             ]
@@ -416,43 +416,43 @@ class GameHandler(BaseHandler):
                     self.get_arguments("player"),
                     self.get_arguments("throws"),
                     self.get_arguments("penalty"),
-                    self.get_arguments("drives"),
+                    self.get_arguments("approaches"),
                     self.get_arguments("puts"),
                 )
         self.write({'results': self.db.game_results(game_id)})
 
-class FullGameHandler(BaseHandler):
-    def get(self, course_id):
-        self.render("full_game.html",
-                players=models.players(),
-                course=models.course(course_id),
-                # For template
-                courses_list=models.courses(order_by="name, version"),
-                course_name_dict=self.db.course_name_dict(),
-                active_games=models.games({'active':True}),
-                user=self.get_current_user(),
-            )
+# class FullGameHandler(BaseHandler):
+#     def get(self, course_id):
+#         self.render("full_game.html",
+#                 players=models.players(),
+#                 course=models.course(course_id),
+#                 # For template
+#                 courses_list=models.courses(order_by="name, version"),
+#                 course_name_dict=self.db.course_name_dict(),
+#                 active_games=models.games({'active':True}),
+#                 user=self.get_current_user(),
+#             )
 
-    def post(self, course_id):
-        game_date = self.get_argument("game_date")
-        for p in self.get_arguments("player"):
-            throws = self.get_arguments("%s_throws" % (p, ))
-            penalties = self.get_arguments("%s_penalty" % (p, ))
-            for hole in range(len(throws)):
-                self.db.add_results(course_id,
-                        hole+1,
-                        [p],
-                        [throws[hole]],
-                        [penalties[hole]],
-                        insert_only=True,
-                        game_date=game_date,
-                    )
-        self.db.end_game(course_id)
-        self.redirect("/course/%s/" % (course_id, ))
+#     def post(self, course_id):
+#         game_date = self.get_argument("game_date")
+#         for p in self.get_arguments("player"):
+#             throws = self.get_arguments("%s_throws" % (p, ))
+#             penalties = self.get_arguments("%s_penalty" % (p, ))
+#             for hole in range(len(throws)):
+#                 self.db.add_results(course_id,
+#                         hole+1,
+#                         [p],
+#                         [throws[hole]],
+#                         [penalties[hole]],
+#                         insert_only=True,
+#                         game_date=game_date,
+#                     )
+#         self.db.end_game(course_id)
+#         self.redirect("/course/%s/" % (course_id, ))
 
 class EndGameHandler(BaseHandler):
     def get(self, game_id):
-        self.db.end_game(game_id)
+        self.db.end_game(game_id, self.get_argument('unfinished', False))
         self.redirect("/")
 
 

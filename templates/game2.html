@@ -8,7 +8,7 @@
     var holes = {{course.holes}};
 
     var rows = null;
-
+    var unfinished = true;
     var pars = [];
     var data_table = null;
     var course_par = {{par_sum}};
@@ -60,19 +60,24 @@
     function handleData(jsonData) {
       data_table = jsonData.results;
       rows = document.getElementById("tbody").rows;
+      unfinished = false;
       for (var row = 0; row < rows.length; row++) {
         var cur_par = 0;
         var cur_sum = 0;
         for (var col = 0; col < pars.length; col++) {
           var throws = data_table[row][col][0];
           var penalty = data_table[row][col][1];
+          var cell = rows[row].cells[col+1];
           if (throws != null) {
-            var cell = rows[row].cells[col+1];
             cell.innerHTML = throws + '*'.repeat(penalty);
-            cell.className = 'par'+(throws - pars[col])
-
+            cell.className = 'par'+(throws - pars[col]);
             cur_par += throws - pars[col];
             cur_sum += throws;
+          }
+          else {
+            cell.innerHTML = '*'.repeat(penalty);
+            cell.className = '';
+            unfinished = true;
           }
         }
         rows[row].cells[pars.length+1].innerHTML = cur_sum;
@@ -83,8 +88,15 @@
 
 
     function end_game() {
-      if (confirm("Haluatko varmasti lopettaa?")) {
-        window.location.href = "/game/end/{{game.id}}/";
+      if (unfinished) {
+        if (confirm("TULOKSIA PUUTTUU! Haluatko varmasti lopettaa?")) {
+          window.location.href = "/game/end/{{game.id}}/?unfinished=true";
+        }
+      }
+      else {
+        if (confirm("Haluatko varmasti lopettaa?")) {
+          window.location.href = "/game/end/{{game.id}}/?unfinished=false";
+        }
       }
     };
 
@@ -135,12 +147,11 @@
           document.getElementById('throws_'+row).value = pars[current_hole-1];
           document.getElementById('penalty_'+row).value = 0;
         }
-        console.log(data_table[row][current_hole-1][2]);
         if (data_table[row][current_hole-1][2] != null) {
-          document.getElementById('drives_'+row).value = data_table[row][current_hole-1][2];
+          document.getElementById('approaches_'+row).value = data_table[row][current_hole-1][2];
         }
         else {
-          document.getElementById('drives_'+row).value = "";
+          document.getElementById('approaches_'+row).value = "";
         }
 
         if (data_table[row][current_hole-1][3] != null) {
@@ -264,6 +275,7 @@
           </th>
           <td>
             <select id="throws_{{counter}}" class="throws_input game_input" name="throws">
+              <option value="">--</option>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3" selected>3</option>
@@ -298,8 +310,8 @@
             </select>
           </td>
           <td>
-            <label for="drives_{{counter}}">drives</label>
-            <select id="drives_{{counter}}" class="throws_input game_input" name="drives">
+            <label for="approaches_{{counter}}">approaches</label>
+            <select id="approaches_{{counter}}" class="throws_input game_input" name="approaches">
               <option value="" selected="">-</option>
               <option value="0">0</option>
               <option value="1">1</option>

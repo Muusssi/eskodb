@@ -148,25 +148,21 @@ class Database(object):
 
     def game_results(self, game_id):
         cursor = self._cursor()
-        sql = "SELECT count(*) FROM player WHERE active=%s"
-        cursor.execute(sql, (game_id, ))
-        (players, ) = cursor.fetchone()
-
-        sql = ("SELECT result.id, result.player, result.throws, result.penalty, result.drives, result.puts "
+        sql = ("SELECT result.id, result.player, result.throws, result.penalty, result.approaches, result.puts "
                 "FROM result JOIN hole on hole.id=result.hole JOIN player ON player.id=result.player "
                 "WHERE result.game=%s ORDER BY player.name, hole.hole")
         cursor.execute(sql, (game_id, ))
         result_table = []
         row = []
         current_player = None
-        for result_id, player, throws, penalty, drives, puts in cursor.fetchall():
+        for result_id, player, throws, penalty, approaches, puts in cursor.fetchall():
             if not current_player:
                 current_player = player
             if current_player != player:
                 result_table.append(row)
                 row = []
                 current_player = player
-            row.append([throws, penalty, drives, puts, result_id])
+            row.append([throws, penalty, approaches, puts, result_id])
         if row:
             result_table.append(row)
         cursor.close()
@@ -258,7 +254,7 @@ class Database(object):
                     "FROM hole JOIN course ON hole.course=course.id "
                     "GROUP BY course.id "
                 ") as pars ON pars.course=course.id "
-                "WHERE game.start_time > (date 'today' -14) AND game.active=false "
+                "WHERE game.start_time > (date 'today' -14) AND game.active=false AND game.unfinished=false "
                 "GROUP BY game.start_time, game.game_of_day, course.name, course.id, player.name, player.id, pars.sum "
                 "ORDER BY game.start_time desc, game.game_of_day desc;")
         cursor = self._cursor()
@@ -272,6 +268,7 @@ class Database(object):
                 "EXTRACT(year FROM totals.start_time) as season FROM ( "
                 "SELECT game.course, result.player, game.start_time, game.game_of_day, sum(result.throws) as res "
                 "FROM result JOIN game ON game.id=result.game "
+                "WHERE game.unfinished=false "
                 "GROUP BY game.course, result.player, game.start_time, game.game_of_day "
                 "ORDER BY game.course, result.player, res DESC "
                 ") as totals "
@@ -380,13 +377,13 @@ class Database(object):
     #     return probs
 
 
-    def end_game(self, game_id):
+    def end_game(self, game_id, unfinished):
         query = ("UPDATE player SET active=NULL WHERE active=%s")
         cursor = self._cursor()
         cursor.execute(query, (game_id, ))
-        query = ("UPDATE game SET active=false, end_time=now() WHERE id=%s")
+        query = ("UPDATE game SET active=false, end_time=now(), unfinished=%s WHERE id=%s")
         cursor = self._cursor()
-        cursor.execute(query, (game_id, ))
+        cursor.execute(query, (unfinished, game_id))
         cursor.close()
 
 

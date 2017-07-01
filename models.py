@@ -244,6 +244,7 @@ class Game(BaseModel):
             'game_of_day',
             'comments',
             'steps',
+            'unfinished',
         )
 
     integer_fields = (
@@ -301,14 +302,14 @@ class Player(BaseModel):
         return pbkdf2_sha256.verify(password, self.password)
 
 
-def update_game_results(result_ids, player_ids, throws, penalties, drives, puts):
+def update_game_results(result_ids, player_ids, throws, penalties, approaches, puts):
     for i in range(len(result_ids)):
         res = result(result_ids[i])
         if not res.reported_at:
             res._values['reported_at'] = 'now'
-        res._values['throws'] = throws[i]
+        res._values['throws'] = throws[i] if throws[i] != "" else None
         res._values['penalty'] = penalties[i]
-        res._values['drives'] = drives[i] if drives[i] != "" else None
+        res._values['approaches'] = approaches[i] if approaches[i] != "" else None
         res._values['puts'] = puts[i] if puts[i] != "" else None
         res.save()
 
@@ -358,7 +359,7 @@ class Result(BaseModel):
             'hole',
             'throws',
             'penalty',
-            'drives',
+            'approaches',
             'puts',
             'reported_at',
         )
@@ -369,7 +370,7 @@ class Result(BaseModel):
             'hole',
             'throws',
             'penalty',
-            'drives',
+            'approaches',
             'puts',
         )
 

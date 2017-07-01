@@ -77,7 +77,8 @@
               filtered_rows[hole-1] = [];
             }
             var throws = parseInt(table.rows[i].cells[hole+1].innerHTML);
-            filtered_rows[hole-1].push(throws);
+            if (!isNaN(throws))
+              filtered_rows[hole-1].push(throws);
           }
           Nrows++;
         }
@@ -89,14 +90,22 @@
       var avg_row = document.getElementById("avg_row");
       var min_row = document.getElementById("min_row");
       var mode_row = document.getElementById("mode_row");
+      var median_row = document.getElementById("median_row");
       var avg_sum = 0;
       var mode_sum = 0;
+      var median_sum = 0;
       var min_sum = 0;
       for (var hole = 1; hole <= holes; hole++) {
+        filtered_rows[hole-1].sort();
+        var valuesOnRow = filtered_rows[hole-1].length;
         var avg = filtered_rows[hole-1].reduce(function(a, b) { return a + b; }, 0).toFixed(2);
-        avg_row.cells[hole+1].innerHTML = (avg/Nrows).toFixed(2);
-        avg_row.cells[hole+1].className = "par"+(Math.round(avg/Nrows)-pars[hole-1]);
-        avg_sum += avg/Nrows;
+        avg_row.cells[hole+1].innerHTML = (avg/valuesOnRow).toFixed(2);
+        avg_row.cells[hole+1].className = "par"+(Math.round(avg/valuesOnRow)-pars[hole-1]);
+        avg_sum += avg/valuesOnRow;
+        var median = filtered_rows[hole-1][Math.floor(filtered_rows[hole-1].length/2)];
+        median_row.cells[hole+1].innerHTML = median;
+        median_row.cells[hole+1].className = "par"+(median-pars[hole-1]);
+        median_sum += median;
         var mod = mode(filtered_rows[hole-1]);
         mode_row.cells[hole+1].innerHTML = mod;
         mode_row.cells[hole+1].className = "par"+(mod-pars[hole-1]);
@@ -112,6 +121,8 @@
       avg_row.cells[holes+3].innerHTML = (avg_sum - course_par).toFixed(2);
       mode_row.cells[holes+2].innerHTML = mode_sum;
       mode_row.cells[holes+3].innerHTML = mode_sum - course_par;
+      median_row.cells[holes+2].innerHTML = median_sum;
+      median_row.cells[holes+3].innerHTML = median_sum - course_par;
     }
 
     function toggle_holes_info() {
@@ -210,13 +221,14 @@
           <td class="date_cell" title="{{game_dict[row[0].game].start_time}}">{{game_dict[row[0].game].label()}}</td>
           <td>{{player_dict[row[0].player].name}}</td>
           {% for result in row %}
-              <td class="par{{result.throws - hole_dict[result.hole].par }}"
-                  value="{{result.throws}}">
+              <td class="par{{(result.throws - hole_dict[result.hole].par) if result.throws else '' }}"
+                  value="{{result.throws}}" {% if not result.throws %}sorttable_customkey="100"{% end %}>
                 {{str(result.throws)+ '*'*result.penalty}}
               </td>
           {% end %}
-          <td>{{row_sum = sum([res.throws for res in row])}}</td>
-          <td>{{row_sum - par_sum}}</td>
+          <!-- {{row_sum = sum([res.throws or -100 for res in row])}} -->
+          <td>{{row_sum if row_sum > 0 else ""}}</td>
+          <td>{{(row_sum - par_sum) if row_sum > 0 else "" }}</td>
         </tr>
       {% end %}
 
@@ -225,6 +237,15 @@
         <tr id="min_row">
           <td></td>
           <td>Min:</td>
+          {% for _ in range(1, course.holes+1) %}
+            <th></th>
+          {% end %}
+          <th></th>
+          <th></th>
+        </tr>
+        <tr id="median_row">
+          <td></td>
+          <td>Median:</td>
           {% for _ in range(1, course.holes+1) %}
             <th></th>
           {% end %}

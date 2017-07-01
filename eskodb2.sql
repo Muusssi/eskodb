@@ -55,6 +55,7 @@ CREATE TABLE cup (
 CREATE TABLE game (
     id serial PRIMARY KEY,
     active boolean default true,
+    unfinished boolean default false,
     course integer REFERENCES course(id),
     start_time timestamp default now(),
     end_time timestamp,
@@ -88,9 +89,9 @@ CREATE TABLE result (
     hole integer REFERENCES hole(id),
     throws integer default NULL,
     penalty integer default 0,
-    drives integer default NULL,
+    approaches integer default NULL,
     puts integer default NULL,
-    reported_at timestamp default now()
+    reported_at timestamp default null
 );
 
 
