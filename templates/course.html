@@ -227,8 +227,8 @@
               </td>
           {% end %}
           <!-- {{row_sum = sum([res.throws or -100 for res in row])}} -->
-          <td>{{row_sum if row_sum > 0 else ""}}</td>
-          <td>{{(row_sum - par_sum) if row_sum > 0 else "" }}</td>
+          <td {% if row_sum < 0 %}sorttable_customkey="100"{% end %}>{{row_sum if row_sum > 0 else ""}}</td>
+          <td {% if row_sum < 0 %}sorttable_customkey="100"{% end %}>{{(row_sum - par_sum) if row_sum > 0 else "" }}</td>
         </tr>
       {% end %}
 
