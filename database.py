@@ -319,7 +319,7 @@ class Database(object):
         points = defaultdict(lambda : 0)
         current_cup = None
         counter = 0
-        POINTS = (5, 3, 2, 1)
+        POINTS = (8, 6, 5, 4, 3, 2, 1)
         for cup, player, course, game, cup_result, dt in cursor.fetchall():
             time = dt.strftime("%Y-%m-%d")
             results[(cup, player)] = (course, game, cup_result, time)
