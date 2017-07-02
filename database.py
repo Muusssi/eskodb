@@ -329,7 +329,7 @@ class Database(object):
                 current_cup = cup
                 counter = 0
 
-            if counter < 4:
+            if counter < len(POINTS):
                 if points[(cup, cup_result)] == 0:
                     points[(cup, cup_result)] = POINTS[counter]
                     counter += 1

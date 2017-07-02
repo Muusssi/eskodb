@@ -16,16 +16,16 @@
     color: gold;
 }
 
-.par-2, .cup5 {
+.par-2 {
     background-color: #0066ff;
 }
-.par-1, .cup3 {
+.par-1 {
     background-color: #00ff00;
 }
-.par0, .cup2 {
+.par0 {
     background-color: #009933;
 }
-.par1, .cup1 {
+.par1 {
     background-color: #ffff00;
 }
 .par2 {
@@ -45,6 +45,29 @@
     color: #000000;
     background-color: #000000;
 }
+
+.cup8 {
+    background-color: #0055ff;
+}
+.cup6 {
+    background-color: #1aa3ff;
+}
+.cup5 {
+    background-color: #00ff00;
+}
+.cup4 {
+    background-color: #33cc33;
+}
+.cup3 {
+    background-color: #009933;
+}
+.cup2 {
+    background-color: #99cc00;
+}
+.cup1 {
+    background-color: #ffff00;
+}
+
 
 table#results_table tr td.date_cell {
     font-size: 75%;
