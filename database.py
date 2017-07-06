@@ -24,9 +24,6 @@ class Database(object):
     def _close_connection(self):
         self._conn.close()
 
-    def _commit(self):
-        self._conn.commit()
-
     def reconnect(self):
         self._close_connection()
         self._connect()

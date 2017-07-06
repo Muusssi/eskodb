@@ -123,6 +123,7 @@ class LoginHandler(BaseHandler):
                     courses_list=models.courses(order_by="name, version"),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
+                    user=self.get_current_user(),
                 )
 
 class LogoutHandler(BaseHandler):

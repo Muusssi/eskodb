@@ -54,13 +54,13 @@
         <tr>
           <td>{{player.name}}</td>
           {% for cup in cups %}
-              <!-- {{res = (results[(cup.id, player.id)][2] or cup.max_par)}} -->
-              <td
-              {% if results[(cup.id, player.id)][3] %}
-                onclick="see_game({{results[(cup.id, player.id)][0]}},'{{results[(cup.id, player.id)][3]}}','{{player.name}}');"
-              {% end %}
-              class="cup{{point = (points[(cup.id, res)] if results[(cup.id, player.id)][2] else 0)}}">{{res}}</td>
-              <td >{{point}}</td>
+            {% set res = (results[(cup.id, player.id)][2] if results[(cup.id, player.id)][2] != None else cup.max_par) %}
+            <td
+            {% if results[(cup.id, player.id)][3] != None %}
+              onclick="see_game({{results[(cup.id, player.id)][0]}},'{{results[(cup.id, player.id)][3]}}','{{player.name}}');"
+            {% end %}
+            class="cup{{point = (points[(cup.id, res)] if results[(cup.id, player.id)][2] != None else 0)}}">{{res}}</td>
+            <td >{{point}}</td>
           {% end %}
           <td></td>
           <td>0</td>

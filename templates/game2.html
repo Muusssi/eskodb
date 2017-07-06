@@ -264,7 +264,7 @@
   <form id="results_form">
     <h2 id="current_hole_p">{{1}}</h2>
     <table>
-      <!-- {{counter = -1}} -->
+      {% set counter = -1 %}
       {% for player in players %}
       <tr>
         <input id="result_{{counter = counter + 1}}" type="text" name="result" value="" hidden>

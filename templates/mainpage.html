@@ -31,14 +31,14 @@
       <th>tulos</th>
       <th>par</th>
     </tr>
-    <!-- {{prev_course = None}} -->
-    <!-- {{prev_game_date = None}} -->
-    <!-- {{prev_game_of_day = None}} -->
-    <!-- {{current_color = True}} -->
+    {% set prev_course = None %}
+    {% set prev_game_date = None %}
+    {% set prev_game_of_day = None %}
+    {% set current_color = True %}
     {% for game_date, game_of_day, course_name, course_id, player_name, player, res, par in latest %}
       <tr class="{% if prev_game_date != game_date or prev_game_of_day != game_of_day or prev_course != course_name%}{{current_color = not current_color}}{% else %}{{current_color}}{% end %}">
         <td onclick="see_game_day({{course_id}},'{{str(game_date)[:10]}}');">{{str(game_date)[:10]}}</td>
-        <!-- {{prev_game_date = game_date}} -->
+        {% set prev_game_date = game_date %}
         <td onclick="see_game_day({{course_id}},'{{str(game_date)[:10]}}');">{{prev_game_of_day = game_of_day}}</td>
         <td onclick="see_course({{course_id}});">{{prev_course = course_name}}</td>
         <td onclick="see_player({{course_id}},'{{player_name}}');">{{player_name}}</td>
