@@ -100,6 +100,12 @@ tbody#tbody td {
     /*background-color: #000000;*/
 }
 
+tbody#tbody table.subtable td {
+    background-color: white;
+    border: none;
+    /*background-color: #000000;*/
+}
+
 .show {display:block;}
 
 #histo_div {

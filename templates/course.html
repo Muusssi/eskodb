@@ -6,6 +6,7 @@
   <script type="text/javascript">
 
     var holes = {{course.holes}};
+    var show_subtables = true;
 
     var pars = [];
     var course_par = null;
@@ -43,6 +44,14 @@
         }
       }
       return maxEl;
+    }
+
+    function toggle_subtables() {
+      show_subtables = !show_subtables;
+      var subtables = document.getElementsByClassName('subtable');
+      for (var i = 0; i < subtables.length; i++) {
+        subtables[i].hidden = show_subtables;
+      }
     }
 
 
@@ -137,6 +146,7 @@
   <h1>{{ course.name }}
     <a class="btn btn-info" href="#" onclick="toggle_holes_info();">Väylien tiedot</a>
     <a class="btn btn-info" href="/holes/{{course.id}}/update">Muokkaa väylien tietoja</a>
+    <a class="btn btn-info" href="#" onclick="toggle_subtables();">Tarkemmat heittotiedot</a>
     <!-- <a class="btn btn-primary" href="/full/{{course.id}}/">Lisää koko pelin tulos</a> -->
     <!-- <a class="btn btn-info" href="/hole_statistics/{{course.id}}/1/">Histogrammi</a> -->
     <!-- <a class="btn btn-info" href="/probabilities/{{course.id}}/par/">Tuloksen todennäköisyydet</a> -->
@@ -222,14 +232,22 @@
           <td>{{player_dict[row[0].player].name}}</td>
           {% for result in row %}
               <td class="par{{(result.throws - hole_dict[result.hole].par) if result.throws else '' }}"
-                  value="{{result.throws}}" {% if not result.throws %}sorttable_customkey="100"{% end %}>
+                  value="{{result.throws}}"
+                  sorttable_customkey="{% if not result.throws %}100{% else %}{{result.throws}}{% end %}"
+                  {% if result.approaches != "" or result.puts != "" %}title="{{result.approaches}}:{{result.puts}}"{% end %}>
                 {{str(result.throws)+ '*'*result.penalty}}
+                {% if result.approaches != "" or result.puts != "" %}
+                <table class="subtable" hidden>
+                  <tr><td>{{result.approaches}}</td><td>:</td><td>{{result.puts}}</td></tr>
+                </table>
+                {% end %}
               </td>
           {% end %}
           {% set row_sum = sum([res.throws or -100 for res in row]) %}
           <td {% if row_sum < 0 %}sorttable_customkey="100"{% end %}>{{row_sum if row_sum > 0 else ""}}</td>
           <td {% if row_sum < 0 %}sorttable_customkey="100"{% end %}>{{(row_sum - par_sum) if row_sum > 0 else "" }}</td>
         </tr>
+
       {% end %}
 
       </tbody>
