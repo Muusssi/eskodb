@@ -153,6 +153,8 @@
   </h1>
 
   <p id="loading_message"></p>
+  {% set min_time, avg_time, max_time = game_time %}
+  <p>Peli ajat: {{min_time}} -- {{avg_time}} -- {{max_time}}</p>
 
   <table id="holes_info" class="table table-bordered table-condensed" hidden>
     <tr>
@@ -160,12 +162,16 @@
       {% for hole in holes %}
         <th>{{hole.hole}}</th>
       {% end %}
+      <th>Total</th>
     </tr>
     <tr>
       <th>Pituus</th>
+      {% set course_length = 0 %}
       {% for hole in holes %}
+        {% set course_length = course_length + hole.length %}
         <td>{{hole.length}}</td>
       {% end %}
+      <td>{{course_length}}</td>
     </tr>
     <tr>
       <th>Korkeus</th>

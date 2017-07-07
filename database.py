@@ -175,6 +175,25 @@ class Database(object):
         cursor.close()
         return name_dict
 
+    def game_time(self, course_id):
+        sql = ("SELECT min(end_time-start_time), avg(end_time-start_time), max(end_time-start_time) FROM game "
+                "WHERE course=%s AND end_time is not null GROUP BY course")
+        cursor = self._cursor()
+        cursor.execute(sql, (course_id, ))
+        result = cursor.fetchone()
+        print result
+        if result:
+            min_time, avg_time, max_time = result
+            min_time = ':'.join(str(min_time).split('.')[0].split(':')[:2])
+            avg_time = ':'.join(str(avg_time).split('.')[0].split(':')[:2])
+            max_time = ':'.join(str(max_time).split('.')[0].split(':')[:2])
+
+        else:
+            min_time, avg_time, max_time = "###", "###", "###"
+        cursor.close()
+        #print min_time, avg_time, max_time
+        return (min_time, avg_time, max_time)
+
 
     # def get_hole_statistics(self, course, hole):
     #     query = ("SELECT throws, player, game_date, game_of_day "

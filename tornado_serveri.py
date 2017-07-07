@@ -163,6 +163,7 @@ class CourseHandler(BaseHandler):
                 game_dict=models.game_dict({'course':course_id}),
                 result_table=models.results_table({'course':course_id}),
                 par_sum=par_sum,
+                game_time=self.db.game_time(course_id),
                 # For template
                 courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
