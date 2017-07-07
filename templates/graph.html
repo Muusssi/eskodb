@@ -1,0 +1,74 @@
+{% extends esko_template.html %}
+{% block title_block %}Tuloskehityskuvaaja {{course.name}} {{course.holes}}{% end %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.20.0/vis.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.20.0/vis.min.css">
+<script type="text/javascript">
+
+var current_graph = null;
+
+  function get_data() {
+    var averaged = document.getElementById('averaging_selection').value;
+    var player_id = document.getElementById('player_selection').value;
+    $.ajax({
+      type: "POST",
+      url: "/course/{{course.id}}/graphdata?averaged="+averaged+'&player_id='+player_id,
+      dataType: "json",
+      success: update_graph,
+      error: function(x, t, m) {
+        console.log(x, t, m);
+      }
+    });
+  }
+
+  function update_graph(data) {
+    var container = document.getElementById('graph');
+
+    var groups = data.groups;
+    var items = data.items;
+    var dataset = new vis.DataSet(items);
+
+    var max_date = new Date();
+    max_date.setDate(max_date.getDate() + 10);
+
+    var options = {
+      interpolation: {enabled: false},
+      start: items[0].x,
+      end: new Date(),
+      max: max_date,
+      min: "2015-01-01",
+      legend: true,
+    };
+    if (current_graph != null) {
+      current_graph.destroy();
+    }
+    current_graph = new vis.Graph2d(container, dataset, groups, options);
+  }
+
+</script>
+{% end %}
+
+{% block body %}
+<h2>Tuloskehityskuvaaja {{course.name}} {{course.holes}}</h2>
+
+<label for="averaging_selection">Keskiarvotus:</label>
+<select id="averaging_selection" onchange="get_data();">
+  <option value="">All</option>
+  <option value="doy">Daily</option>
+  <option value="week">Weekly</option>
+  <option value="month">Monthly</option>
+  <option value="quarter">Quarterly</option>
+  <option value="year">Yearly</option>
+</select>
+
+<label for="player_selection">Pelaaja:</label>
+<select id="player_selection" onchange="get_data();">
+  <option value="" selected>---</option>
+  {% for name, player_id in players %}
+    <option value="{{player_id}}">{{name}}</option>
+  {% end %}
+</select>
+
+<div id="graph"></div>
+{% end %}

@@ -29,6 +29,8 @@ class Application(tornado.web.Application):
                 # (r"/data/(?P<course_id>[^\/]+)/", ResultsHandler),
                 (r"/course/new/", NewCourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/", CourseHandler),
+                (r"/course/(?P<course_id>[^\/]+)/graph", GraphHandler),
+                (r"/course/(?P<course_id>[^\/]+)/graphdata", GraphDataHandler),
                 (r"/holes/(?P<course_id>[^\/]+)/update", UpdateHolesHandler),
                 # (r"/hole_statistics/(?P<course_id>[^\/]+)/(?P<hole>[^\/]+)/", HoleStatisticsHandler),
                 # (r"/hole_statistics/(?P<course_id>[^\/]+)/(?P<hole>[^\/]+)/data/", HoleDataHandler),
@@ -569,6 +571,29 @@ class EsKoCupHandler(BaseHandler):
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
             )
+
+
+class GraphHandler(BaseHandler):
+
+    def get(self, course_id):
+        self.render("graph.html",
+                course=models.course(course_id),
+                players=self.db.player_with_games_on_course(course_id),
+                # For template
+                courses_list=models.courses(order_by="name, version"),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user(),
+            )
+
+class GraphDataHandler(BaseHandler):
+
+    def post(self, course_id):
+        player_id = self.get_argument('player_id', None)
+        averaged = self.get_argument('averaged', None)
+        self.write(json.dumps(self.db.graphdata(course_id, player_id, averaged)))
+
+
 
 
 # class HoleStatisticsHandler(BaseHandler):

@@ -181,7 +181,6 @@ class Database(object):
         cursor = self._cursor()
         cursor.execute(sql, (course_id, ))
         result = cursor.fetchone()
-        print result
         if result:
             min_time, avg_time, max_time = result
             min_time = ':'.join(str(min_time).split('.')[0].split(':')[:2])
@@ -191,8 +190,19 @@ class Database(object):
         else:
             min_time, avg_time, max_time = "###", "###", "###"
         cursor.close()
-        #print min_time, avg_time, max_time
         return (min_time, avg_time, max_time)
+
+    def player_with_games_on_course(self, course_id):
+        sql = ("SELECT distinct player.name, player.id "
+                "FROM player JOIN result ON player.id=result.player JOIN game ON result.game=game.id "
+                "WHERE game.course=%s")
+        cursor = self._cursor()
+        cursor.execute(sql, (course_id, ))
+        players = []
+        for name, player_id in cursor.fetchall():
+            players.append((name, player_id))
+        cursor.close()
+        return players
 
 
     # def get_hole_statistics(self, course, hole):
@@ -355,6 +365,61 @@ class Database(object):
         cursor.close()
         return results, points
 
+
+    def graphdata(self, course_id, player_id, averaged):
+        cursor = self._cursor()
+        sql = "SELECT sum(par) FROM hole WHERE course=%s"
+        cursor.execute(sql, (course_id, ))
+        (par, ) = cursor.fetchone()
+        items = []
+        if averaged:
+            groups = [
+                    {'id': 'min', 'content': 'minimi', 'options': {'shaded': {'orientation': 'group', 'groupId': 'avg'}}},
+                    {'id': 'avg', 'content': 'keskiarvo'},
+                    {'id': 'max', 'content': 'maximi', 'options': {'shaded': {'orientation': 'group', 'groupId': 'avg'}}},
+                    {'id': 'par', 'content': 'par'},
+                ]
+            sql = ("SELECT max(start_time) as start_time, name, min(res), avg(res), max(res) "
+                "FROM ("
+                    "SELECT max(game.start_time) as start_time, player.name, sum(result.throws) as res "
+                    "FROM result "
+                        "JOIN game ON result.game=game.id "
+                        "JOIN player ON player.id=result.player "
+                    "WHERE game.course=%s AND game.active=false AND game.unfinished=false AND player=%s "
+                    "GROUP BY game.id, player.name "
+                ") AS results "
+                "GROUP BY EXTRACT(year FROM start_time), EXTRACT(%s FROM start_time), name "
+                "ORDER BY start_time, name;")
+            cursor.execute(sql, (course_id, player_id, averaged))
+            for start_time, name, min_res, avg_res, max_res in cursor.fetchall():
+                start_time = int(start_time.strftime('%s'))*1000
+                items.append({'x': start_time, 'y': float(min_res)-par, 'group': 'min'})
+                items.append({'x': start_time, 'y': float(avg_res)-par, 'group': 'avg'})
+                items.append({'x': start_time, 'y': float(max_res)-par, 'group': 'max'})
+        else:
+            groups = [
+                    {'id': 'res', 'content': 'Tulos'},
+                    {'id': 'par', 'content': 'par'},
+                ]
+            sql = ("SELECT game.start_time, player.name, sum(result.throws) "
+                    "FROM result "
+                        "JOIN game ON result.game=game.id "
+                        "JOIN player ON player.id=result.player "
+                    "WHERE game.course=%s AND game.active=false AND game.unfinished=false AND player=%s "
+                    "GROUP BY game.id, player.name "
+                    "ORDER BY game.start_time, player.name")
+            cursor.execute(sql, (course_id, player_id))
+            for start_time, name, res in cursor.fetchall():
+                start_time = int(start_time.strftime('%s'))*1000
+                items.append({'x': start_time, 'y': res-par, 'group': 'res'})
+
+
+        min_time, max_time = items[0]['x'], items[-1]['x']
+        items.append({'x': min_time, 'y': 0, 'group': 'par'})
+        items.append({'x': max_time, 'y': 0, 'group': 'par'})
+        cursor.close()
+
+        return {'groups': groups, 'items': items}
 
     # def get_probabilities(self, course_id, player):
     #     cursor = self._cursor()
