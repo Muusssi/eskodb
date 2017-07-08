@@ -7,13 +7,16 @@ GAME_TEMPLATE = "%s #%s"
 class Database(object):
 
     def __init__(self, database, password):
-        self._connect(database, password)
+        self._password = password
+        self._database_name = database
+        self._connect()
 
-    def _connect(self, database, password):
+
+    def _connect(self):
         self._conn = psycopg2.connect(
-                dbname=database,
+                dbname=self._database_name,
                 user='esko',
-                password=password,
+                password=self._password,
                 host='localhost',
             )
         self._conn.autocommit = True
