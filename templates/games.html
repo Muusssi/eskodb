@@ -1,0 +1,27 @@
+{% extends esko_template.html %}
+{% block title_block %}Pelit{% end %}
+{% block body %}
+
+<table class="sortable table table-striped table-bordered table-condensed table-hover">
+  <tr>
+    <th>Id</th>
+    <th>Aktivinen</th>
+    <th>Kesken</th>
+    <th>Rata</th>
+    <th>Aloitus</th>
+    <th>#</th>
+    <th></th>
+  </tr>
+  {% for game in games %}
+    <tr>
+      <td>{{game.id}}</td>
+      <td>{{game.active}}</td>
+      <td>{{game.unfinished}}</td>
+      <td>{{game.start_time}}</td>
+      <td>{{game.game_of_day}}</td>
+      <td><a href="/game/{{game.id}}/reactivate">Aktivoi</a></td>
+    </tr>
+  {% end %}
+</table>
+
+{% end %}

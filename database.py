@@ -207,6 +207,15 @@ class Database(object):
         cursor.close()
         return players
 
+    def reactivate_game(self, game_id):
+        sql = ("UPDATE game SET active=true WHERE id=%s")
+        cursor = self._cursor()
+        cursor.execute(sql, (game_id, ))
+        sql = ("UPDATE player SET active=%s WHERE id IN "
+            "(SELECT DISTINCT player FROM result WHERE game=%s)")
+        cursor.execute(sql, (game_id, game_id))
+        cursor.close()
+
 
     # def get_hole_statistics(self, course, hole):
     #     query = ("SELECT throws, player, game_date, game_of_day "

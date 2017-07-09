@@ -37,8 +37,10 @@ class Application(tornado.web.Application):
                 (r"/players", PlayersHandler),
                 (r"/player/new", NewPlayerHandler),
                 (r"/player/(?P<player_id>[^\/]+)/update", UpdatePlayerHandler),
+                (r"/games/", GamesHandler),
                 (r"/game/new/", NewGameHandler),
                 (r"/game/end/(?P<game_id>[^\/]+)/", EndGameHandler),
+                (r"/game/(?P<game_id>[^\/]+)/reactivate", ReactivateGameHandler),
                 (r"/game/(?P<game_id>[^\/]+)/", GameHandler),
                 # (r"/game/data/(?P<course_id>[^\/]+)/", GameResultsHandler),
                 # (r"/probabilities/(?P<course_id>[^\/]+)/(?P<player>[^\/]+)/", ProbabilityHandler),
@@ -458,6 +460,23 @@ class EndGameHandler(BaseHandler):
     def get(self, game_id):
         self.db.end_game(game_id, self.get_argument('unfinished', False))
         self.redirect("/")
+
+class ReactivateGameHandler(BaseHandler):
+    def get(self, game_id):
+        self.db.reactivate_game(game_id)
+        self.redirect("/game/%s/" % (game_id, ))
+
+class GamesHandler(BaseHandler):
+    def get(self):
+        self.render("games.html",
+                games=models.games({}, 'start_time desc'),
+                # For template
+                courses_list=models.courses(order_by="name, version"),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user(),
+            )
+
 
 
 # class ResultsHandler(BaseHandler):
