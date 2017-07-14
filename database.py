@@ -6,18 +6,20 @@ GAME_TEMPLATE = "%s #%s"
 
 class Database(object):
 
-    def __init__(self, database, password):
+    def __init__(self, database, host, user, password):
+        self._database_user = user
         self._password = password
         self._database_name = database
+        self._database_host = host
         self._connect()
 
 
     def _connect(self):
         self._conn = psycopg2.connect(
                 dbname=self._database_name,
-                user='esko',
+                user=self._database_user,
                 password=self._password,
-                host='localhost',
+                host=self._database_host,
             )
         self._conn.autocommit = True
 
@@ -232,58 +234,6 @@ class Database(object):
     #     return {'rows': results}
 
 
-    # def get_results2(self, course_id):
-    #     cursor = self._cursor()
-    #     results = {}
-    #     #Fetch course info
-    #     query = ("SELECT name, holes FROM courses "
-    #              "WHERE id=%s LIMIT 1")
-    #     cursor.execute(query, (course_id, ))
-    #     course_name, holes = cursor.fetchone()
-
-    #     # Fetch par
-    #     query = ("SELECT hole, throws FROM results "
-    #              "WHERE course=%s AND player='par' ORDER BY hole ASC")
-    #     cursor.execute(query, (course_id, ))
-    #     par_row = []
-    #     par_sum = 0
-    #     for h, t in cursor.fetchall():
-    #         par_row.append(t)
-    #         par_sum += t
-    #     pars = (par_row, par_sum)
-
-    #     # Other results
-    #     res_rows = []
-    #     index = -1
-
-    #     query = ("SELECT player, hole, throws, penalty, game_date, game_of_day "
-    #              "FROM results WHERE course=%s AND player<>'par' "
-    #              "ORDER BY game_date, game_of_day, player, hole ASC")
-    #     cursor.execute(query, (course_id, ))
-
-    #     current_game = None
-    #     current_player = None
-    #     row_sum = 0
-    #     row = []
-    #     for p, h, t, b, d, n in cursor.fetchall():
-    #         game = GAME_TEMPLATE % (d, n)
-    #         if current_game != game or p != current_player:
-    #             if current_game:
-    #                 res_rows.append((current_game, current_player, row, row_sum, row_sum-par_sum))
-    #             row_sum = 0
-    #             row = []
-    #             current_game = game
-    #             current_player = p
-    #         if par_row:
-    #             row.append((t, b, t-par_row[h-1]))
-    #         else:
-    #             row.append((t, b, t-3))
-    #         row_sum += t
-    #     res_rows.append((current_game, current_player, row, row_sum, row_sum-par_sum))
-    #     cursor.close()
-    #     return pars, reversed(res_rows)
-
-
     def get_latest_games(self):
         query = ("SELECT game.start_time, game.game_of_day, course.name, course.id, "
                 "player.name, player.id, sum(result.throws) as res, sum(result.throws) - pars.sum as par "
@@ -377,6 +327,19 @@ class Database(object):
                 points[(cup, cup_result)] = 1
         cursor.close()
         return results, points
+
+    def course_versions(self, course_id):
+        cursor = self._cursor()
+        sql = "SELECT name FROM course WHERE id=%s"
+        cursor.execute(sql, (course_id, ))
+        (name, ) = cursor.fetchone()
+        sql = "SELECT id FROM course WHERE name=%s ORDER BY version"
+        cursor.execute(sql, (name, ))
+        versions = []
+        for (course_id, ) in cursor.fetchall():
+            versions.append(course_id)
+        cursor.close()
+        return versions
 
 
     def graphdata(self, course_id, player_id, averaged):

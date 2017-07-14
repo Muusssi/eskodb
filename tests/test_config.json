@@ -1,5 +1,7 @@
 {
+    "user": "esko",
     "password": "foo",
     "database": "test_eskodb",
+    "host": "localhost",
     "cookie": "SuperSalainen"
 }

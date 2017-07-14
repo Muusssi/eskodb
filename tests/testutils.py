@@ -6,6 +6,7 @@ import database as db
 DATABASE = 'test_eskodb'
 PASSWORD = 'password'
 USER = 'esko'
+HOST = 'localhost'
 
 def get_player_by_name(name):
     players = models.players({'name': name})
@@ -25,7 +26,7 @@ def get_games_by_course_id(course_id):
     return models.games({'course': course_id})
 
 def initialize_test_database():
-    models.DATABASE = db.Database(DATABASE, PASSWORD)
+    models.DATABASE = db.Database(DATABASE, HOST, USER, PASSWORD)
     # Initialize courses
     course = models.Course({'name': 'A-Rata', 'holes': 18})
     course.save()

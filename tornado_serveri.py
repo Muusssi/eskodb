@@ -638,8 +638,8 @@ if __name__ == "__main__":
     config = load_config_file(sys.argv[1])
     httpserver = tornado.httpserver.HTTPServer(
             Application(
-                    db.Database(config['database'], config['password']),
-                    config['cookie']
+                    db.Database(config['database'], config['host'], config['user'], config['password']),
+                    config['cookie'],
                 )
         )
     httpserver.listen(8888)
