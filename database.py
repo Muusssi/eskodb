@@ -81,14 +81,15 @@ class Database(object):
         cursor.close()
 
     def next_hole(self, game_id):
-        sql = "SELECT max(hole) FROM result WHERE game=%s"
+        sql = ("SELECT max(hole.hole) FROM result JOIN hole ON result.hole=hole.id "
+                "WHERE game=%s AND result.throws IS NOT NULL")
         cursor = self._cursor()
         cursor.execute(sql, (game_id, ))
-        res = cursor.fetchone()
+        (res, ) = cursor.fetchone()
         if res:
-            hole = 1
+            hole = int(res)+1
         else:
-            hole = int(res[0])+1
+            hole = 1
         cursor.close()
         return hole
 

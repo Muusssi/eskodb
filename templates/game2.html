@@ -268,7 +268,7 @@
 
   <p id="loading_message"></p>
   <form id="results_form">
-    <h2 id="current_hole_p">{{1}}</h2>
+    <h2 id="current_hole_p">{{min(current_hole, course.holes)}}</h2>
     <table>
       {% set counter = -1 %}
       {% for player in players %}
