@@ -21,8 +21,20 @@ def get_course_by_name(name):
     else:
         return None
 
-def get_games_by_course_id(course_id):
-    return models.games({'course': course_id})
+def get_active_games_by_course_id(course_id):
+    return models.games({'course': course_id, 'active': True})
+
+def get_results_by_game_id(game_id):
+    return models.results({'game': game_id}, 'hole')
+
+def check_results_as_expected(results, expected):
+    for i in range(len(results)):
+        if expected[i] == 'None':
+            if results[i].throws:
+                return False
+        elif str(results[i].throws) != str(expected[i]):
+            return False
+    return True
 
 def initialize_test_database():
     config = load_config_file("tests/test_config.json")
@@ -39,7 +51,7 @@ def initialize_test_database():
     course2 = models.Course({'name': 'B-Rata', 'holes': 12})
     course2.save()
     models.generate_default_holes(course2)
-    course3 = models.Course({'name': 'C-Rata', 'holes': 6})
+    course3 = models.Course({'name': 'Testirata', 'holes': 6})
     course3.save()
     models.generate_default_holes(course3)
 

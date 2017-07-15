@@ -59,20 +59,49 @@ Adding course should work
     Should not be equal as strings  ${course.id}  None
     Should be equal as strings  ${resp.url}  ${localhost}/holes/${course.id}/update
 
-Starting a new game should work
+Playing a game should work
     Create session   local  ${localhost}
-    ${games}=  Get games by course id  1
+    ${course}=  Get course by name  Testirata
+    ${games}=  Get active games by course id  ${course.id}
     Should be true  len($games) == 0
     ${player}=  Get player by name  Visitor
-    &{data}=  Create Dictionary  course=1  player=${player.id}
+    # Start new game
+    &{data}=  Create Dictionary  course=${course.id}  player=${player.id}
     &{headers}=  Create Dictionary  Content-Type=application/x-www-form-urlencoded
     ${resp}=  Post Request  local  /game/new/  allow_redirects=${true}  data=${data}  headers=${headers}
     Should be equal as strings  ${resp.status_code}  200
-    ${games}=  Get games by course id  1
+    ${games}=  Get active games by course id  ${course.id}
     Should be true  len($games) == 1
+    ${game}=  Set Variable  ${games[0]}
     ${player}=  Get player by name  Visitor
-    Should be equal as strings  ${player.active}  ${games[0].id}
-    Should start with  ${resp.url}  ${localhost}/game/${games[0].id}
+    Should be equal as strings  ${player.active}  ${game.id}
+    Should be equal as strings  ${resp.url}  ${localhost}/game/${game.id}/
+    Page status ok  /game/${game.id}/
+
+    ${results}=  Get results by game id  ${game.id}
+
+    ${expected}=  Create list  None  None  None  None  None  None
+    Results are as expected  ${game}  ${expected}
+    # Post results
+    &{data}=  Create Dictionary  result=${results[0].id}  player=${player.id}  throws=4  penalty=1  approaches=  puts=
+    ${resp}=  Post Request  local  /game/${game.id}/  allow_redirects=${false}  data=${data}  headers=${headers}
+    Should be equal as strings  ${resp.status_code}  200
+    ${expected}=  Create list  4  None  None  None  None  None
+    Results are as expected  ${game}  ${expected}
+    Page status ok  /game/${game.id}/
+
+    &{data}=  Create Dictionary  result=${results[2].id}  player=${player.id}  throws=2  penalty=1  approaches=  puts=
+    ${resp}=  Post Request  local  /game/${game.id}/  allow_redirects=${false}  data=${data}  headers=${headers}
+    Should be equal as strings  ${resp.status_code}  200
+    ${expected}=  Create list  4  None  2  None  None  None
+    Results are as expected  ${game}  ${expected}
+    Page status ok  /game/${game.id}/
+
+    End game  ${game}
+    ${games}=  Get active games by course id  ${course.id}
+    Should be true  len($games) == 0
+    Page status ok  /course/${course.id}/
+
 
 
 
@@ -93,6 +122,20 @@ Should redirect to main page
     ${resp}=  Get Request  local  ${url}  allow_redirects=${true}
     Should be equal as strings  ${resp.status_code}  200
     Should start with  ${resp.url}  ${localhost}/
+
+Results are as expected
+    [Arguments]  ${game}  ${expected}
+    ${results}=  Get results by game id  ${game.id}
+    Should be true  len($results) == len($expected)
+    ${results_ok}=  Check results as expected  ${results}  ${expected}
+    Should be true  ${results_ok}
+
+End game
+    [Arguments]  ${game}
+    ${resp}=  Get Request  local  /game/end/${game.id}/  allow_redirects=${true}
+    Should be equal as strings  ${resp.status_code}  200
+    Should start with  ${resp.url}  ${localhost}/
+
 
 Suite initialization
     Initialize test database

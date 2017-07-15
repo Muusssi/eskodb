@@ -3,5 +3,6 @@
     "password": "foo",
     "database": "eskodb2",
     "host": "localhost",
-    "cookie": "SuperSalainen"
+    "cookie": "SuperSalainen",
+    "port": "8888"
 }
