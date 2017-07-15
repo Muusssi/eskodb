@@ -51,7 +51,7 @@ def initialize_test_database():
     course2 = models.Course({'name': 'B-Rata', 'holes': 12})
     course2.save()
     models.generate_default_holes(course2)
-    course3 = models.Course({'name': 'Testirata', 'holes': 6})
+    course3 = models.Course({'name': 'Robotin testirata', 'holes': 6})
     course3.save()
     models.generate_default_holes(course3)
 

@@ -61,7 +61,7 @@ Adding course should work
 
 Playing a game should work
     Create session   local  ${localhost}
-    ${course}=  Get course by name  Testirata
+    ${course}=  Get course by name  JenkinsinTestirata
     ${games}=  Get active games by course id  ${course.id}
     Should be true  len($games) == 0
     ${player}=  Get player by name  Visitor
