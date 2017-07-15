@@ -642,6 +642,6 @@ if __name__ == "__main__":
                     config['cookie'],
                 )
         )
-    httpserver.listen(8888)
+    httpserver.listen(int(config['port']))
     tornado.ioloop.IOLoop.current().start()
 

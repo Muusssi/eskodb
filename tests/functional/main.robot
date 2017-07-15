@@ -6,7 +6,7 @@ Library  testutils
 Suite Setup  Suite initialization
 
 *** Variables ***
-${localhost}    http://localhost:8888
+${localhost}    http://localhost:8887
 
 *** Test cases ***
 Page should be work without login
