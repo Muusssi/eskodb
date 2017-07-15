@@ -44,7 +44,7 @@ def initialize_test_database():
     models.generate_default_holes(course3)
 
     # Initialize players
-    visitor = models.Player({'name': 'Vistor'})
+    visitor = models.Player({'name': 'Visitor'})
     visitor.save()
     member = models.Player({'name': 'Club member', 'member': True})
     member.save()
