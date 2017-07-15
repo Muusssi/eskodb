@@ -1,12 +1,11 @@
 import psycopg2
 import models
 import database as db
+import json
 
-
-DATABASE = 'test_eskodb'
-PASSWORD = 'password'
-USER = 'esko'
-HOST = 'localhost'
+def load_config_file(config_file):
+    with open(config_file, 'r') as f:
+        return json.load(f)
 
 def get_player_by_name(name):
     players = models.players({'name': name})
@@ -26,7 +25,13 @@ def get_games_by_course_id(course_id):
     return models.games({'course': course_id})
 
 def initialize_test_database():
-    models.DATABASE = db.Database(DATABASE, HOST, USER, PASSWORD)
+    config = load_config_file("tests/test_config.json")
+    models.DATABASE = db.Database(
+            config['database'],
+            config['host'],
+            config['user'],
+            config['password'],
+        )
     # Initialize courses
     course = models.Course({'name': 'A-Rata', 'holes': 18})
     course.save()
