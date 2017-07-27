@@ -4,5 +4,6 @@
     "database": "test_eskodb",
     "host": "localhost",
     "cookie": "SuperSalainen",
-    "port": "8887"
+    "port": "8887",
+    "quit_secret": "SuperSalainen"
 }

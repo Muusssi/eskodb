@@ -20,9 +20,12 @@ def load_config_file(config_file):
 
 
 class Application(tornado.web.Application):
-    def __init__(self, database, cookie_secret):
+    def __init__(self, database, config):
+
+
         handlers = [
                 (r"/", MainPageHandler),
+                (r"/quit", QuitHandler),
                 (r"/login", LoginHandler),
                 (r"/logout", LogoutHandler),
                 (r"/restart/", RestartHandler),
@@ -53,12 +56,12 @@ class Application(tornado.web.Application):
         settings = dict(
                 template_path=TEMPLATES_DIRECTORY,
                 static_path=STATIC_DIRECTORY,
-                cookie_secret=cookie_secret,
+                cookie_secret=config['cookie'],
                 login_url="/login",
                 debug=True,
             )
-
         self.database = database
+        self.quit_secret = config['quit_secret']
         models.DATABASE = database
         tornado.web.Application.__init__(self, handlers, **settings)
 
@@ -134,6 +137,14 @@ class LogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie('user')
         self.redirect("/")
+
+class QuitHandler(BaseHandler):
+    def get(self):
+        if self.get_argument('quit', None) == self.application.quit_secret:
+            ioloop = tornado.ioloop.IOLoop.instance()
+            ioloop.add_callback(ioloop.stop)
+        else:
+            self.redirect("/")
 
 
 class MainPageHandler(BaseHandler):
@@ -641,7 +652,7 @@ if __name__ == "__main__":
     httpserver = tornado.httpserver.HTTPServer(
             Application(
                     db.Database(config['database'], config['host'], config['user'], config['password']),
-                    config['cookie'],
+                    config,
                 )
         )
     httpserver.listen(int(config['port']))
