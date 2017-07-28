@@ -153,9 +153,25 @@
     <!-- <a class="btn btn-info" href="/probabilities/{{course.id}}/par/">Tuloksen todennäköisyydet</a> -->
   </h1>
 
-  <p id="loading_message"></p>
-  {% set min_time, avg_time, max_time = game_time %}
-  <p>Peli ajat: {{min_time}} -- {{avg_time}} -- {{max_time}}</p>
+  <table class="table-condensed table-bordered">
+    <tr>
+      <th colspan="4">Peliajat:</th>
+    </tr>
+    <tr>
+      <th>Pelaajia</th>
+      <th>min</th>
+      <th>keskiarvo</th>
+      <th>max</th>
+    </tr>
+    {% for min_time, avg_time, max_time, pool_size in game_times %}
+      <tr>
+        <td>{{pool_size}}</td>
+        <td>{{min_time}} h</td>
+        <td>{{avg_time}} h</td>
+        <td>{{max_time}} h</td>
+      </tr>
+    {% end %}
+  </table>
 
   <table id="holes_info" class="table table-bordered table-condensed" hidden>
     <tr>

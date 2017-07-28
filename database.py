@@ -181,22 +181,24 @@ class Database(object):
         cursor.close()
         return name_dict
 
-    def game_time(self, course_id):
-        sql = ("SELECT min(end_time-start_time), avg(end_time-start_time), max(end_time-start_time) FROM game "
-                "WHERE course=%s AND end_time is not null GROUP BY course")
+    def game_times(self, course_id):
+        sql = ("SELECT min(end_time-start_time), avg(end_time-start_time), max(end_time-start_time), pools.size "
+                "FROM game JOIN (SELECT count(*) as size, game FROM result JOIN hole ON hole.id=result.hole "
+                "WHERE hole.hole=1 AND hole.course=%s GROUP BY game) AS pools ON pools.game=game.id "
+                "WHERE game.course=%s GROUP BY pools.size ORDER BY pools.size")
         cursor = self._cursor()
-        cursor.execute(sql, (course_id, ))
-        result = cursor.fetchone()
-        if result:
-            min_time, avg_time, max_time = result
-            min_time = ':'.join(str(min_time).split('.')[0].split(':')[:2])
-            avg_time = ':'.join(str(avg_time).split('.')[0].split(':')[:2])
-            max_time = ':'.join(str(max_time).split('.')[0].split(':')[:2])
-
-        else:
-            min_time, avg_time, max_time = "###", "###", "###"
+        cursor.execute(sql, (course_id, course_id))
+        times = []
+        for min_time, avg_time, max_time, pool_size in cursor.fetchall():
+            if min_time:
+                min_time = ':'.join(str(min_time).split('.')[0].split(':')[:2])
+                avg_time = ':'.join(str(avg_time).split('.')[0].split(':')[:2])
+                max_time = ':'.join(str(max_time).split('.')[0].split(':')[:2])
+                times.append((min_time, avg_time, max_time, pool_size))
         cursor.close()
-        return (min_time, avg_time, max_time)
+        if not times:
+            times.append(("###", "###", "###", 0))
+        return times
 
     def player_with_games_on_course(self, course_id):
         sql = ("SELECT distinct player.name, player.id "

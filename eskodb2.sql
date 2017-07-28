@@ -64,6 +64,8 @@ CREATE TABLE game (
     steps int default 0
 );
 
+CREATE INDEX ON game (course);
+
 
 CREATE TABLE player (
     id serial PRIMARY KEY,
@@ -95,20 +97,6 @@ CREATE TABLE result (
 );
 
 
-
-
-
--- OLD RESULTS:
--- CREATE TABLE results (
---     course integer,
---     player text,
---     hole integer,
---     throws integer,
---     penalty integer default 0,
---     game_date date default CURRENT_DATE,
---     game_of_day integer default 1,
---     in_play boolean default false
--- );
 
 
 
