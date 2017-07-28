@@ -436,8 +436,6 @@ class GameHandler(BaseHandler):
                     self.get_arguments("approaches"),
                     self.get_arguments("puts"),
                 )
-        else:
-            self.set_status(400)
         self.write({'results': self.db.game_results(game_id)})
 
 # class FullGameHandler(BaseHandler):
