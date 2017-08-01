@@ -61,7 +61,7 @@ CREATE TABLE game (
     end_time timestamp,
     game_of_day integer default 1,
     comments text,
-    steps int default 0
+    steps int default NULL
 );
 
 CREATE INDEX ON game (course);

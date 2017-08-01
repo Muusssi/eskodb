@@ -20,19 +20,19 @@
       <h3>{{hole.hole}}</h3>
 
       <label for="par_input{{hole.hole}}">Par</label>
-      <input type="number" name="par" id="par_input{{hole.hole}}" min="2"
+      <input type="text" name="par" id="par_input{{hole.hole}}" pattern="[2-9]"
         {% if hasattr(hole, 'par') %}
           value="{{hole.par}}"
         {% end %} required><br>
 
       <label for="length_input{{hole.hole}}">Pituus [m]</label>
-      <input type="number" name="length" id="length_input{{hole.hole}}" min="0"
+      <input type="text" name="length" id="length_input{{hole.hole}}" pattern="[0-9]+"
         {% if hasattr(hole, 'length') %}
           value="{{hole.length}}"
         {% end %}><br>
 
       <label for="height_input{{hole.hole}}">Korkeus ero [m]</label>
-      <input type="number" name="height" id="height_input{{hole.hole}}"
+      <input type="text" name="height" id="height_input{{hole.hole}}" pattern="[+|-]?[0-9]+"
         {% if hasattr(hole, 'height') %}
           value="{{hole.height}}"
         {% end %}><br>

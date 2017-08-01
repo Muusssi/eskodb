@@ -173,54 +173,7 @@
     {% end %}
   </table>
 
-  <table id="holes_info" class="table table-bordered table-condensed" hidden>
-    <tr>
-      <th></th>
-      {% for hole in holes %}
-        <th>{{hole.hole}}</th>
-      {% end %}
-      <th>Total</th>
-    </tr>
-    <tr>
-      <th>Pituus</th>
-      {% set course_length = 0 %}
-      {% for hole in holes %}
-        {% set course_length = course_length + hole.length %}
-        <td>{{hole.length}}</td>
-      {% end %}
-      <td>{{course_length}}</td>
-    </tr>
-    <tr>
-      <th>Korkeus</th>
-      {% for hole in holes %}
-        <td>{{hole.height}}</td>
-      {% end %}
-    </tr>
-    <tr>
-      <th>Tyyppi</th>
-      {% for hole in holes %}
-        <td>{{hole.type}}</td>
-      {% end %}
-    </tr>
-    <tr>
-      <th>Maasto</th>
-      {% for hole in holes %}
-        <td>{{hole.hole_terrain}}</td>
-      {% end %}
-    </tr>
-    <tr>
-      <th>Kuvaus</th>
-      {% for hole in holes %}
-        <td>{{hole.description}}</td>
-      {% end %}
-    </tr>
-    <tr>
-      <th>OB</th>
-      {% for hole in holes %}
-        <td>{{hole.penalty_info()}}</td>
-      {% end %}
-    </tr>
-  </table>
+  {% include hole_data_table.html %}
 
   <div id="table_div">
   <label for="date_filter">Filter date:</label>

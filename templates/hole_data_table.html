@@ -1,0 +1,64 @@
+ <table id="holes_info" class="table table-bordered table-condensed" hidden>
+    <tr>
+      <th></th>
+      {% for hole in holes %}
+        <th>{{hole.hole}}</th>
+      {% end %}
+      <th>Total</th>
+    </tr>
+    <tr>
+      <th>Pituus</th>
+      {% set course_length = 0 %}
+      {% for hole in holes %}
+        {% if hole.length %}
+          {% set course_length = course_length + hole.length %}
+        {% end %}
+        <td>{{hole.length}}</td>
+      {% end %}
+      <td>{{course_length}}</td>
+    </tr>
+    <tr>
+      <th>Korkeus</th>
+      {% set course_height_difference = 0 %}
+      {% set course_height_uphill = 0 %}
+      {% set course_height_downhill = 0 %}
+      {% for hole in holes %}
+        {% if hole.height %}
+          {% set course_height_difference = course_height_difference + hole.height %}
+          {% if hole.height > 0 %}
+            {% set course_height_uphill = course_height_uphill + hole.height %}
+          {% else %}
+            {% set course_height_downhill = course_height_downhill + hole.height %}
+          {% end %}
+        {% end %}
+        <td>{{hole.height}}</td>
+      {% end %}
+      <td>{{course_height_difference}} Yhteensä</td>
+    </tr>
+    <tr>
+      <th>Tyyppi</th>
+      {% for hole in holes %}
+        <td>{{hole.type}}</td>
+      {% end %}
+      <td>{{course_height_uphill}} Ylämäkeä</td>
+    </tr>
+    <tr>
+      <th>Maasto</th>
+      {% for hole in holes %}
+        <td>{{hole.hole_terrain}}</td>
+      {% end %}
+      <td>{{course_height_downhill}} Alamäkeä</td>
+    </tr>
+    <tr>
+      <th>Kuvaus</th>
+      {% for hole in holes %}
+        <td>{{hole.description}}</td>
+      {% end %}
+    </tr>
+    <tr>
+      <th>OB</th>
+      {% for hole in holes %}
+        <td>{{hole.penalty_info()}}</td>
+      {% end %}
+    </tr>
+  </table>
