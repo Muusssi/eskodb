@@ -155,6 +155,7 @@ class MainPageHandler(BaseHandler):
                 players=models.players(),
                 latest=self.db.get_latest_games(),
                 bests=self.db.get_course_bests(),
+                active_results=self.db.get_active_results(),
                 # For template
                 courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),

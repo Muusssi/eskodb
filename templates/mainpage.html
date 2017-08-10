@@ -13,11 +13,48 @@
     window.location.href = "/course/"+course_id+"/";
   }
 
+  function see_game(game_id) {
+    window.location.href = "/game/"+game_id+"/";
+  }
+
   </script>
 {% end %}
 {% block body %}
 
   <H1>Eskon tulospalvelu</H1>
+
+  {% if active_results %}
+    <table id="recent_results_table" class="">
+      <tr>
+        <th colspan="6">Käynnissä olevat pelit:</th>
+      </tr>
+      <tr>
+        <th>päivämäärä</th>
+        <th>#</th>
+        <th>rata</th>
+        <th>pelaaja</th>
+        <th>tulos</th>
+        <th>par</th>
+        <th>pelattu</th>
+      </tr>
+      {% set prev_course = None %}
+      {% set prev_game_date = None %}
+      {% set prev_game_of_day = None %}
+      {% set current_color = True %}
+      {% for game_date, game_of_day, game_id, course_name, player_name, res, par, holes_played, holes in active_results %}
+        <tr onclick="see_game({{game_id}})" class="{% if prev_game_date != game_date or prev_game_of_day != game_of_day or prev_course != course_name%}{{current_color = not current_color}}{% else %}{{current_color}}{% end %}">
+          <td>{{str(game_date)[:10]}}</td>
+          {% set prev_game_date = game_date %}
+          <td>{{prev_game_of_day = game_of_day}}</td>
+          <td>{{prev_course = course_name}}</td>
+          <td>{{player_name}}</td>
+          <td>{{res}}</td>
+          <td>{{par}}</td>
+          <td>{{holes_played}}/{{holes}}</td>
+        </tr>
+      {% end %}
+    </table>
+  {% end %}
 
   <table id="recent_results_table" class="">
     <tr>

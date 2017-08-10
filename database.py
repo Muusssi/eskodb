@@ -254,6 +254,19 @@ class Database(object):
         cursor.close()
         return results
 
+    def get_active_results(self):
+        query = ("SELECT game.start_time, game.game_of_day, game.id, course.name, player.name, "
+                "sum(result.throws) as res, sum(result.throws - par) as par, count(throws), course.holes "
+                "FROM result JOIN hole ON result.hole=hole.id JOIN game ON result.game=game.id "
+                    "JOIN player ON player.id=result.player JOIN course ON course.id=game.course "
+                "WHERE game.active=true "
+                "GROUP BY game.start_time, game.game_of_day, game.id, course.name, course.id, player.name;")
+        cursor = self._cursor()
+        cursor.execute(query)
+        results = cursor.fetchall()
+        cursor.close()
+        return results
+
     def get_course_bests(self):
         query = ("SELECT totals.course, totals.player, min(totals.res) as best, "
                 "EXTRACT(year FROM totals.start_time) as season FROM ( "
@@ -447,7 +460,5 @@ class Database(object):
 
 
 if __name__ == '__main__':
-    DB = Database('test_eskodb', "kopsupullo")
-    DB.insert_row('course', {'name':'A-rata', 'holes':13})
-    DB._close_connection()
+    pass
 
