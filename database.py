@@ -171,6 +171,32 @@ class Database(object):
         cursor.close()
         return result_table
 
+    def previous_hole_results(self, game_id):
+        cursor = self._cursor()
+        sql = ("SELECT player.name, hole.hole, avg(throws), min(throws) "
+                "FROM result JOIN game ON result.game=game.id "
+                "JOIN hole ON result.hole=hole.id JOIN player ON result.player=player.id "
+                "WHERE game.course IN (SELECT course FROM game WHERE id=%s) "
+                "AND result.player IN (SELECT player FROM result WHERE game=%s) "
+                "GROUP BY player.name, hole.hole ORDER BY player.name, hole.hole;")
+        cursor.execute(sql, (game_id, game_id))
+        result_table = []
+        row = []
+        current_player = None
+        for player, hole, avg, minimum in cursor.fetchall():
+            if not current_player:
+                current_player = player
+            if current_player != player:
+                result_table.append(row)
+                row = []
+                current_player = player
+            print type(avg)
+            row.append([float(avg) if avg else None, minimum])
+        if row:
+            result_table.append(row)
+        cursor.close()
+        return result_table
+
     def course_name_dict(self):
         sql = "SELECT name, holes, id FROM course"
         cursor = self._cursor()

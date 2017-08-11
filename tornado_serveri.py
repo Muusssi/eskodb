@@ -437,7 +437,10 @@ class GameHandler(BaseHandler):
                     self.get_arguments("approaches"),
                     self.get_arguments("puts"),
                 )
-        self.write({'results': self.db.game_results(game_id)})
+        data = {'results': self.db.game_results(game_id)}
+        if self.get_argument('previous_hole_results', False):
+            data['previous'] = self.db.previous_hole_results(game_id)
+        self.write(data)
 
 # class FullGameHandler(BaseHandler):
 #     def get(self, course_id):

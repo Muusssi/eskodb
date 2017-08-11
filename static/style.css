@@ -106,6 +106,11 @@ tbody#tbody table.subtable td {
     /*background-color: #000000;*/
 }
 
+table.previous_res_table th,
+table.previous_res_table td {
+    padding: 10px;
+}
+
 .show {display:block;}
 
 #histo_div {
