@@ -190,7 +190,6 @@ class Database(object):
                 result_table.append(row)
                 row = []
                 current_player = player
-            print type(avg)
             row.append([float(avg) if avg else None, minimum])
         if row:
             result_table.append(row)
