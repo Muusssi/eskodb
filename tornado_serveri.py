@@ -646,6 +646,8 @@ class GraphDataHandler(BaseHandler):
 #     get = post
 
 
+
+
 if __name__ == "__main__":
     if (len(sys.argv) != 2):
         print "error: missing config file"
@@ -659,4 +661,11 @@ if __name__ == "__main__":
         )
     httpserver.listen(int(config['port']))
     tornado.ioloop.IOLoop.current().start()
+else:
+    config = load_config_file('production_config.json')
+    webApp = Application(
+            db.Database(config['database'], config['host'], config['user'], config['password']),
+            config,
+        )
+    application = tornado.wsgi.WSGIAdapter(webApp)
 
