@@ -1,0 +1,55 @@
+{% extends esko_template.html %}
+{% block head %}
+  <script type="text/javascript">
+  function see_game_day(course_id, game_date) {
+    window.location.href = "/course/"+course_id+"/?game_date="+encodeURI(game_date);
+  }
+
+  function see_player(course_id, player) {
+    window.location.href = "/course/"+course_id+"/?player="+encodeURI(player);
+  }
+
+  function see_course(course_id) {
+    window.location.href = "/course/"+course_id+"/";
+  }
+
+  function see_game(game_id) {
+    window.location.href = "/game/"+game_id+"/";
+  }
+
+  </script>
+{% end %}
+{% block body %}
+
+  <H1>{{player.name}} statistiikka</H1>
+
+  <table class="table sortable">
+    <tr>
+      <th>Rata</th>
+      <th>Väyliä</th>
+      <th>Luotu</th>
+      <th>par</th>
+      <th>Kierrokset</th>
+      <th>Päivämäärä</th>
+      <th>Paras tulos</th>
+      <th>par</th>
+    </tr>
+    {% for course_id, course_name, holes, course_version, par, count, date, best, diff in stats %}
+      <tr>
+        <td><a href="/course/{{course_id}}/?player={{url_escape(player.name)}}">{{course_name}}</a></td>
+        <td>{{holes}}</td>
+        <td>{{course_version}}</td>
+        <td>{{par}}</td>
+        <td>{{count}}</td>
+        <td><a href="/course/{{course_id}}/?game_date={{date}}">{{date}}</a></td>
+        <td>{{best}}</td>
+        <td>{{diff}}</td>
+      </tr>
+    {% end %}
+  </table>
+
+
+
+
+{% end %}
+

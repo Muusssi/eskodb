@@ -381,6 +381,28 @@ class Database(object):
         cursor.close()
         return versions
 
+    def player_stats(self, player_id):
+        cursor = self._cursor()
+        sql = ("SELECT course.id, course.name, course.holes, course.version, "
+            "par, count, best.start_time::date, throws, throws - par "
+            "FROM course JOIN ("
+            "SELECT DISTINCT ON (course) course, throws, start_time FROM ("
+            "SELECT course, sum(throws) as throws, start_time FROM result "
+            "JOIN game ON game.id=result.game WHERE result.player=%s AND "
+            "game.unfinished=false GROUP BY game.id) AS results "
+            "ORDER BY course, throws) AS best ON course.id=best.course JOIN"
+            "(SELECT course, sum(par) as par FROM hole GROUP BY course) "
+            "AS pars ON pars.course=course.id JOIN ( "
+            "SELECT course, count(DISTINCT game.id) as count FROM game "
+            "JOIN result ON game.id=result.game "
+            "WHERE result.player=%s AND game.unfinished=false "
+            "GROUP BY course) AS game_count ON game_count.course=course.id "
+            "ORDER BY course.name, course.version;")
+        cursor.execute(sql, (player_id, player_id))
+        stats = cursor.fetchall()
+        cursor.close()
+        return stats
+
 
     def graphdata(self, course_id, player_id, averaged):
         cursor = self._cursor()

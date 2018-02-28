@@ -1,3 +1,8 @@
+div.container {
+    display: flex;
+    flex-direction: row;
+}
+
 .game_input {
     /*display: block;*/
     -webkit-appearance: none; -moz-appearance: none;
