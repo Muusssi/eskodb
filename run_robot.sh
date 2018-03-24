@@ -10,10 +10,10 @@ export PYTHONPATH=${pwd}/tests/:${pwd}
 python tornado_serveri.py tests/test_config.json &
 SERVER_PID=$!
 
-robot tests/functional/main.robot
+robot --outputdir=tests/functional/results tests/functional/main.robot
+TEST_RESULT=$?
+echo ${TEST_RESULT}
 
 kill $SERVER_PID
 
-mv output.xml tests/functional/
-mv log.html tests/functional/
-mv report.html tests/functional/
+exit ${TEST_RESULT}
