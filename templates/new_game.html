@@ -17,7 +17,7 @@
 
     <label for="player">Pelaajat</label>
     <div>
-      {% for player in players %}
+      {% for player in all_players %}
         <input id="cb_{{player.id}}" class="player_cb" type="checkbox" name="player" value="{{player.id}}"
         {% if str(player.id) in chosen_players %}checked{% end %}
         {% if player.active %}disabled{% end %}>

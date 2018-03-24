@@ -401,11 +401,11 @@ class NewGameHandler(BaseHandler):
         if not player_ids:
             self.render("new_game.html",
                     message="Valitse pelaajia!",
-                    all_players=models.players(),
                     courses=models.playable_courses(),
                     chosen_players=player_ids,
                     chosen_course=course_id,
                     # For template
+                    all_players=models.players(),
                     courses_list=models.courses(order_by="name, version"),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
@@ -414,11 +414,11 @@ class NewGameHandler(BaseHandler):
         elif not course_id:
             self.render("new_game.html",
                     message="Valitse rata",
-                    all_players=models.players(),
                     courses=models.playable_courses(),
                     chosen_players=player_ids,
                     chosen_course=course_id,
                     # For template
+                    all_players=models.players(),
                     courses_list=models.courses(order_by="name, version"),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
