@@ -47,6 +47,7 @@ Adding player should work
     ${player}=  Get player by name  Seppo
     Should not be equal as strings  ${player}  None
     Should not be equal as strings  ${player.id}  None
+    Fail
 
 Adding course should work
     Create session   local  ${localhost}

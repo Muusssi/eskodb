@@ -7,10 +7,5 @@ pipeline {
                 sh './run_robot.sh'
             }
         }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying....'
-            }
-        }
     }
 }
