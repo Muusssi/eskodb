@@ -1,6 +1,9 @@
-div.container {
+div.block_div {
+    display:
+}
+
+div.flex_container {
     display: flex;
-    flex-direction: row;
 }
 
 .game_input {
@@ -78,25 +81,38 @@ table#results_table tr td.date_cell {
     font-size: 75%;
 }
 
+table#active_results_table td.esko_best,
 table#recent_results_table td.esko_best {
     background-color: #0066ff;
 }
+table#active_results_table td.personal_best,
 table#recent_results_table td.personal_best {
     background-color: #00ff00;
 }
+table#active_results_table td.season_best,
 table#recent_results_table td.season_best {
     color: #ff33ff;
 }
+table#active_results_table td.season_personal_best,
 table#recent_results_table td.season_personal_best {
     color: green;
 }
 
+table#active_results_table tr.True,
 table#recent_results_table tr.True {
     background-color: #ffffff;
 }
 
+table#active_results_table tr.False,
 table#recent_results_table tr.False {
     background-color: #dddddd;
+}
+
+table#active_results_table th,
+table#active_results_table td,
+table#recent_results_table th,
+table#recent_results_table td {
+    padding: 5px;
 }
 
 
@@ -130,15 +146,14 @@ table.previous_res_table td {
     margin-left: 1%;
 }
 
-#recent_results_table th,
-#recent_results_table td {
-    padding: 5px;
-}
-
 label.disabled {
     color: lightgray;
     text-decoration: line-through;
 }
 
+
+div#calendar {
+    margin-left: 50px;
+}
 
 

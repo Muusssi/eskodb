@@ -23,10 +23,10 @@
 
   <H1>EsKon tulospalvelu</H1>
 
-<div class="container">
-  <div>
+<div class="flex_container">
+  <div class="block_div">
   {% if active_results %}
-    <table id="recent_results_table" class="">
+    <table id="active_results_table">
       <tr>
         <th colspan="6">Käynnissä olevat pelit:</th>
       </tr>
@@ -58,7 +58,7 @@
     </table>
   {% end %}
 
-  <table id="recent_results_table" class="">
+  <table id="recent_results_table">
     <tr>
       <th colspan="6">Viimeisimmät pelit:</th>
     </tr>
@@ -88,7 +88,7 @@
   </table>
   </div>
 
-  <div>
+  <div id="calendar" class="block_div">
     <iframe src="https://calendar.google.com/calendar/embed?src=espoonkopsu%40gmail.com&ctz=Europe%2FHelsinki" style="border: 0" width="800" height="600" frameborder="0" scrolling="no"></iframe>
   </div>
 

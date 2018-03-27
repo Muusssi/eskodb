@@ -45,9 +45,9 @@
             </li>
           {% end %}
           <li><a href="/eskocup/2017/">EsKo Cup 2017</a></li>
-          <li><a href="/game/new/">Uusi peli</a></li>
-          <li><a href="/player/new">Uusi pelaaja</a></li>
-          <li><a href="/course/new/">Uusi rata</a></li>
+          <li><a id="new_game_btn" href="/game/new/">Uusi peli</a></li>
+          <li><a id="new_player_btn" href="/player/new">Uusi pelaaja</a></li>
+          <li><a id="new_course_btn" href="/course/new/">Uusi rata</a></li>
           <li>
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">Pelaaja-sivut
             <span class="caret"></span></a>
@@ -79,9 +79,9 @@
       </div>
     </nav>
 
-    <dir id="page_body">
+    <div id="page_body">
       {% block body %}{% end %}
-    </dir>
+    </div>
 
 
   </body>
