@@ -51,6 +51,11 @@ CREATE TABLE cup (
     max_par integer
 );
 
+CREATE TABLE eskocup_course (
+    id serial PRIMARY KEY,
+    course integer REFERENCES course(id),
+    year integer default EXTRACT(year FROM now())
+);
 
 CREATE TABLE game (
     id serial PRIMARY KEY,

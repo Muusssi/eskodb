@@ -319,7 +319,27 @@ class Database(object):
         cursor.close()
         return bests
 
-    def cup_results(self):
+    def cup_results_2018(self):
+        sql = ("SELECT DISTINCT ON (player, course) player, course, res, start_time::date FROM ( "
+                "SELECT sum(throws - hole.par) as res, result.player, game.course, game.start_time, "
+                "count(nullif(throws IS NULL, false)) as unfinished "
+                "FROM result JOIN hole ON hole.id=result.hole JOIN game ON game.id=result.game "
+                "WHERE game.course IN (SELECT course FROM eskocup_course WHERE year=2018) "
+                "AND EXTRACT(month FROM game.start_time) >= 4 AND EXTRACT(month FROM game.start_time) <= 9 "
+                "AND EXTRACT(year FROM game.start_time) = 2018 "
+                "GROUP BY player, game.id, game.course ORDER BY player, game.course, res DESC) as results "
+                "WHERE results.unfinished=0 "
+                "ORDER BY player, course, res;")
+        cursor = self._cursor()
+        cursor.execute(sql)
+        results = defaultdict(lambda : (1000, None))
+        for player, course, res, date in cursor.fetchall():
+            key = (player, course)
+            results[key] = (res, date)
+        cursor.close()
+        return results
+
+    def cup_results_2017(self):
         sql = ("SELECT cup, player, cup_results.course, game, LEAST(cup_max, summa-pars.par) as res, time "
                 "FROM ( "
                     "SELECT course.id as course, sum(par) as par "

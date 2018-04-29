@@ -616,21 +616,34 @@ class NewCupHandler(BaseHandler):
 class EsKoCupHandler(BaseHandler):
 
     def get(self, year):
-        now = datetime.now()
-        results, points = self.db.cup_results()
-        self.render("esko_cup.html",
-                cups=models.cups({'name': 'EsKo Cup', 'year':year}, 'month'),
-                players=models.players({'member':True}, 'name'),
-                course_dict=self.db.course_name_dict(),
-                results=results,
-                points=points,
-                # For template
-                all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
-                course_name_dict=self.db.course_name_dict(),
-                active_games=models.games({'active':True}),
-                user=self.get_current_user(),
-            )
+        year = int(year)
+        if year == 2017:
+            results, points = self.db.cup_results_2017()
+            self.render("esko_cup2017.html",
+                    cups=models.cups({'name': 'EsKo Cup', 'year':2017}, 'month'),
+                    players=models.players({'member':True}, 'name'),
+                    course_dict=self.db.course_name_dict(),
+                    results=results,
+                    points=points,
+                    # For template
+                    all_players=models.players(),
+                    courses_list=models.courses(order_by="name, version"),
+                    course_name_dict=self.db.course_name_dict(),
+                    active_games=models.games({'active':True}),
+                    user=self.get_current_user(),
+                )
+        else:
+            self.render("esko_cup2018.html",
+                    players=models.players({'member':True}, 'name'),
+                    results=self.db.cup_results_2018(),
+                    cup_courses=models.cup_courses(),
+                    # For template
+                    all_players=models.players(),
+                    courses_list=models.courses(order_by="name, version"),
+                    course_name_dict=self.db.course_name_dict(),
+                    active_games=models.games({'active':True}),
+                    user=self.get_current_user(),
+                )
 
 
 class GraphHandler(BaseHandler):

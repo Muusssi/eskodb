@@ -1,0 +1,54 @@
+{% extends esko_template.html %}
+
+{% block title_block %}EsKo Cup 2018{% end %}
+
+{% block head %}
+  <script type="text/javascript">
+    function see_game(course_id, date, player_name) {
+      window.location.href = "/course/"+course_id+"/?game_date="+date+"&player="+encodeURI(player_name);
+    }
+    window.onload = function() {
+      sorttable.innerSortFunction.apply(document.getElementById("cup_total"), []);
+    }
+  </script>
+{% end %}
+
+{% block body %}
+  <h1>EsKo Cup 2018</h1>
+
+  <div id="table_div">
+    <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">
+      <thead id="result_head">
+        <tr>
+          <th></th>
+          {% for cup_course in cup_courses %}
+            <th>{{cup_course.name}}</th>
+          {% end  %}
+          <th id="cup_total">Tulos</th>
+        </tr>
+
+      </thead>
+      <tbody id="tbody">
+        {% for player in players %}
+          {% set total_res, sort_res = 0, 0 %}
+          <tr>
+            <th>{{player.name}}</th>
+            {% for cup_course in cup_courses %}
+              {% set res, date = results[(player.id, cup_course.id)] %}
+              {% if res != 1000 %}
+                {% set total_res, sort_res = total_res + res, sort_res + res %}
+                <td onclick="see_game({{cup_course.id}}, '{{date}}', '{{player.name}}');">{{res}}</td>
+              {% else %}
+                {% set sort_res = sort_res + res %}
+                <td sorttable_customkey="{{res}}">--</td>
+              {% end %}
+            {% end %}
+            <td sorttable_customkey="{{sort_res}}">{{total_res}}</td>
+          </tr>
+
+        {% end %}
+      </tbody>
+    </table>
+
+  </div>
+{% end %}
