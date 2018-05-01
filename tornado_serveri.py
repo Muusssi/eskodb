@@ -30,6 +30,7 @@ class Application(tornado.web.Application):
                 (r"/logout", LogoutHandler),
                 (r"/restart/", RestartHandler),
                 # (r"/data/(?P<course_id>[^\/]+)/", ResultsHandler),
+                (r"/courses", CoursesHandler),
                 (r"/course/new/", NewCourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/", CourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/graph", GraphHandler),
@@ -93,7 +94,6 @@ class BaseHandler(tornado.web.RequestHandler):
     def render_unauthorized(self):
         self.render("unauthorized.html",
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -113,7 +113,6 @@ class LoginHandler(BaseHandler):
         self.render("login.html",
                 message="",
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -130,7 +129,6 @@ class LoginHandler(BaseHandler):
         else:
             self.render("login.html",
                     message="Wrong password or user name.",
-                    courses_list=models.courses(order_by="name, version"),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
                     user=self.get_current_user(),
@@ -159,7 +157,17 @@ class MainPageHandler(BaseHandler):
                 active_results=self.db.get_active_results(),
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user(),
+            )
+
+class CoursesHandler(BaseHandler):
+    def get(self):
+        self.render("courses.html",
+                courses=models.courses(),
+                # For template
+                all_players=models.players(),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -172,7 +180,6 @@ class PlayerHandler(BaseHandler):
                 stats=self.db.player_stats(player_id),
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -197,7 +204,6 @@ class CourseHandler(BaseHandler):
                 game_times=self.db.game_times(course_id),
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -214,7 +220,6 @@ class NewCourseHandler(BaseHandler):
                 message="",
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -236,7 +241,6 @@ class NewCourseHandler(BaseHandler):
                 message="Rata on jo tietokannassa!",
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -254,7 +258,6 @@ class UpdateHolesHandler(BaseHandler):
                 message="",
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -289,7 +292,6 @@ class PlayersHandler(BaseHandler):
         self.render("players.html",
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -303,7 +305,6 @@ class NewPlayerHandler(BaseHandler):
                 message="",
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -330,7 +331,6 @@ class NewPlayerHandler(BaseHandler):
                 message="Pelaaja on jo tietokannassa!",
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -346,7 +346,6 @@ class UpdatePlayerHandler(BaseHandler):
                 message="",
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -374,7 +373,6 @@ class UpdatePlayerHandler(BaseHandler):
             player=player,
             message="Pelaaja on jo tietokannassa!",
             # For template
-            courses_list=models.courses(order_by="name, version"),
             course_name_dict=self.db.course_name_dict(),
             active_games=models.games({'active':True}),
             user=self.get_current_user(),
@@ -382,14 +380,14 @@ class UpdatePlayerHandler(BaseHandler):
 
 class NewGameHandler(BaseHandler):
     def get(self):
+        chosen_course = self.get_argument('course', None)
         self.render("new_game.html",
                 message="",
                 courses=models.playable_courses(),
                 chosen_players=[],
-                chosen_course=None,
+                chosen_course=chosen_course,
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -406,7 +404,6 @@ class NewGameHandler(BaseHandler):
                     chosen_course=course_id,
                     # For template
                     all_players=models.players(),
-                    courses_list=models.courses(order_by="name, version"),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
                     user=self.get_current_user(),
@@ -419,7 +416,6 @@ class NewGameHandler(BaseHandler):
                     chosen_course=course_id,
                     # For template
                     all_players=models.players(),
-                    courses_list=models.courses(order_by="name, version"),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
                     user=self.get_current_user(),
@@ -444,7 +440,6 @@ class GameHandler(BaseHandler):
                 current_hole=self.db.next_hole(game_id),
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -471,7 +466,6 @@ class GameHandler(BaseHandler):
 #                 all_players=models.players(),
 #                 course=models.course(course_id),
 #                 # For template
-#                 courses_list=models.courses(order_by="name, version"),
 #                 course_name_dict=self.db.course_name_dict(),
 #                 active_games=models.games({'active':True}),
 #                 user=self.get_current_user(),
@@ -510,7 +504,6 @@ class GamesHandler(BaseHandler):
                 games=models.games({}, 'start_time desc'),
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -584,7 +577,6 @@ class NewCupHandler(BaseHandler):
                 month=now.month,
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
@@ -607,7 +599,6 @@ class NewCupHandler(BaseHandler):
                     year=now.year,
                     month=now.month,
                     # For template
-                    courses_list=models.courses(order_by="name, version"),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
                     user=self.get_current_user(),
@@ -627,7 +618,6 @@ class EsKoCupHandler(BaseHandler):
                     points=points,
                     # For template
                     all_players=models.players(),
-                    courses_list=models.courses(order_by="name, version"),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
                     user=self.get_current_user(),
@@ -639,7 +629,6 @@ class EsKoCupHandler(BaseHandler):
                     cup_courses=models.cup_courses(),
                     # For template
                     all_players=models.players(),
-                    courses_list=models.courses(order_by="name, version"),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
                     user=self.get_current_user(),
@@ -654,7 +643,6 @@ class GraphHandler(BaseHandler):
                 players=self.db.player_with_games_on_course(course_id),
                 # For template
                 all_players=models.players(),
-                courses_list=models.courses(order_by="name, version"),
                 course_name_dict=self.db.course_name_dict(),
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),

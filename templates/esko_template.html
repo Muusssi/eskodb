@@ -24,15 +24,7 @@
         </div>
 
         <ul class="nav navbar-nav">
-          <li>
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Tulokset
-            <span class="caret"></span></a>
-            <ul class="dropdown-menu">
-              {% for list_course in courses_list %}
-                <li title="{{str(list_course.version)[:7]}}"><a href="/course/{{list_course.id}}/">{{list_course.name}} {{list_course.holes}}</a></li>
-              {% end %}
-            </ul>
-          </li>
+          <li><a href="/courses">Radat</a></li>
           {% if active_games %}
             <li>
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">Aktiiviset

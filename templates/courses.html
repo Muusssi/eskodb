@@ -1,0 +1,24 @@
+{% extends esko_template.html %}
+
+{% block body %}
+  <table class="table sortable">
+    <tr>
+      <th></th>
+      <th>Kaupunki</th>
+      <th>Nimi</th>
+      <th>Väyliä</th>
+      <th>version</th>
+      <th>Kuvaus</th>
+    </tr>
+    {% for course in courses %}
+      <tr>
+        <td><a href="/game/new/?course={{course.id}}">Pelaa</a></td>
+        <td>{{course.town}}</td>
+        <td><a href="/course/{{course.id}}/">{{course.name}}</a></td>
+        <td>{{course.holes}}</td>
+        <td>{{course.version}}</td>
+        <td>{{course.description if len(course.description) < 100 else course.description[:100] + '...'}}</td>
+      </tr>
+    {% end %}
+  </table>
+{% end %}
