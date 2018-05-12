@@ -59,7 +59,7 @@ class Application(tornado.web.Application):
                 template_path=TEMPLATES_DIRECTORY,
                 static_path=STATIC_DIRECTORY,
                 cookie_secret=config['cookie'],
-                xsrf_cookies=True,
+                xsrf_cookies=False,
                 login_url="/login",
                 debug=True,
             )
