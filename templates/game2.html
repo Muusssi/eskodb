@@ -60,6 +60,7 @@
 
     function handleData(jsonData) {
       data_table = jsonData.results;
+      console.log(jsonData);
       if (previous_results == null) {
         previous_results = jsonData.previous;
       }
@@ -170,7 +171,7 @@
         var old_avg_par = "";
         var old_min = "--";
         var old_min_par = "";
-        if (previous_results[row][current_hole-1][0] != null) {
+        if (previous_results.length > 0 && previous_results[row] && previous_results[row][current_hole-1][0] != null) {
           var old_avg = previous_results[row][current_hole-1][0].toFixed(2);
           var old_min = previous_results[row][current_hole-1][1];
           old_avg_par = "par" + (Math.round(old_avg) - pars[current_hole-1]);

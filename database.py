@@ -171,15 +171,23 @@ class Database(object):
         cursor.close()
         return result_table
 
-    def previous_hole_results(self, game_id):
+    def previous_hole_results(self, game_id, special_rules=None):
         cursor = self._cursor()
+        if special_rules == None:
+            special_rules_filter = "AND game.special_rules IS NULL "
+        else:
+            special_rules_filter = "AND game.special_rules={rule_id} ".format(rule_id=special_rules)
         sql = ("SELECT player.name, hole.hole, avg(throws), min(throws) "
                 "FROM result JOIN game ON result.game=game.id "
                 "JOIN hole ON result.hole=hole.id JOIN player ON result.player=player.id "
-                "WHERE game.course IN (SELECT course FROM game WHERE id=%s) "
-                "AND result.player IN (SELECT player FROM result WHERE game=%s) "
-                "GROUP BY player.name, hole.hole ORDER BY player.name, hole.hole;")
-        cursor.execute(sql, (game_id, game_id))
+                "WHERE game.course IN (SELECT course FROM game WHERE id={game_id}) "
+                "{special_rules_filter} "
+                "AND result.player IN (SELECT player FROM result WHERE game={game_id}) "
+                "GROUP BY player.name, hole.hole ORDER BY player.name, hole.hole;").format(
+                game_id=game_id,
+                special_rules_filter=special_rules_filter,
+            )
+        cursor.execute(sql)
         result_table = []
         row = []
         current_player = None
@@ -262,17 +270,20 @@ class Database(object):
 
 
     def get_latest_games(self):
-        query = ("SELECT game.start_time, game.game_of_day, course.name, course.id, "
-                "player.name, player.id, sum(result.throws) as res, sum(result.throws) - pars.sum as par "
+        query = ("SELECT start_time, game_of_day, course_name, course_id, player_name, player_id, res, par "
+                "FROM (SELECT game.start_time, game.game_of_day, course.name as course_name, course.id as course_id, "
+                "player.name as player_name, player.id as player_id, "
+                "sum(result.throws) as res, sum(result.throws) - pars.sum as par, "
+                "count(nullif(throws IS NULL, false)) as partial "
                 "FROM result JOIN game ON result.game=game.id JOIN player ON player.id=result.player "
                 "JOIN course ON game.course=course.id JOIN ( "
                     "SELECT course.id as course, sum(par) as sum "
                     "FROM hole JOIN course ON hole.course=course.id "
                     "GROUP BY course.id "
                 ") as pars ON pars.course=course.id "
-                "WHERE game.start_time > (date 'today' -14) AND game.active=false AND game.unfinished=false "
+                "WHERE game.start_time > (date 'today' -14) AND game.active=false "
                 "GROUP BY game.start_time, game.game_of_day, course.name, course.id, player.name, player.id, pars.sum "
-                "ORDER BY game.start_time desc, game.game_of_day desc;")
+                "ORDER BY game.start_time desc, game.game_of_day desc) AS latest_results WHERE partial=0")
         cursor = self._cursor()
         cursor.execute(query)
         results = cursor.fetchall()
@@ -295,14 +306,15 @@ class Database(object):
     def get_course_bests(self):
         query = ("SELECT totals.course, totals.player, min(totals.res) as best, "
                 "EXTRACT(year FROM totals.start_time) as season FROM ( "
-                "SELECT game.course, result.player, game.start_time, game.game_of_day, sum(result.throws) as res "
+                "SELECT game.course, result.player, game.start_time, game.game_of_day, sum(result.throws) as res, "
+                "count(nullif(throws IS NULL, false)) as partial "
                 "FROM result JOIN game ON game.id=result.game "
-                "WHERE game.unfinished=false AND active=false "
+                "WHERE active=false AND special_rules IS NULL "
                 "GROUP BY game.course, result.player, game.start_time, game.game_of_day "
-                "ORDER BY game.course, result.player, res DESC "
-                ") as totals "
+                "ORDER BY game.course, result.player, res DESC) as totals "
+                "WHERE partial=0 "
                 "GROUP BY course, player, season "
-                "ORDER BY course, player;")
+                "ORDER BY course, player, season;")
         cursor = self._cursor()
         cursor.execute(query)
         bests = defaultdict(lambda : None)
@@ -403,20 +415,33 @@ class Database(object):
 
     def player_stats(self, player_id):
         cursor = self._cursor()
-        sql = ("SELECT course.id, course.name, course.holes, course.version, "
-            "par, count, best.start_time::date, throws, throws - par "
-            "FROM course JOIN ("
-            "SELECT DISTINCT ON (course) course, throws, start_time FROM ("
-            "SELECT course, sum(throws) as throws, start_time FROM result "
-            "JOIN game ON game.id=result.game WHERE result.player=%s AND "
-            "game.unfinished=false GROUP BY game.id) AS results "
-            "ORDER BY course, throws) AS best ON course.id=best.course JOIN"
-            "(SELECT course, sum(par) as par FROM hole GROUP BY course) "
-            "AS pars ON pars.course=course.id JOIN ( "
-            "SELECT course, count(DISTINCT game.id) as count FROM game "
-            "JOIN result ON game.id=result.game "
-            "WHERE result.player=%s AND game.unfinished=false "
-            "GROUP BY course) AS game_count ON game_count.course=course.id "
+        sql = (
+            "SELECT course.id, course.name, course.holes, course.version, "
+                "par, count, best.start_time::date, throws, throws - par "
+            "FROM course "
+            "JOIN ("
+                "SELECT DISTINCT ON (course) course, throws, start_time "
+                "FROM ("
+                    "SELECT course, sum(throws) as throws, start_time, "
+                        "count(nullif(throws IS NULL, false)) as incomplete "
+                    "FROM result "
+                    "JOIN game ON game.id=result.game "
+                    "WHERE result.player=%s GROUP BY game.id "
+                ") AS results "
+                "WHERE incomplete=0 "
+                "ORDER BY course, throws "
+            ") AS best ON course.id=best.course "
+            "JOIN (SELECT course, sum(par) as par FROM hole GROUP BY course) "
+             "AS pars ON pars.course=course.id "
+            "JOIN ( "
+                "SELECT course, count(*) FROM ("
+                    "SELECT course, game.id, "
+                        "count(nullif(throws IS NULL, false)) as incomplete "
+                    "FROM game JOIN result ON game.id=result.game "
+                    "WHERE result.player=%s GROUP BY course, game.id "
+                ") AS games "
+                "WHERE incomplete=0 GROUP BY course "
+            ") AS game_count ON game_count.course=course.id "
             "ORDER BY course.name, course.version;")
         cursor.execute(sql, (player_id, player_id))
         stats = cursor.fetchall()
@@ -439,13 +464,15 @@ class Database(object):
                 ]
             sql = ("SELECT max(start_time) as start_time, name, min(res), avg(res), max(res) "
                 "FROM ("
-                    "SELECT max(game.start_time) as start_time, player.name, sum(result.throws) as res "
+                    "SELECT max(game.start_time) as start_time, player.name, sum(result.throws) as res, "
+                    "count(nullif(throws IS NULL, false)) as incomplete "
                     "FROM result "
                         "JOIN game ON result.game=game.id "
                         "JOIN player ON player.id=result.player "
-                    "WHERE game.course=%s AND game.active=false AND game.unfinished=false AND player=%s "
+                    "WHERE game.course=%s AND game.active=false  AND player=%s "
+                    "AND special_rules IS NULL "
                     "GROUP BY game.id, player.name "
-                ") AS results "
+                ") AS results WHERE incomplete=0 "
                 "GROUP BY EXTRACT(year FROM start_time), EXTRACT(%s FROM start_time), name "
                 "ORDER BY start_time, name;")
             cursor.execute(sql, (course_id, player_id, averaged))
@@ -459,18 +486,19 @@ class Database(object):
                     {'id': 'res', 'content': 'Tulos'},
                     {'id': 'par', 'content': 'par'},
                 ]
-            sql = ("SELECT game.start_time, player.name, sum(result.throws) "
+            sql = ("SELECT start_time, name, throws FROM ("
+                    "SELECT game.start_time, player.name, sum(result.throws) as throws, "
+                        "count(nullif(throws IS NULL, false)) as incomplete "
                     "FROM result "
                         "JOIN game ON result.game=game.id "
                         "JOIN player ON player.id=result.player "
-                    "WHERE game.course=%s AND game.active=false AND game.unfinished=false AND player=%s "
-                    "GROUP BY game.id, player.name "
-                    "ORDER BY game.start_time, player.name")
+                    "WHERE game.course=%s AND game.active=false AND special_rules IS NULL AND player=%s "
+                    "GROUP BY game.id, player.name) AS foo WHERE incomplete=0 "
+                    "ORDER BY start_time, name")
             cursor.execute(sql, (course_id, player_id))
             for start_time, name, res in cursor.fetchall():
                 start_time = int(start_time.strftime('%s'))*1000
                 items.append({'x': start_time, 'y': res-par, 'group': 'res'})
-
 
         min_time, max_time = items[0]['x'], items[-1]['x']
         items.append({'x': min_time, 'y': 0, 'group': 'par'})
@@ -517,12 +545,25 @@ class Database(object):
 
 
     def end_game(self, game_id, unfinished):
-        query = ("UPDATE player SET active=NULL WHERE active=%s")
+        query = "UPDATE player SET active=NULL WHERE active=%s"
         cursor = self._cursor()
         cursor.execute(query, (game_id, ))
-        query = ("UPDATE game SET active=false, end_time=now(), unfinished=%s WHERE id=%s")
-        cursor = self._cursor()
-        cursor.execute(query, (unfinished, game_id))
+        query = ("SELECT now() - start_time, sum(throws) FROM game "
+                "JOIN result ON game.id=result.game WHERE game.id=%s "
+                "GROUP BY now() - start_time")
+        cursor.execute(query, (game_id, ))
+        game_time, throws = cursor.fetchone()
+        impossible_time = (
+                not game_time or game_time < datetime.timedelta(minutes=15) or game_time > datetime.timedelta(hours=4)
+            )
+        if not throws:
+            query = "DELETE FROM game WHERE id=%s"
+            cursor.execute(query, (game_id, ))
+        else:
+            query = "UPDATE game SET active=false, end_time={end_time}, unfinished=%s WHERE id=%s".format(
+                    end_time='NULL' if unfinished in (u'true', u'True') or impossible_time else 'now()'
+                )
+            cursor.execute(query, (unfinished, game_id))
         cursor.close()
 
 

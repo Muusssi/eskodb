@@ -211,8 +211,12 @@ class Hole(BaseModel):
         return info
 
 
-def new_game(course_id, player_ids):
-    game = Game({'course':course_id, 'game_of_day':DATABASE.next_game_of_day(course_id)})
+def new_game(course_id, player_ids, special_rules=None):
+    game = Game({
+            'course':course_id,
+            'game_of_day':DATABASE.next_game_of_day(course_id),
+            'special_rules':special_rules
+        })
     game.save()
     DATABASE.activate_players(player_ids, game.id)
     DATABASE.generate_empty_results(game, player_ids)
@@ -252,6 +256,7 @@ class Game(BaseModel):
             'comments',
             'steps',
             'unfinished',
+            'special_rules',
         )
 
     integer_fields = (
@@ -259,6 +264,7 @@ class Game(BaseModel):
             'course',
             'game_of_day',
             'steps',
+            'special_rules',
         )
 
     def label(self):
@@ -330,9 +336,10 @@ def results(criteria={}, order_by=""):
         result_list.append(Result(values))
     return result_list
 
-def results_table(criteria={}, latest=False):
+def results_table(criteria={}, latest=False, special_rules=None):
     order_by = "game.start_time desc, game.game_of_day desc, player, hole"
-    additional_where = "game.active=false AND game.start_time > (date 'today' -14) " if latest else " game.active=false "
+    additional_where = " game.active=false AND game.start_time > (date 'today' -14) " if latest else " game.active=false "
+    additional_where += "AND special_rules=%s" % (special_rules, ) if special_rules else "AND special_rules IS NULL "
     result_table = []
     row = []
     previous = None
@@ -413,6 +420,27 @@ class Cup(BaseModel):
             'max_par',
         )
 
+def rule_set(rule_id):
+    row = DATABASE.fetch_rows(Cup.TABLE_NAME, Cup.fields, {'id':cup_id})
+    return Cup(row[0])
+
+def rule_sets(criteria={}, order_by="name"):
+    rule_set_list = []
+    for values in DATABASE.fetch_rows(RuleSet.TABLE_NAME, RuleSet.fields, criteria, order_by):
+        rule_set_list.append(RuleSet(values))
+    return rule_set_list
+
+class RuleSet(BaseModel):
+
+    TABLE_NAME = 'special_rules'
+
+    fields = (
+            'id',
+            'name',
+            'description',
+        )
+
+    integer_fields = ('id', )
 
 if __name__ == '__main__':
 

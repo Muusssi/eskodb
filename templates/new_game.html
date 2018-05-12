@@ -25,6 +25,16 @@
       {% end %}
     </div>
 
+    <div>
+      <label for="special_rule_select">Erikoissäännöt</label>
+      <select id="special_rule_select" name="special_rules">
+        <option value="">--</option>
+        {% for rule_set in rule_sets %}
+          <option value="{{rule_set.id}}">{{rule_set.name}}</option>
+        {% end %}
+      </select>
+    </div>
+
     <input id="start_game_btn" class="game_input" type="submit" value="Aloita" method="POST">
   </form>
 {% end %}

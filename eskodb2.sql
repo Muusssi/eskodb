@@ -26,7 +26,7 @@ CREATE TABLE course (
 
 CREATE TABLE hole (
     id serial PRIMARY KEY,
-    course integer REFERENCES course(id),
+    course integer REFERENCES course(id) ON DELETE CASCADE,
     hole integer,
     length integer default 0,
     height integer default 0,
@@ -45,7 +45,7 @@ CREATE TABLE hole (
 CREATE TABLE cup (
     id serial PRIMARY KEY,
     name text NOT NULL CHECK (name <> ''),
-    course integer REFERENCES course(id),
+    course integer REFERENCES course(id) ON DELETE CASCADE,
     year integer default EXTRACT(year FROM now()),
     month integer default EXTRACT(month FROM now()),
     max_par integer
@@ -53,19 +53,26 @@ CREATE TABLE cup (
 
 CREATE TABLE eskocup_course (
     id serial PRIMARY KEY,
-    course integer REFERENCES course(id),
+    course integer REFERENCES course(id) ON DELETE CASCADE,
     year integer default EXTRACT(year FROM now())
+);
+
+CREATE TABLE special_rules (
+    id serial PRIMARY KEY,
+    name text NOT NULL,
+    description text
 );
 
 CREATE TABLE game (
     id serial PRIMARY KEY,
     active boolean default true,
     unfinished boolean default false,
-    course integer REFERENCES course(id),
+    course integer REFERENCES course(id) ON DELETE CASCADE,
     start_time timestamp default now(),
     end_time timestamp,
     game_of_day integer default 1,
     comments text,
+    special_rules int REFERENCES special_rules(id) ON DELETE CASCADE DEFAULT NULL,
     steps int default NULL
 );
 
@@ -79,40 +86,24 @@ CREATE TABLE player (
     user_name text UNIQUE default NULL,
     password text default NULL,
     priviledges priviledge default NULL,
-    active integer REFERENCES game(id)
+    active integer REFERENCES game(id) ON DELETE CASCADE
 );
 
 CREATE TABLE player_group (
     id serial PRIMARY KEY,
     name text NOT NULL CHECK (name <> ''),
-    player integer REFERENCES player(id)
+    player integer REFERENCES player(id) ON DELETE CASCADE
 );
 
 
 CREATE TABLE result (
     id serial PRIMARY KEY,
-    game integer REFERENCES game(id),
-    player integer REFERENCES player(id),
-    hole integer REFERENCES hole(id),
+    game integer REFERENCES game(id) ON DELETE CASCADE,
+    player integer REFERENCES player(id) ON DELETE CASCADE,
+    hole integer REFERENCES hole(id) ON DELETE CASCADE,
     throws integer default NULL,
     penalty integer default 0,
     approaches integer default NULL,
     puts integer default NULL,
     reported_at timestamp default null
 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

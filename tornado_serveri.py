@@ -385,8 +385,10 @@ class NewGameHandler(BaseHandler):
         self.render("new_game.html",
                 message="",
                 courses=models.playable_courses(),
+                rule_sets=models.rule_sets(),
                 chosen_players=[],
                 chosen_course=chosen_course,
+                special_rules=None,
                 # For template
                 all_players=models.players(),
                 course_name_dict=self.db.course_name_dict(),
@@ -397,12 +399,15 @@ class NewGameHandler(BaseHandler):
     def post(self):
         player_ids = self.get_arguments("player")
         course_id = self.get_argument("course", None)
+        special_rules = self.get_argument("special_rules", None)
         if not player_ids:
             self.render("new_game.html",
                     message="Valitse pelaajia!",
                     courses=models.playable_courses(),
+                    rule_sets=models.rule_sets(),
                     chosen_players=player_ids,
                     chosen_course=course_id,
+                    special_rules=special_rules,
                     # For template
                     all_players=models.players(),
                     course_name_dict=self.db.course_name_dict(),
@@ -413,8 +418,10 @@ class NewGameHandler(BaseHandler):
             self.render("new_game.html",
                     message="Valitse rata",
                     courses=models.playable_courses(),
+                    rule_sets=models.rule_sets(),
                     chosen_players=player_ids,
                     chosen_course=course_id,
+                    special_rules=special_rules,
                     # For template
                     all_players=models.players(),
                     course_name_dict=self.db.course_name_dict(),
@@ -422,7 +429,7 @@ class NewGameHandler(BaseHandler):
                     user=self.get_current_user(),
                 )
         else:
-            game = models.new_game(course_id, player_ids)
+            game = models.new_game(course_id, player_ids, special_rules)
             self.redirect("/game/%s/" % game.id)
 
 
@@ -600,6 +607,7 @@ class NewCupHandler(BaseHandler):
                     year=now.year,
                     month=now.month,
                     # For template
+                    all_players=models.players(),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
                     user=self.get_current_user(),
