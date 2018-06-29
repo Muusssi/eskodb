@@ -4,6 +4,29 @@ from collections import defaultdict
 
 GAME_TEMPLATE = "%s #%s"
 
+def cup_results_query(year, first_month, last_month):
+    return """
+            SELECT DISTINCT ON (player, course) player, course, res, start_time::date
+            FROM (
+                SELECT sum(throws - hole.par) as res, result.player, game.course, game.start_time,
+                        count(nullif(throws IS NULL, false)) as unfinished
+                FROM result
+                JOIN hole ON hole.id=result.hole
+                JOIN game ON game.id=result.game
+                WHERE game.course IN (SELECT course FROM eskocup_course WHERE year={year})
+                AND EXTRACT(month FROM game.start_time) >= {first_month}
+                AND EXTRACT(month FROM game.start_time) <= {last_month}
+                AND EXTRACT(year FROM game.start_time) = {year}
+                GROUP BY player, game.id, game.course
+                ORDER BY player, game.course, res DESC
+            ) as results
+            WHERE results.unfinished=0
+            ORDER BY player, course, res;""".format(
+                first_month=int(first_month),
+                last_month=int(last_month),
+                year=int(year),
+            )
+
 class Database(object):
 
     def __init__(self, database, host, user, password):
@@ -331,23 +354,33 @@ class Database(object):
         cursor.close()
         return bests
 
-    def cup_results_2018(self):
-        sql = ("SELECT DISTINCT ON (player, course) player, course, res, start_time::date FROM ( "
-                "SELECT sum(throws - hole.par) as res, result.player, game.course, game.start_time, "
-                "count(nullif(throws IS NULL, false)) as unfinished "
-                "FROM result JOIN hole ON hole.id=result.hole JOIN game ON game.id=result.game "
-                "WHERE game.course IN (SELECT course FROM eskocup_course WHERE year=2018) "
-                "AND EXTRACT(month FROM game.start_time) >= 4 AND EXTRACT(month FROM game.start_time) <= 9 "
-                "AND EXTRACT(year FROM game.start_time) = 2018 "
-                "GROUP BY player, game.id, game.course ORDER BY player, game.course, res DESC) as results "
-                "WHERE results.unfinished=0 "
-                "ORDER BY player, course, res;")
+    def cup_results_2018(self, first_stage=False):
+        last_month = 6 if first_stage else 9
         cursor = self._cursor()
-        cursor.execute(sql)
+        cursor.execute(cup_results_query(2018, 4, last_month))
         results = defaultdict(lambda : (1000, None))
         for player, course, res, date in cursor.fetchall():
             key = (player, course)
             results[key] = (res, date)
+        cursor.close()
+        return results
+
+    def cup_results_2018_with_handicaps(self, previous_results):
+        course_bests = {}
+        for player, course in previous_results:
+            result, date = previous_results[(player, course)]
+            if course in course_bests:
+                if course_bests[course] > result:
+                    course_bests[course] = result
+            else:
+                course_bests[course] = result
+        cursor = self._cursor()
+        cursor.execute(cup_results_query(2018, 7, 9))
+        results = defaultdict(lambda : (1000, 1000, 1000, None))
+        for player, course, res, date in cursor.fetchall():
+            key = (player, course)
+            handicap = previous_results[key][0] if key in previous_results else course_bests[course]
+            results[key] = (int(res - handicap), int(handicap), int(res), date)
         cursor.close()
         return results
 

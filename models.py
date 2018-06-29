@@ -101,8 +101,8 @@ def courses(criteria={}, order_by="name, version"):
         course_list.append(Course(values))
     return course_list
 
-def cup_courses():
-    additional_where = " id IN (SELECT course FROM eskocup_course WHERE year=2018) "
+def cup_courses(year):
+    additional_where = " id IN (SELECT course FROM eskocup_course WHERE year={}) ".format(int(year))
     course_list = []
     for values in DATABASE.fetch_rows(Course.TABLE_NAME, Course.fields, {}, 'name', additional_where=additional_where):
         course_list.append(Course(values))
