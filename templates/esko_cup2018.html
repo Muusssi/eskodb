@@ -55,7 +55,8 @@
   </div>
 
   <div id="table_div">
-    <h2>Tasoitetut tulokset</h2>
+    <h2>Tasoitetut tulokset </h2>
+    <h4>Selitys: tasoitettu_tulos (tulos - tasoitus)</h4>
     <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">
       <thead id="result_head">
         <tr>
@@ -76,7 +77,7 @@
               {% set adjusted, handicap, res, date = handicap_results[(player.id, cup_course.id)] %}
               {% if res != 1000 %}
                 {% set total_res, sort_res = total_res + adjusted, sort_res + adjusted %}
-                <td  sorttable_customkey="{{adjusted}}" onclick="see_game({{cup_course.id}}, '{{date}}', '{{player.name}}');">{{adjusted}} ({{res}} - {{handicap}})</td>
+                <td  sorttable_customkey="{{adjusted}}" onclick="see_game({{cup_course.id}}, '{{date}}', '{{player.name}}');">{{adjusted}} ({{res}} {% if handicap > 0 %} + {% end %} {{handicap}})</td>
               {% else %}
                 {% set sort_res = sort_res + res %}
                 <td sorttable_customkey="{{res}}">--</td>
