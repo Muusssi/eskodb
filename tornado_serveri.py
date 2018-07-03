@@ -53,6 +53,8 @@ class Application(tornado.web.Application):
                 # (r"/full/(?P<course_id>[^\/]+)/", FullGameHandler),
                 (r"/cup/new/", NewCupHandler),
                 (r"/eskocup/(?P<year>[^\/]+)/", EsKoCupHandler),
+
+                (r"/data/game_stats/", GameStatDataHandler),
             ]
 
         settings = dict(
@@ -669,6 +671,11 @@ class GraphDataHandler(BaseHandler):
         self.write(json.dumps(self.db.graphdata(course_id, player_id, averaged)))
 
 
+class GameStatDataHandler(BaseHandler):
+    def get(self):
+        self.write(self.db.throw_stats(self.request.arguments))
+
+    post = get
 
 
 # class HoleStatisticsHandler(BaseHandler):

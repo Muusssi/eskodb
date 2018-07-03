@@ -14,9 +14,9 @@ def cup_results_query(year, first_month, last_month):
                 JOIN hole ON hole.id=result.hole
                 JOIN game ON game.id=result.game
                 WHERE game.course IN (SELECT course FROM eskocup_course WHERE year={year})
-                AND EXTRACT(month FROM game.start_time) >= {first_month}
-                AND EXTRACT(month FROM game.start_time) <= {last_month}
-                AND EXTRACT(year FROM game.start_time) = {year}
+                  AND EXTRACT(month FROM game.start_time) >= {first_month}
+                  AND EXTRACT(month FROM game.start_time) <= {last_month}
+                  AND EXTRACT(year FROM game.start_time) = {year}
                 GROUP BY player, game.id, game.course
                 ORDER BY player, game.course, res DESC
             ) as results
@@ -539,6 +539,63 @@ class Database(object):
         cursor.close()
 
         return {'groups': groups, 'items': items}
+
+    def throw_stats(self, filters):
+        inner_rules = []
+        values = []
+        if 'course' in filters:
+            inner_rules.append(" game.course IN %s ")
+            values.append(tuple(filters['course']))
+        if 'player' in filters:
+            inner_rules.append(" result.player IN %s ")
+            values.append(tuple(filters['player']))
+        if 'begin' in filters:
+            inner_rules.append(" game.start_time >= %s ")
+            values.append(filters['begin'][0])
+        if 'end' in filters:
+            inner_rules.append(" game.start_time <= %s ")
+            values.append(filters['end'][0])
+
+        outer_rules = []
+        if 'only_complete' in filters:
+            outer_rules.append(" incomplete=0 ")
+
+        sql = """
+            SELECT count(*) as games, sum(holes) as holes, sum(result) as throws,
+                    min(result), avg(result), sum(penalties) as penalties, max(par) as par,
+                    course, player
+            FROM (
+                SELECT count(*) as holes, count(nullif(throws IS NULL, false)) as incomplete,
+                    sum(throws) as result, sum(hole.par) as par,
+                    sum(penalty) as penalties,
+                    game.id as game, player.id as player, game.course
+                FROM result
+                JOIN hole ON hole.id=result.hole
+                JOIN game ON game.id=result.game
+                JOIN player ON player.id=result.player
+                {inner_where}
+                GROUP BY game.id, player.id
+            ) AS foo
+            {outer_where}
+            GROUP BY course, player
+            ORDER BY holes DESC;""".format(
+                inner_where='WHERE ' + ' AND '.join(inner_rules) if inner_rules else '',
+                outer_where='WHERE ' + ' AND '.join(outer_rules) if outer_rules else '')
+
+        cursor = self._cursor()
+        cursor.execute(sql, values)
+        rows = []
+        for games, holes, throws, best, avg, penalties, par, course, player in cursor.fetchall():
+            #print games, holes, throws, best, avg, penalties, par, course, player
+            rows.append({
+                    'games': int(games), 'holes': int(holes), 'throws': int(throws), 'penalties': int(penalties),
+                    'best': int(best), 'avg': float(avg), 'par': int(par), 'course': int(course), 'player': int(player),
+                })
+        cursor.close()
+        return {
+                'rows': rows,
+                'rules': inner_rules,
+            }
 
     # def get_probabilities(self, course_id, player):
     #     cursor = self._cursor()
