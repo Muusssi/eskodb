@@ -30,37 +30,17 @@
       load();
     }
 
-    function toggle_holes_info() {
-      document.getElementById('holes_info').hidden = !document.getElementById('holes_info').hidden;
-    }
-
     function load() {
-      $.ajax({
-        type: "POST",
-        url: "/game/{{game.id}}/?previous_hole_results=True",
-        success: handleData,
-        error: function(x, t, m) {
-          document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
-        }
-      });
+      ajax_post("/game/{{game.id}}/?previous_hole_results=True", handleData)
     }
 
     function publish() {
-      $.ajax({
-        type: "POST",
-        url: "/game/{{game.id}}/",
-        data: $("#results_form").serialize(),
-        success: handleData,
-        error: function(x, t, m) {
-          document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
-        }
-      });
+      ajax_post("/game/{{game.id}}/", handleData, $("#results_form").serialize())
       next();
     }
 
     function handleData(jsonData) {
       data_table = jsonData.results;
-      console.log(jsonData);
       if (previous_results == null) {
         previous_results = jsonData.previous;
       }
@@ -145,26 +125,26 @@
 
       for (var row = 0; row < rows.length; row++) {
         if (data_table[row][current_hole-1][0] != null) {
-          document.getElementById('throws_'+row).value = data_table[row][current_hole-1][0];
-          document.getElementById('penalty_'+row).value = data_table[row][current_hole-1][1];
+          set_value('throws_' + row, data_table[row][current_hole-1][0]);
+          set_value('penalty_' + row, data_table[row][current_hole-1][1]);
         }
         else {
-          document.getElementById('throws_'+row).value = pars[current_hole-1];
-          document.getElementById('penalty_'+row).value = 0;
+          set_value('throws_' + row, pars[current_hole-1]);
+          set_value('penalty_' + row, 0);
         }
 
         if (data_table[row][current_hole-1][2] != null) {
-          document.getElementById('approaches_'+row).value = data_table[row][current_hole-1][2];
+          set_value('approaches_' + row, data_table[row][current_hole-1][2]);
         }
         else {
-          document.getElementById('approaches_'+row).value = "";
+          set_value('approaches_' + row, "");
         }
 
         if (data_table[row][current_hole-1][3] != null) {
-          document.getElementById('puts_'+row).value = data_table[row][current_hole-1][3];
+          set_value('puts_' + row, data_table[row][current_hole-1][3]);
         }
         else {
-          document.getElementById('puts_'+row).value = "";
+          set_value('puts_' + row, "");
         }
 
         var old_avg = "--";
@@ -194,9 +174,7 @@
 
 {% block body %}
   <h1>{{ course.name }}
-    <a class="btn btn-info" href="#" onclick="toggle_holes_info();">Väylien tiedot</a>
-    <!-- <a class="btn btn-info" href="/hole_statistics/{{course.id}}/1/">Histogrammi</a> -->
-    <!-- <a class="btn btn-info" href="/probabilities/{{course.id}}/par/">Tuloksen todennäköisyydet</a> -->
+    <a class="btn btn-info" href="#" onclick="toggle_by_id('holes_info');">Väylien tiedot</a>
   </h1>
 
   <p id="loading_message"></p>
@@ -213,18 +191,14 @@
         <tr>
           <th>Player</th>
           {% for hole in holes %}
-
-            <th
-              {% if hole.hole == min(current_hole, course.holes) %}
-                class="par-2"
-              {% end %}>{{hole.hole}}</th>
-
+            <th {% if hole.hole == min(current_hole, course.holes) %}
+                  class="par-2"
+                {% end %}>{{hole.hole}}</th>
           {% end %}
           <th>Sum</th>
           <th>par</th>
           <th></th>
         </tr>
-
       </thead>
       <tbody id="tbody">
         {% for player in players %}
@@ -345,6 +319,6 @@
     <br>
     <br>
   </form>
-  <button id="end_game_btn" class="game_input" onclick="end_game();" >Lopeta peli</button>
+  <button id="end_game_btn" class="game_input" onclick="end_game();">Lopeta peli</button>
 </div>
 {% end %}

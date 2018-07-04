@@ -1,15 +1,33 @@
 
-function function_name(url, handler) {
+function ajax_post(url, dataHandler, data) {
   $.ajax({
+    type: "POST",
     url: url,
-    dataType: 'application/json',
-    complete: function(data){
-        alert(data)
-    },
-    success: function(data){
-        handler(data)
+    success: dataHandler,
+    data: data,
+    error: function(x, t, m) {
+      console.log(x, t, m);
+      document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
     }
   });
+}
+
+function toggle_by_id(element_id) {
+  let element = document.getElementById(element_id);
+  element.hidden = !element.hidden;
+}
+
+function toggle(class_name) {
+  let elements = document.getElementsByClassName(class_name);
+  for (var i = 0; i < elements.length; i++) {
+    let element = elements[i];
+    element.hidden = !element.hidden;
+  }
+}
+
+
+function set_value(element_id, value) {
+  document.getElementById(element_id).value = value;
 }
 
 

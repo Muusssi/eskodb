@@ -46,15 +46,6 @@
       return maxEl;
     }
 
-    function toggle_subtables() {
-      show_subtables = !show_subtables;
-      var subtables = document.getElementsByClassName('subtable');
-      for (var i = 0; i < subtables.length; i++) {
-        subtables[i].hidden = show_subtables;
-      }
-    }
-
-
     function filter() {
       var date_filter = document.getElementById("date_filter").value;
       var player_filter = document.getElementById("player_filter").value.toLowerCase();
@@ -134,19 +125,14 @@
       median_row.cells[holes+3].innerHTML = median_sum - course_par;
     }
 
-    function toggle_holes_info() {
-      document.getElementById('holes_info').hidden = !document.getElementById('holes_info').hidden
-    }
-
-
   </script>
 {% end %}
 
 {% block body %}
   <h1>{{ course.name }}
-    <a class="btn btn-info" href="#" onclick="toggle_holes_info();">Väylien tiedot</a>
+    <a class="btn btn-info" href="#" onclick="toggle_by_id('holes_info');">Väylien tiedot</a>
     <a class="btn btn-info" href="/holes/{{course.id}}/update">Muokkaa väylien tietoja</a>
-    <a class="btn btn-info" href="#" onclick="toggle_subtables();">Tarkemmat heittotiedot</a>
+    <a class="btn btn-info" href="#" onclick="toggle('subtable');">Tarkemmat heittotiedot</a>
     <a class="btn btn-info" href="/course/{{course.id}}/graph">Tuloskuvaaja</a>
     <!-- <a class="btn btn-primary" href="/full/{{course.id}}/">Lisää koko pelin tulos</a> -->
     <!-- <a class="btn btn-info" href="/hole_statistics/{{course.id}}/1/">Histogrammi</a> -->
