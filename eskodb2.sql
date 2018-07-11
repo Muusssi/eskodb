@@ -75,7 +75,6 @@ CREATE TABLE game (
     special_rules int REFERENCES special_rules(id) ON DELETE CASCADE DEFAULT NULL,
     steps int default NULL
 );
-
 CREATE INDEX ON game (course);
 
 

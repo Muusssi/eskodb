@@ -54,7 +54,11 @@ class Application(tornado.web.Application):
                 (r"/cup/new/", NewCupHandler),
                 (r"/eskocup/(?P<year>[^\/]+)/", EsKoCupHandler),
 
+                (r"/game_stats", StatsTableHandler),
+
                 (r"/data/game_stats/", GameStatDataHandler),
+                (r"/data/courses/", CoursesDataHandler),
+                (r"/data/players/", PlayersDataHandler),
             ]
 
         settings = dict(
@@ -101,6 +105,15 @@ class BaseHandler(tornado.web.RequestHandler):
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
             )
+
+    def get_bool_argument(self, name, default):
+        value = self.get_argument(name, None)
+        if value in ('False', 'false', 'f', 'no'):
+            return False
+        elif value in ('True', 'true', 't', 'yes'):
+            return True
+        else:
+            return default
 
 def authorized(method):
     def wrapper(self, *args, **kwargs):
@@ -470,34 +483,6 @@ class GameHandler(BaseHandler):
             data['previous'] = self.db.previous_hole_results(game_id)
         self.write(data)
 
-# class FullGameHandler(BaseHandler):
-#     def get(self, course_id):
-#         self.render("full_game.html",
-#                 all_players=models.players(),
-#                 course=models.course(course_id),
-#                 # For template
-#                 course_name_dict=self.db.course_name_dict(),
-#                 active_games=models.games({'active':True}),
-#                 user=self.get_current_user(),
-#             )
-
-#     def post(self, course_id):
-#         game_date = self.get_argument("game_date")
-#         for p in self.get_arguments("player"):
-#             throws = self.get_arguments("%s_throws" % (p, ))
-#             penalties = self.get_arguments("%s_penalty" % (p, ))
-#             for hole in range(len(throws)):
-#                 self.db.add_results(course_id,
-#                         hole+1,
-#                         [p],
-#                         [throws[hole]],
-#                         [penalties[hole]],
-#                         insert_only=True,
-#                         game_date=game_date,
-#                     )
-#         self.db.end_game(course_id)
-#         self.redirect("/course/%s/" % (course_id, ))
-
 class EndGameHandler(BaseHandler):
     def get(self, game_id):
         self.db.end_game(game_id, self.get_argument('unfinished', False))
@@ -518,20 +503,6 @@ class GamesHandler(BaseHandler):
                 active_games=models.games({'active':True}),
                 user=self.get_current_user(),
             )
-
-
-
-# class ResultsHandler(BaseHandler):
-#     def post(self, course_id):
-#         self.write(self.db.get_results(int(course_id)))
-
-#     get = post
-
-# class GameResultsHandler(BaseHandler):
-#     def post(self, course_id):
-#         self.write(self.db.get_results(int(course_id), True))
-
-#     get = post
 
 # class ProbabilityHandler(BaseHandler):
 #     def get(self, course_id, player):
@@ -568,6 +539,17 @@ class RestartHandler(BaseHandler):
         self.db.reconnect()
         self.redirect("/")
 
+class StatsTableHandler(BaseHandler):
+    def get(self):
+        # TODO
+        self.render('api_table.html',
+                courses=models.courses(),
+                # For template
+                all_players=models.players(),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user(),
+            )
 
 class NewCupHandler(BaseHandler):
 
@@ -674,8 +656,15 @@ class GraphDataHandler(BaseHandler):
 class GameStatDataHandler(BaseHandler):
     def get(self):
         self.write(self.db.throw_stats(self.request.arguments))
-
     post = get
+
+class PlayersDataHandler(BaseHandler):
+    def get(self):
+        self.write(self.db.players_data(self.get_bool_argument('as_dict', False)))
+
+class CoursesDataHandler(BaseHandler):
+    def get(self):
+        self.write(self.db.courses_data(self.get_bool_argument('as_dict', False)))
 
 
 # class HoleStatisticsHandler(BaseHandler):

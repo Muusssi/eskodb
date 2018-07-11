@@ -1,0 +1,115 @@
+{% extends esko_template.html %}
+
+{% block title_block %}API table{% end %}
+
+{% block head %}
+  <script type="text/javascript">
+    var players = null;
+    var courses = null;
+
+    function get_data() {
+      document.getElementById('table_body').innerHTML = "";
+      document.getElementById('table_footer').innerHTML = "";
+      document.getElementById("loading_message").innerHTML = "Loading data, please wait.";
+      ajax_post('/data/game_stats/', handleDataTable, $("#filter_form").serialize());
+
+      function handleDataTable(jsonData) {
+        document.getElementById("loading_message").innerHTML = "";
+        var sums = [0, 0, 0];
+        console.log(jsonData.inner_rules);
+        let rows = jsonData.rows;
+        for (var i = 0; i < rows.length; i++) {
+          let row_object = rows[i];
+          console.log(row_object);
+          let course = courses[row_object.course];
+          var values = [
+            row_object.games,
+            row_object.holes,
+            row_object.throws,
+            players[row_object.player].name,
+            course.name + ' ' + course.holes + ' (' + course.version + ')',
+          ];
+          sums[0] += row_object.games;
+          sums[1] += row_object.holes;
+          sums[2] += row_object.throws;
+          append_row('table_body', values);
+        }
+        append_row('table_footer', sums);
+
+      }
+    }
+
+    function get_auxiliary_data() {
+      ajax_get('/data/players/?as_dict=True', handle_players);
+      ajax_get('/data/courses/?as_dict=True', handle_courses);
+    }
+
+    function handle_players(json) {
+      players = json.players;
+    }
+
+    function handle_courses(json) {
+      courses = json.courses;
+    }
+
+    window.onload = get_auxiliary_data();
+
+  </script>
+{% end %}
+
+{% block body %}
+  <div>
+    <form id="filter_form">
+      <div style="display: inline-block;">
+        <ul>
+        {% for player in all_players %}
+          <li>
+            <input id="player{{player.id}}" type="checkbox" name="player" value="{{player.id}}">
+            <label for="player{{player.id}}">{{player.name}}</label>
+          </li>
+        {% end %}
+        </ul>
+      </div>
+      <div style="display: inline-block;">
+        <ul>
+        {% for course in courses %}
+          <li>
+            <input id="course{{course.id}}" type="checkbox" name="course" value="{{course.id}}">
+            <label for="course{{course.id}}">{{course.name}} {{course.holes}} ({{course.version}})</label>
+          </li>
+        {% end %}
+        </ul>
+      </div>
+      <div style="display: inline-block;">
+        <label for="begin">Alku päivä</label>
+        <input id="begin" type="text" name="begin" pattern="[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]" value="">
+        <br>
+        <label for="end">Loppu päivä</label>
+        <input id="end" type="text" name="end" pattern="[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]" value="">
+        <br>
+        <input type="checkbox" name="only_complete">
+        <label>Vain täydet kierrokset</label>
+      </div>
+
+    </form>
+  </div>
+  <div>
+    <p id="loading_message"></p>
+    <button type="button" onclick="get_data();">Hae</button>
+  </div>
+  <div>
+    <table class="table sortable">
+      <thead>
+        <tr>
+          <th>Kierrokset</th>
+          <th>Väylät</th>
+          <th>Heitot</th>
+          <th>Pelaaja</th>
+          <th>Rata</th>
+        </tr>
+      </thead>
+      <tbody id="table_body"></tbody>
+      <tfoot id="table_footer"></tfoot>
+    </table>
+  </div>
+{% end %}

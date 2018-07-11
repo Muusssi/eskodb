@@ -549,10 +549,10 @@ class Database(object):
         if 'player' in filters:
             inner_rules.append(" result.player IN %s ")
             values.append(tuple(filters['player']))
-        if 'begin' in filters:
+        if 'begin' in filters and filters['begin'][0]:
             inner_rules.append(" game.start_time >= %s ")
             values.append(filters['begin'][0])
-        if 'end' in filters:
+        if 'end' in filters and filters['end'][0]:
             inner_rules.append(" game.start_time <= %s ")
             values.append(filters['end'][0])
 
@@ -596,6 +596,39 @@ class Database(object):
                 'rows': rows,
                 'rules': inner_rules,
             }
+
+    def players_data(self, as_dict=False):
+        players = {} if as_dict else []
+        cursor = self._cursor()
+        sql = "SELECT id, name, member, active FROM player ORDER BY name"
+        cursor.execute(sql)
+        for player_id, name, member, active in cursor.fetchall():
+            player = {'name': name, 'id': player_id, 'member': member, 'active': active}
+            if as_dict:
+                players[player_id] = player
+            else:
+                players.append(player)
+        cursor.close()
+        return {'players': players}
+
+    def courses_data(self, as_dict=False):
+        courses = {} if as_dict else []
+        cursor = self._cursor()
+        sql = """
+            SELECT id, name, official_name, holes, version, description, town
+            FROM course ORDER BY name, holes, version"""
+        cursor.execute(sql)
+        for course_id, name, official_name, holes, version, description, town in cursor.fetchall():
+            course = {
+                    'name': name, 'id': course_id, 'official_name': official_name,
+                    'holes': holes, 'version': str(version), 'town': town,
+                }
+            if as_dict:
+                courses[course_id] = course
+            else:
+                courses.append(course)
+        cursor.close()
+        return {'courses': courses}
 
     # def get_probabilities(self, course_id, player):
     #     cursor = self._cursor()

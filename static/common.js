@@ -12,6 +12,18 @@ function ajax_post(url, dataHandler, data) {
   });
 }
 
+function ajax_get(url, dataHandler) {
+  $.ajax({
+    type: "GET",
+    url: url,
+    success: dataHandler,
+    error: function(x, t, m) {
+      console.log(x, t, m);
+      document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
+    }
+  });
+}
+
 function toggle_by_id(element_id) {
   let element = document.getElementById(element_id);
   element.hidden = !element.hidden;
@@ -35,11 +47,10 @@ function set_value(element_id, value) {
 function append_row(table_id, values) {
   var table = document.getElementById(table_id);
   var row = table.insertRow(-1);
-  var row_data = values[i];
-
+  var row_data = values;
   for (var i = 0; i < row_data.length; i++) {
     var cell = row.insertCell(-1);
-    var cell_data = row_data[j];
+    var cell_data = row_data[i];
     if (typeof cell_data === 'object') {
 
     }
