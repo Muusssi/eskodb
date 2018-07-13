@@ -1,16 +1,58 @@
 {% extends esko_template.html %}
 
+{% block head %}
+  <script type="text/javascript">
+    window.onload = function get_courses() {
+      ajax_get('/data/courses/', fill_table);
+    }
+
+    function fill_table(json) {
+      let courses = json.courses
+      for (var i = 0; i < courses.length; i++) {
+        let course = courses[i];
+        let start_link = '';
+        if (course.playable) {
+          start_link = {'value': 'Pelaa', 'url': "/game/new/?course=" + course.id}
+        }
+        let rating = course_rating(course.holes, course.length, course.par);
+        let values = [
+          start_link,
+          {'value': course.name, 'url': "/course/" + course.id + "/"},
+          course.holes,
+          {'value': rating, 'custom_key': course_rating_ordering(rating)},
+          course.length,
+          course.par,
+          course.town,
+          course.version,
+        ];
+        append_row('course_table', values);
+      }
+    }
+  </script>
+{% end %}
+
+
 {% block body %}
   <table class="table sortable">
-    <tr>
-      <th></th>
-      <th>Kaupunki</th>
-      <th>Nimi</th>
-      <th>Väyliä</th>
-      <th>version</th>
-      <th>Kuvaus</th>
-    </tr>
-    {% for course in courses %}
+    <thead>
+      <tr>
+        <th></th>
+        <th>Nimi</th>
+        <th class="sorttable_numeric">Väyliä</th>
+        <th>Luokitus</th>
+        <th class="sorttable_numeric">Pituus</th>
+        <th class="sorttable_numeric">par</th>
+        <th>Kaupunki</th>
+        <th>version</th>
+      </tr>
+    </thead>
+    <tbody id="course_table"></tbody>
+  </table>
+{% end %}
+
+
+
+<!-- {% for course in courses %}
       <tr>
         <td><a href="/game/new/?course={{course.id}}">Pelaa</a></td>
         <td>{{course.town}}</td>
@@ -19,6 +61,4 @@
         <td>{{course.version}}</td>
         <td>{{course.description if len(course.description) < 100 else course.description[:100] + '...'}}</td>
       </tr>
-    {% end %}
-  </table>
-{% end %}
+    {% end %} -->

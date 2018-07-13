@@ -51,12 +51,62 @@ function append_row(table_id, values) {
   for (var i = 0; i < row_data.length; i++) {
     var cell = row.insertCell(-1);
     var cell_data = row_data[i];
-    if (typeof cell_data === 'object') {
-
+    if (cell_data != null && typeof cell_data === 'object') {
+      if (cell_data.url != undefined) {
+        let link = document.createElement('a');
+        link.href = cell_data.url;
+        link.innerHTML = cell_data.value;
+        cell.appendChild(link);
+      }
+      else {
+        cell.innerHTML = cell_data.value;
+      }
+      if (cell_data.custom_key != undefined) {
+        cell.setAttribute('sorttable_customkey', cell_data.custom_key);
+      }
     }
     else {
       cell.innerHTML = cell_data;
     }
   }
+}
+
+
+function course_rating(holes, length, par) {
+  if (length == null || length < 100) {
+    return '';
+  }
+  if (holes <= 6) {
+    return 'D';
+  }
+  else if (holes < 18) {
+    if (length/holes > 100) return 'BB';
+    else if (length/holes > 75) return 'B';
+    else return 'C';
+  }
+  else {
+    if (length/holes > 140 && par >= 64) {
+      return 'AAA';
+    }
+    else if (length/holes > 100 && par >= 58) {
+      return 'AA';
+    }
+    else {
+      return 'A';
+    }
+  }
+  return 'error';
+}
+
+function course_rating_ordering(rating) {
+  if (rating == 'AAA') return 'a';
+  if (rating == 'AA') return 'b';
+  if (rating == 'A') return 'c';
+  if (rating == 'BB') return 'd';
+  if (rating == 'B') return 'e';
+  if (rating == 'C') return 'f';
+  if (rating == 'D') return 'g';
+  if (rating == '') return 'x';
+  if (rating == 'error') return 'y';
 }
 

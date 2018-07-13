@@ -29,15 +29,12 @@ class Application(tornado.web.Application):
                 (r"/login", LoginHandler),
                 (r"/logout", LogoutHandler),
                 (r"/restart/", RestartHandler),
-                # (r"/data/(?P<course_id>[^\/]+)/", ResultsHandler),
                 (r"/courses", CoursesHandler),
                 (r"/course/new/", NewCourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/", CourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/graph", GraphHandler),
                 (r"/course/(?P<course_id>[^\/]+)/graphdata", GraphDataHandler),
                 (r"/holes/(?P<course_id>[^\/]+)/update", UpdateHolesHandler),
-                # (r"/hole_statistics/(?P<course_id>[^\/]+)/(?P<hole>[^\/]+)/", HoleStatisticsHandler),
-                # (r"/hole_statistics/(?P<course_id>[^\/]+)/(?P<hole>[^\/]+)/data/", HoleDataHandler),
                 (r"/players", PlayersHandler),
                 (r"/player/new", NewPlayerHandler),
                 (r"/player/(?P<player_id>[^\/]+)/", PlayerHandler),
@@ -47,10 +44,6 @@ class Application(tornado.web.Application):
                 (r"/game/end/(?P<game_id>[^\/]+)/", EndGameHandler),
                 (r"/game/(?P<game_id>[^\/]+)/reactivate", ReactivateGameHandler),
                 (r"/game/(?P<game_id>[^\/]+)/", GameHandler),
-                # (r"/game/data/(?P<course_id>[^\/]+)/", GameResultsHandler),
-                # (r"/probabilities/(?P<course_id>[^\/]+)/(?P<player>[^\/]+)/", ProbabilityHandler),
-                # (r"/probabilities/data/(?P<course_id>[^\/]+)/(?P<player>[^\/]+)/", ProbabilityDataHandler),
-                # (r"/full/(?P<course_id>[^\/]+)/", FullGameHandler),
                 (r"/cup/new/", NewCupHandler),
                 (r"/eskocup/(?P<year>[^\/]+)/", EsKoCupHandler),
 
@@ -59,6 +52,7 @@ class Application(tornado.web.Application):
                 (r"/data/game_stats/", GameStatDataHandler),
                 (r"/data/courses/", CoursesDataHandler),
                 (r"/data/players/", PlayersDataHandler),
+                (r"/data/course/(?P<course_id>[0-9]+)/holes/", HolesDataHandler),
             ]
 
         settings = dict(
@@ -504,36 +498,6 @@ class GamesHandler(BaseHandler):
                 user=self.get_current_user(),
             )
 
-# class ProbabilityHandler(BaseHandler):
-#     def get(self, course_id, player):
-#         self.render("probabilities.html",
-#                 course=self.db.get_course(course_id),
-#                 player=player,
-#                 players=self.db.get_players(),
-#                 courses_list=self.db.get_courses(),
-#                 actives=self.db.get_courses(True),
-#             )
-
-# class ProbabilityDataHandler(BaseHandler):
-#     def post(self, course_id, player):
-#         course_id = int(course_id)
-#         bests = self.db.get_course_bests()
-#         season = date.today().year
-#         esko_best = bests[course_id]
-#         esko_season_best = bests[(course_id, season)]
-#         personal_best = bests[(course_id, player)]
-#         personal_season_best = bests[(course_id, player, season)]
-#         self.write({
-#                 'probs': self.db.get_probabilities(course_id, player),
-#                 'par': self.db.get_par(course_id),
-#                 'esko_best': esko_best,
-#                 'esko_season_best': esko_season_best,
-#                 'personal_best': personal_best,
-#                 'personal_season_best': personal_season_best,
-#             })
-
-#     get = post
-
 class RestartHandler(BaseHandler):
     def get(self):
         self.db.reconnect()
@@ -541,7 +505,6 @@ class RestartHandler(BaseHandler):
 
 class StatsTableHandler(BaseHandler):
     def get(self):
-        # TODO
         self.render('api_table.html',
                 courses=models.courses(),
                 # For template
@@ -666,22 +629,9 @@ class CoursesDataHandler(BaseHandler):
     def get(self):
         self.write(self.db.courses_data(self.get_bool_argument('as_dict', False)))
 
-
-# class HoleStatisticsHandler(BaseHandler):
-#     def get(self, course_id, hole):
-#         self.render("hole_statistics.html",
-#                 course=self.db.get_course(course_id),
-#                 hole=hole,
-#                 courses_list=self.db.get_courses(),
-#                 actives=self.db.get_courses(True),
-#             )
-
-# class HoleDataHandler(BaseHandler):
-#     def post(self, course_id, hole):
-#         self.write(self.db.get_hole_statistics(course_id, hole))
-
-#     get = post
-
+class HolesDataHandler(BaseHandler):
+    def get(self, course_id):
+        self.write(self.db.holes_data(course_id, self.get_bool_argument('as_dict', False)))
 
 
 
@@ -698,11 +648,4 @@ if __name__ == "__main__":
         )
     httpserver.listen(int(config['port']))
     tornado.ioloop.IOLoop.current().start()
-else:
-    config = load_config_file('production_config.json')
-    webApp = Application(
-            db.Database(config['database'], config['host'], config['user'], config['password']),
-            config,
-        )
-    application = tornado.wsgi.WSGIAdapter(webApp)
 

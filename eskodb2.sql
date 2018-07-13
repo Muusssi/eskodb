@@ -1,6 +1,7 @@
 
 CREATE TYPE terrain AS ENUM ('harju', 'kallio', 'nurmi', 'metsä');
 CREATE TYPE hole_type AS ENUM ('suora', 'vasen', 'oikea');
+CREATE TYPE elevation_types AS ENUM ('jyrkkä ylämäki', 'ylämäki', 'tasainen', 'alamäki', 'jyrkkä alamäki');
 CREATE TYPE weather AS ENUM ('myrsky', 'tuulista', 'tyyni', 'sade', 'talvi');
 CREATE TYPE crowds AS ENUM ('hiljaista', 'ruuhkaa', 'tukossa');
 CREATE TYPE course_state AS ENUM ('hyvä', 'ok', 'huono', 'karmea');
@@ -20,8 +21,10 @@ CREATE TABLE course (
     town text,
     weekly_day integer default NULL CHECK (weekly_day >= 0 AND weekly_day < 8),
     weekly_time time (0) without time zone default NULL,
+    playable boolean default true,
     CONSTRAINT courses_differ UNIQUE(name, holes, version)
 );
+-- ALTER TABLE course ADD COLUMN playable boolean default true;
 
 
 CREATE TABLE hole (
@@ -31,6 +34,7 @@ CREATE TABLE hole (
     length integer default 0,
     height integer default 0,
     description text,
+    elevation elevation_types,
     type hole_type,
     hole_terrain terrain,
     par integer default 3,
@@ -40,7 +44,7 @@ CREATE TABLE hole (
     island boolean default false,
     CONSTRAINT holes_differ UNIQUE(course, hole)
 );
-
+-- ALTER TABLE hole ADD COLUMN elevation elevation_types;
 
 CREATE TABLE cup (
     id serial PRIMARY KEY,

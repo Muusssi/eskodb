@@ -125,6 +125,7 @@ class Course(BaseModel):
             'town',
             'weekly_day',
             'weekly_time',
+            'playable',
         )
 
     integer_fields = (
