@@ -613,19 +613,23 @@ class Database(object):
 
     def courses_data(self, as_dict=False):
         courses = {} if as_dict else []
+        course_bests = self.course_bests_data()
         cursor = self._cursor()
         sql = """
             SELECT course.id, name, official_name, holes, version, course.description, town,
-                    sum(length) as length, sum(par) as par, playable
+                    sum(length) as length, avg(length), max(length), sum(par) as par, playable
             FROM course JOIN hole ON hole.course=course.id
             GROUP BY course.id, name, official_name, holes, version, course.description, town
             ORDER BY name, holes, version"""
         cursor.execute(sql)
-        for course_id, name, official_name, holes, version, description, town, length, par, playable in cursor.fetchall():
+        for (course_id, name, official_name, holes, version, description, town,
+            length, avg_len, longest, par, playable) in cursor.fetchall():
             course = {
                     'name': name, 'id': course_id, 'official_name': official_name,
                     'holes': holes, 'version': str(version), 'town': town,
-                    'length': length, 'par': par, 'playable': playable,
+                    'length': length, 'longest': longest, 'par': par, 'playable': playable,
+                    'avg_length': int(avg_len) if avg_len else None,
+                    'best': course_bests[course_id] if course_id in course_bests else None,
                 }
             if as_dict:
                 courses[course_id] = course
@@ -657,6 +661,28 @@ class Database(object):
         cursor.close()
         return {'holes': holes}
 
+    def course_bests_data(self):
+        sql = """
+            SELECT DISTINCT ON (course) course, res, name, start_time::date
+            FROM (
+                SELECT game.course, game.start_time, player.name,
+                    sum(throws - par) as res,
+                    count(nullif(throws IS NULL, false)) as incomplete
+                FROM result
+                JOIN game ON game.id=result.game
+                JOIN hole ON hole.id=result.hole
+                JOIN player ON player.id=result.player
+                GROUP BY game.id, player.name
+            ) AS results
+            WHERE incomplete=0
+            ORDER BY course, res, start_time;"""
+        cursor = self._cursor()
+        cursor.execute(sql)
+        bests = {}
+        for course_id, res, player, game_date in cursor.fetchall():
+            bests[course_id] = {'name': player, 'result': res, 'date': str(game_date)}
+        cursor.close()
+        return bests
 
     def end_game(self, game_id, unfinished):
         query = "UPDATE player SET active=NULL WHERE active=%s"

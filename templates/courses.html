@@ -15,6 +15,10 @@
           start_link = {'value': 'Pelaa', 'url': "/game/new/?course=" + course.id}
         }
         let rating = course_rating(course.holes, course.length, course.par);
+        let best = ''
+        if (course.best != null) {
+          best = course.best.name + ' (' + course.best.result + ')';
+        }
         let values = [
           start_link,
           {'value': course.name, 'url': "/course/" + course.id + "/"},
@@ -22,43 +26,37 @@
           {'value': rating, 'custom_key': course_rating_ordering(rating)},
           course.length,
           course.par,
+          best,
+          course.avg_length,
+          course.longest,
           course.town,
           course.version,
         ];
-        append_row('course_table', values);
+        append_row('course_table_body', values);
       }
+      add_filters('course_table');
     }
   </script>
 {% end %}
 
 
 {% block body %}
-  <table class="table sortable">
+  <table id="course_table" class="table sortable">
     <thead>
       <tr>
         <th></th>
         <th>Nimi</th>
         <th class="sorttable_numeric">Väyliä</th>
-        <th>Luokitus</th>
+        <th class="sorttable_numeric">Luokitus</th>
         <th class="sorttable_numeric">Pituus</th>
         <th class="sorttable_numeric">par</th>
+        <th>Ennätys</th>
+        <th class="sorttable_numeric">Keskipituus</th>
+        <th class="sorttable_numeric">Pisin</th>
         <th>Kaupunki</th>
         <th>version</th>
       </tr>
     </thead>
-    <tbody id="course_table"></tbody>
+    <tbody id="course_table_body"></tbody>
   </table>
 {% end %}
-
-
-
-<!-- {% for course in courses %}
-      <tr>
-        <td><a href="/game/new/?course={{course.id}}">Pelaa</a></td>
-        <td>{{course.town}}</td>
-        <td><a href="/course/{{course.id}}/">{{course.name}}</a></td>
-        <td>{{course.holes}}</td>
-        <td>{{course.version}}</td>
-        <td>{{course.description if len(course.description) < 100 else course.description[:100] + '...'}}</td>
-      </tr>
-    {% end %} -->

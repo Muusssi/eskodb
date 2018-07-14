@@ -99,14 +99,14 @@ function course_rating(holes, length, par) {
 }
 
 function course_rating_ordering(rating) {
-  if (rating == 'AAA') return 'a';
-  if (rating == 'AA') return 'b';
-  if (rating == 'A') return 'c';
-  if (rating == 'BB') return 'd';
-  if (rating == 'B') return 'e';
-  if (rating == 'C') return 'f';
-  if (rating == 'D') return 'g';
-  if (rating == '') return 'x';
-  if (rating == 'error') return 'y';
+  if (rating == 'AAA') return '1';
+  if (rating == 'AA') return '2';
+  if (rating == 'A') return '3';
+  if (rating == 'BB') return '4';
+  if (rating == 'B') return '5';
+  if (rating == 'C') return '6';
+  if (rating == 'D') return '7';
+  if (rating == '') return '10';
+  if (rating == 'error') return '100';
 }
 
