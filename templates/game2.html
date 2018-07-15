@@ -85,24 +85,27 @@
       }
     };
 
+    function set_current_hole(new_hole) {
+      var hole_header_row = document.getElementById('result_head').rows[0].cells;
+      var hole_data_header_row = document.getElementById('holes_info').rows[0].cells;
+      hole_header_row[current_hole].className = "";
+      hole_data_header_row[current_hole].className = "";
+      current_hole = new_hole;
+      hole_header_row[current_hole].className = "par-2";
+      hole_data_header_row[current_hole].className = "par-2";
+      document.getElementById("current_hole_p").innerHTML = current_hole;
+    }
+
     function next() {
       if (current_hole<{{course.holes}}) {
-        var hole_header_row = document.getElementById('result_head').rows[0].cells;
-        hole_header_row[current_hole].className = "";
-        current_hole++;
-        hole_header_row[current_hole].className = "par-2";
-        document.getElementById("current_hole_p").innerHTML = current_hole;
+        set_current_hole(current_hole + 1);
       }
       update_inputs();
     }
 
     function previous() {
       if (current_hole>1) {
-        var hole_header_row = document.getElementById('result_head').rows[0].cells;
-        hole_header_row[current_hole].className = "";
-        current_hole--;
-        hole_header_row[current_hole].className = "par-2";
-        document.getElementById("current_hole_p").innerHTML = current_hole;
+        set_current_hole(current_hole - 1);
       }
       update_inputs();
     }
@@ -176,24 +179,20 @@
   <h1>{{ course.name }}
     <a class="btn btn-info" href="#" onclick="toggle_by_id('holes_info');">Väylien tiedot</a>
   </h1>
-
   <p id="loading_message"></p>
-
 
   {% include hole_data_table.html %}
 
-
   <div id="table_div">
-
-
-    <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">
+    <table id="results_table" class="table table-striped table-bordered table-condensed table-hover">
       <thead id="result_head">
         <tr>
           <th>Player</th>
           {% for hole in holes %}
             <th {% if hole.hole == min(current_hole, course.holes) %}
                   class="par-2"
-                {% end %}>{{hole.hole}}</th>
+                {% end %}
+                onclick="set_current_hole({{hole.hole}});">{{hole.hole}}</th>
           {% end %}
           <th>Sum</th>
           <th>par</th>

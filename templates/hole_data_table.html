@@ -2,7 +2,9 @@
     <tr>
       <th></th>
       {% for hole in holes %}
-        <th>{{hole.hole}}</th>
+        <th {% if 'current_hole' in globals() and hole.hole == min(current_hole, course.holes) %}
+              class="par-2"
+            {% end %}>{{hole.hole}}</th>
       {% end %}
       <th>Total</th>
     </tr>
