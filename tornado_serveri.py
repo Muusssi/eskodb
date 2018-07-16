@@ -209,7 +209,7 @@ class CourseHandler(BaseHandler):
                 hole_dict=hole_dict,
                 holes=holes,
                 game_dict=models.game_dict({'course':course_id}),
-                result_table=models.results_table({'course':course_id}),
+                result_table=models.results_table({'game.course':course_id}),
                 par_sum=par_sum,
                 game_times=self.db.game_times(course_id),
                 # For template

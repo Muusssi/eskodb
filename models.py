@@ -338,13 +338,15 @@ def results(criteria={}, order_by=""):
     return result_list
 
 def results_table(criteria={}, latest=False, special_rules=None):
-    order_by = "game.start_time desc, game.game_of_day desc, player, hole"
+    order_by = "game.start_time desc, game.game_of_day desc, player, hole.hole"
     additional_where = " game.active=false AND game.start_time > (date 'today' -14) " if latest else " game.active=false "
     additional_where += "AND special_rules=%s" % (special_rules, ) if special_rules else "AND special_rules IS NULL "
     result_table = []
     row = []
     previous = None
-    join_rule = " JOIN %s on %s.game=%s.id" % (Game.TABLE_NAME, Result.TABLE_NAME, Game.TABLE_NAME)
+    join_rule = " JOIN {} on {}.game={}.id JOIN hole ON {}.id={}.hole ".format(
+            Game.TABLE_NAME, Result.TABLE_NAME, Game.TABLE_NAME, Hole.TABLE_NAME, Result.TABLE_NAME,
+        )
     for values in DATABASE.fetch_rows(
             Result.TABLE_NAME, Result.fields, criteria, order_by, join_rule, additional_where
         ):
