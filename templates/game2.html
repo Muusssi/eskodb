@@ -94,20 +94,19 @@
       hole_header_row[current_hole].className = "par-2";
       hole_data_header_row[current_hole].className = "par-2";
       document.getElementById("current_hole_p").innerHTML = current_hole;
+      update_inputs();
     }
 
     function next() {
       if (current_hole<{{course.holes}}) {
         set_current_hole(current_hole + 1);
       }
-      update_inputs();
     }
 
     function previous() {
       if (current_hole>1) {
         set_current_hole(current_hole - 1);
       }
-      update_inputs();
     }
 
     function update_inputs() {
