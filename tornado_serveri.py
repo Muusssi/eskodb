@@ -49,10 +49,12 @@ class Application(tornado.web.Application):
 
                 (r"/game_stats", StatsTableHandler),
 
+                (r"/data/players/", PlayersDataHandler),
                 (r"/data/game_stats/", GameStatDataHandler),
                 (r"/data/courses/", CoursesDataHandler),
-                (r"/data/players/", PlayersDataHandler),
+                (r"/data/course/(?P<course_id>[0-9]+)/$", CourseDataHandler),
                 (r"/data/course/(?P<course_id>[0-9]+)/holes/", HolesDataHandler),
+                (r"/data/game/(?P<game_id>[0-9]+)/", GameDataHandler),
             ]
 
         settings = dict(
@@ -439,7 +441,7 @@ class NewGameHandler(BaseHandler):
                 )
         else:
             game = models.new_game(course_id, player_ids, special_rules)
-            self.redirect("/game/%s/" % game.id)
+            self.redirect("/game/{}/".format(int(game.id)))
 
 
 class GameHandler(BaseHandler):
@@ -625,6 +627,10 @@ class PlayersDataHandler(BaseHandler):
     def get(self):
         self.write(self.db.players_data(self.get_bool_argument('as_dict', False)))
 
+class CourseDataHandler(BaseHandler):
+    def get(self, course_id):
+        self.write(self.db.course_data(course_id))
+
 class CoursesDataHandler(BaseHandler):
     def get(self):
         self.write(self.db.courses_data(self.get_bool_argument('as_dict', False)))
@@ -633,6 +639,9 @@ class HolesDataHandler(BaseHandler):
     def get(self, course_id):
         self.write(self.db.holes_data(course_id, self.get_bool_argument('as_dict', False)))
 
+class GameDataHandler(BaseHandler):
+    def get(self, game_id):
+        self.write(self.db.game_data(game_id))
 
 
 if __name__ == "__main__":

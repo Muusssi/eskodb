@@ -7,7 +7,7 @@ function ajax_post(url, dataHandler, data) {
     data: data,
     error: function(x, t, m) {
       console.log(x, t, m);
-      document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
+      set_loading_message("Error: failed to load the data");
     }
   });
 }
@@ -19,9 +19,14 @@ function ajax_get(url, dataHandler) {
     success: dataHandler,
     error: function(x, t, m) {
       console.log(x, t, m);
-      document.getElementById("loading_message").innerHTML = "Error: failed to load the data"
+      set_loading_message("Error: failed to load the data");
     }
   });
+}
+
+function set_loading_message(msg) {
+  let loading_msg_p = document.getElementById("loading_message");
+  if (loading_msg_p != null) loading_msg_p.innerHTML = msg;
 }
 
 function toggle_by_id(element_id) {

@@ -12,6 +12,7 @@
     var course_par = null;
 
     window.onload = function() {
+      //get_course_data();
       var table_head = document.getElementById('result_head');
       var row = table_head.insertRow(1);
       row.insertCell(0);
@@ -24,6 +25,14 @@
       course_par = pars.reduce(function(a, b) { return a + b; }, 0);
 
       filter();
+    }
+
+    function get_course_data() {
+      ajax_get('/data/course/{{course.id}}/', handle_course_data);
+
+      function handle_course_data(json) {
+        console.log(json);
+      }
     }
 
     function mode(array) {
