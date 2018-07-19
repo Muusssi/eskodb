@@ -1,6 +1,7 @@
 import psycopg2
 import datetime
 from collections import defaultdict
+import json
 
 GAME_TEMPLATE = "%s #%s"
 
@@ -26,6 +27,9 @@ def cup_results_query(year, first_month, last_month):
                 last_month=int(last_month),
                 year=int(year),
             )
+
+def datetime_to_hour_minutes(dt):
+    return str(dt).split('.')[0][:-3]
 
 class Database(object):
 
@@ -255,6 +259,29 @@ class Database(object):
         if not times:
             times.append(("###", "###", "###", 0))
         return times
+
+    def game_times_data(self, course_id):
+        sql = """SELECT size, rules, count(*), min(game_time), avg(game_time), max(game_time)
+                FROM (
+                    SELECT game.id, count(*) as size, end_time - start_time as game_time,
+                        (CASE WHEN special_rules IS NULL THEN 0 ELSE special_rules END) as rules
+                    FROM result JOIN game ON game.id=result.game JOIN hole ON hole.id=result.hole
+                    WHERE game.course={course_id} AND NOT game.unfinished AND hole.hole=1 AND end_time IS NOT NULL
+                    GROUP BY game.id
+                ) AS games GROUP BY rules, size ORDER BY rules, size""".format(course_id=int(course_id))
+        cursor = self._cursor()
+        cursor.execute(sql)
+        game_times = {}
+        for size, rules, games, min_time, avg_time, max_time in cursor.fetchall():
+            times = {
+                    'pool': size, 'games': games, 'min': datetime_to_hour_minutes(min_time),
+                    'avg': datetime_to_hour_minutes(avg_time), 'max': datetime_to_hour_minutes(max_time),
+                }
+            if rules in game_times:
+                game_times[rules].append(times)
+            else:
+                game_times[rules] = [times]
+        return game_times
 
     def player_with_games_on_course(self, course_id):
         sql = ("SELECT distinct player.name, player.id "
@@ -586,7 +613,6 @@ class Database(object):
         cursor.execute(sql, values)
         rows = []
         for games, holes, throws, best, avg, penalties, par, course, player in cursor.fetchall():
-            #print games, holes, throws, best, avg, penalties, par, course, player
             rows.append({
                     'games': int(games), 'holes': int(holes), 'throws': int(throws), 'penalties': int(penalties),
                     'best': int(best), 'avg': float(avg), 'par': int(par), 'course': int(course), 'player': int(player),
@@ -792,6 +818,25 @@ class Database(object):
         game_data['results'] = results
         return game_data
 
+    def course_rule_sets(self, course_id):
+        rule_sets = []
+        sql = ("SELECT game.special_rules, name, description, count(*) "
+                "FROM special_rules "
+                "RIGHT OUTER JOIN game ON game.special_rules=special_rules.id "
+                "WHERE course={course_id} "
+                "GROUP BY game.special_rules, name, description "
+                "ORDER BY game.special_rules IS NOT NULL, name").format(
+                course_id=int(course_id)
+            )
+        cursor = self._cursor()
+        cursor.execute(sql)
+        for rule_id, name, description, games in cursor.fetchall():
+            if not rule_id:
+                rule_sets.append({'id': 0, 'name': 'Standard', 'description': '', 'games': games})
+            else:
+                rule_sets.append({'id': rule_id, 'name': name, 'description': description, 'games': games})
+        return rule_sets
+
     def end_game(self, game_id, unfinished):
         query = "UPDATE player SET active=NULL WHERE active=%s"
         cursor = self._cursor()
@@ -816,5 +861,5 @@ class Database(object):
 
 
 if __name__ == '__main__':
-    pass
+    db = Database('eskodb2', 'localhost', 'esko', 'foo')
 

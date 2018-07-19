@@ -54,6 +54,8 @@ class Application(tornado.web.Application):
                 (r"/data/courses/", CoursesDataHandler),
                 (r"/data/course/(?P<course_id>[0-9]+)/$", CourseDataHandler),
                 (r"/data/course/(?P<course_id>[0-9]+)/holes/", HolesDataHandler),
+                (r"/data/course/(?P<course_id>[0-9]+)/rule_sets/", RuleSetsDataHandler),
+                (r"/data/course/(?P<course_id>[0-9]+)/game_times/", GameTimesDataHandler),
                 (r"/data/game/(?P<game_id>[0-9]+)/", GameDataHandler),
             ]
 
@@ -642,6 +644,14 @@ class HolesDataHandler(BaseHandler):
 class GameDataHandler(BaseHandler):
     def get(self, game_id):
         self.write(self.db.game_data(game_id))
+
+class GameTimesDataHandler(BaseHandler):
+    def get(self, course_id):
+        self.write(self.db.game_times_data(course_id))
+
+class RuleSetsDataHandler(BaseHandler):
+    def get(self, course_id):
+        self.write({'rule_sets': self.db.course_rule_sets(course_id)})
 
 
 if __name__ == "__main__":

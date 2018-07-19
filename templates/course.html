@@ -3,6 +3,7 @@
 {% block title_block %}tulokset {{ course.name }}{% end %}
 
 {% block head %}
+  <script src={{static_url("data_tables.js")}}></script>
   <script type="text/javascript">
 
     var holes = {{course.holes}};
@@ -12,7 +13,7 @@
     var course_par = null;
 
     window.onload = function() {
-      //get_course_data();
+      get_course_data();
       var table_head = document.getElementById('result_head');
       var row = table_head.insertRow(1);
       row.insertCell(0);
@@ -25,11 +26,14 @@
       course_par = pars.reduce(function(a, b) { return a + b; }, 0);
 
       filter();
+
+
     }
 
     function get_course_data() {
-      ajax_get('/data/course/{{course.id}}/', handle_course_data);
-
+      //ajax_get('/data/course/{{course.id}}/', handle_course_data);
+      game_times_table({{course.id}});
+      rule_set_selector({{course.id}});
       function handle_course_data(json) {
         console.log(json);
       }
@@ -147,6 +151,11 @@
     <!-- <a class="btn btn-info" href="/hole_statistics/{{course.id}}/1/">Histogrammi</a> -->
     <!-- <a class="btn btn-info" href="/probabilities/{{course.id}}/par/">Tuloksen todennäköisyydet</a> -->
   </h1>
+  <div>
+    <label for="rule_set_select">Säännöt</label>
+    <select id="rule_set_select"></select>
+  </div>
+
 
   <table class="table-condensed table-bordered">
     <tr>
@@ -157,15 +166,9 @@
       <th>min</th>
       <th>keskiarvo</th>
       <th>max</th>
+      <th>Kierroksia</th>
     </tr>
-    {% for min_time, avg_time, max_time, pool_size in game_times %}
-      <tr>
-        <td>{{pool_size}}</td>
-        <td>{{min_time}} h</td>
-        <td>{{avg_time}} h</td>
-        <td>{{max_time}} h</td>
-      </tr>
-    {% end %}
+    <tbody id="game_times"></tbody>
   </table>
 
   {% include hole_data_table.html %}

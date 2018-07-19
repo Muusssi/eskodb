@@ -42,6 +42,22 @@ function toggle(class_name) {
   }
 }
 
+function hide(class_name) {
+  let elements = document.getElementsByClassName(class_name);
+  for (var i = 0; i < elements.length; i++) {
+    let element = elements[i];
+    element.hidden = true;
+  }
+}
+
+function show(class_name) {
+  let elements = document.getElementsByClassName(class_name);
+  for (var i = 0; i < elements.length; i++) {
+    let element = elements[i];
+    element.hidden = false;
+  }
+}
+
 
 function set_value(element_id, value) {
   document.getElementById(element_id).value = value;
@@ -49,10 +65,16 @@ function set_value(element_id, value) {
 
 
 
-function append_row(table_id, values) {
+function append_row(table_id, values, row_class, hidden) {
   var table = document.getElementById(table_id);
   var row = table.insertRow(-1);
   var row_data = values;
+  if (row_class != undefined && row_class != null) {
+    row.className = row_class;
+  }
+  if (row_class != undefined && row_class != null) {
+    row.hidden = hidden;
+  }
   for (var i = 0; i < row_data.length; i++) {
     var cell = row.insertCell(-1);
     var cell_data = row_data[i];
@@ -74,6 +96,36 @@ function append_row(table_id, values) {
       cell.innerHTML = cell_data;
     }
   }
+}
+
+function toggle_selector(select_id, options, common_class) {
+  let selector = document.getElementById(select_id);
+  for (var i = 0; i < options.length; i++) {
+    let option_values = options[i];
+    let option = document.createElement('option');
+    option.innerHTML = option_values.name;
+    option.value = option_values.value;
+    selector.appendChild(option);
+  }
+
+  selector.onchange = function(){
+    hide(common_class);
+    show(selector.value);
+  };
+}
+
+function rule_set_selector(course_id) {
+  ajax_get('/data/course/' + course_id + '/rule_sets/', fill_selector);
+  function fill_selector(json) {
+    var options = [];
+    for (var i = 0; i < json.rule_sets.length; i++) {
+      var rule_set = json.rule_sets[i];
+      var name = rule_set.name + ' (' + rule_set.games + ')';
+      options.push({name: name, value: 'rules' + rule_set.id})
+    }
+    toggle_selector('rule_set_select', options, 'rulesToggleable');
+  }
+
 }
 
 
