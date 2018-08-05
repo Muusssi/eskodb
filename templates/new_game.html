@@ -15,13 +15,19 @@
     </select>
     <br>
 
+
+
     <label for="player">Pelaajat</label>
+    <button type="button" onclick="toggle('non_member');">Näytä ei jäsenet</button>
     <div>
       {% for player in all_players %}
-        <input id="cb_{{player.id}}" class="player_cb" type="checkbox" name="player" value="{{player.id}}"
-        {% if str(player.id) in chosen_players %}checked{% end %}
-        {% if player.active %}disabled{% end %}>
-        <label class="{% if player.active %}disabled{% end %}" for="cb_{{player.id}}">{{player.name}}</label><br>
+        <div {% if not player.member %} hidden class="non_member" {% end %}>
+          <input id="cb_{{player.id}}" class="player_cb" type="checkbox" name="player" value="{{player.id}}"
+          {% if str(player.id) in chosen_players %} checked {% end %}
+          {% if player.active %} disabled {% end %}>
+          <label class="{% if player.active %}disabled{% end %}" for="cb_{{player.id}}">{{player.name}}</label><br>
+        </div>
+
       {% end %}
     </div>
 

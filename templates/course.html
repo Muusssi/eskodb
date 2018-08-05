@@ -143,6 +143,7 @@
 
 {% block body %}
   <h1>{{ course.name }}
+    <a href="/game/new/?course={{course.id}}" class="btn btn-info">Pelaa</a>
     <a class="btn btn-info" href="#" onclick="toggle_by_id('holes_info');">Väylien tiedot</a>
     <a class="btn btn-info" href="/holes/{{course.id}}/update">Muokkaa väylien tietoja</a>
     <a class="btn btn-info" href="#" onclick="toggle('subtable');">Tarkemmat heittotiedot</a>
