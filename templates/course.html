@@ -4,140 +4,22 @@
 
 {% block head %}
   <script src={{static_url("data_tables.js")}}></script>
+  <script src={{static_url("course.js")}}></script>
   <script type="text/javascript">
 
-    var holes = {{course.holes}};
-    var show_subtables = true;
-
-    var pars = [];
-    var course_par = null;
-
     window.onload = function() {
-      get_course_data();
-      var table_head = document.getElementById('result_head');
-      var row = table_head.insertRow(1);
-      row.insertCell(0);
-      row.insertCell(1).outerHTML = "<th>par</th>";
-      row.insertCell(2).outerHTML = "<th>{{par_sum}}</th>";
-      {% for hole in holes %}
-        pars.push({{hole.par}});
-        row.insertCell(1+{{hole.hole}}).outerHTML = "<th>{{hole.par}}</th>";
-      {% end %}
-      course_par = pars.reduce(function(a, b) { return a + b; }, 0);
-
-      filter();
-
-
-    }
-
-    function get_course_data() {
-      //ajax_get('/data/course/{{course.id}}/', handle_course_data);
       game_times_table({{course.id}});
       rule_set_selector({{course.id}});
-      function handle_course_data(json) {
-        console.log(json);
-      }
+      ajax_get('/data/course/{{course.id}}/', handle_course_data);
     }
 
-    function mode(array) {
-      if(array.length == 0)
-          return null;
-      var modeMap = {};
-      var maxEl = array[0], maxCount = 1;
-      for(var i = 0; i < array.length; i++) {
-        var el = array[i];
-        if(modeMap[el] == null)
-            modeMap[el] = 1;
-        else
-            modeMap[el]++;
-
-        if(modeMap[el] > maxCount || (modeMap[el] >= maxCount && el > maxEl)) {
-            maxEl = el;
-            maxCount = modeMap[el];
-        }
-      }
-      return maxEl;
+    function handle_course_data(json) {
+      course = json;
+      holes = json.holes_data;
+      course_data_table(course);
+      build_result_table_head(holes);
+      ajax_get('/data/course/{{course.id}}/results/', handle_results);
     }
-
-    function filter() {
-      var date_filter = document.getElementById("date_filter").value;
-      var player_filter = document.getElementById("player_filter").value.toLowerCase();
-      var table = document.getElementById("tbody");
-      var Nrows = 0;
-      var filtered_rows = [];
-      var exact_matchin = true;
-      if (player_filter.endsWith(" ")) {
-        exact_matchin = false;
-        player_filter = player_filter.substring(0,player_filter.length-1);
-      }
-
-      // Filter
-      for (var i = 0; i < table.rows.length; i++) {
-        if (exact_matchin) {
-          var not_filtered = (
-            (table.rows[i].cells[0].innerHTML.replace(/\s+/g, '').toLowerCase().indexOf(date_filter) == 0 || date_filter == "") &&
-            (table.rows[i].cells[1].innerHTML.toLowerCase() == player_filter || player_filter == ""));
-        }
-        else {
-          var not_filtered = (
-            (table.rows[i].cells[0].innerHTML.replace(/\s+/g, '').toLowerCase().indexOf(date_filter) == 0 || date_filter == "") &&
-            (table.rows[i].cells[1].innerHTML.toLowerCase().indexOf(player_filter) == 0 || player_filter == ""));
-        }
-        if (not_filtered){
-          table.rows[i].hidden = false;
-          for (var hole = 1; hole <= holes; hole++) {
-            if (filtered_rows[hole-1] == null) {
-              filtered_rows[hole-1] = [];
-            }
-            var throws = parseInt(table.rows[i].cells[hole+1].innerHTML);
-            if (!isNaN(throws))
-              filtered_rows[hole-1].push(throws);
-          }
-          Nrows++;
-        }
-        else {
-          table.rows[i].hidden = true;
-        }
-      }
-
-      var avg_row = document.getElementById("avg_row");
-      var min_row = document.getElementById("min_row");
-      var mode_row = document.getElementById("mode_row");
-      var median_row = document.getElementById("median_row");
-      var avg_sum = 0;
-      var mode_sum = 0;
-      var median_sum = 0;
-      var min_sum = 0;
-      for (var hole = 1; hole <= holes; hole++) {
-        filtered_rows[hole-1].sort();
-        var valuesOnRow = filtered_rows[hole-1].length;
-        var avg = filtered_rows[hole-1].reduce(function(a, b) { return a + b; }, 0).toFixed(2);
-        avg_row.cells[hole+1].innerHTML = (avg/valuesOnRow).toFixed(2);
-        avg_row.cells[hole+1].className = "par"+(Math.round(avg/valuesOnRow)-pars[hole-1]);
-        avg_sum += avg/valuesOnRow;
-        var median = filtered_rows[hole-1][Math.floor(filtered_rows[hole-1].length/2)];
-        median_row.cells[hole+1].innerHTML = median;
-        median_row.cells[hole+1].className = "par"+(median-pars[hole-1]);
-        median_sum += median;
-        var mod = mode(filtered_rows[hole-1]);
-        mode_row.cells[hole+1].innerHTML = mod;
-        mode_row.cells[hole+1].className = "par"+(mod-pars[hole-1]);
-        mode_sum += mod;
-        var min = Math.min(...filtered_rows[hole-1]);
-        min_row.cells[hole+1].innerHTML = min;
-        min_row.cells[hole+1].className = "par"+(min-pars[hole-1]);
-        min_sum += min;
-      }
-      min_row.cells[holes+2].innerHTML = min_sum;
-      min_row.cells[holes+3].innerHTML = min_sum - course_par;
-      avg_row.cells[holes+2].innerHTML = avg_sum.toFixed(2);
-      avg_row.cells[holes+3].innerHTML = (avg_sum - course_par).toFixed(2);
-      mode_row.cells[holes+2].innerHTML = mode_sum;
-      mode_row.cells[holes+3].innerHTML = mode_sum - course_par;
-      median_row.cells[holes+2].innerHTML = median_sum;
-      median_row.cells[holes+3].innerHTML = median_sum - course_par;
-    }
-
   </script>
 {% end %}
 
@@ -172,60 +54,22 @@
     <tbody id="game_times"></tbody>
   </table>
 
-  {% include hole_data_table.html %}
+  <table id="holes_info" class="table table-bordered table-condensed"></table>
 
   <div id="table_div">
-  <label for="date_filter">Filter date:</label>
-  <input type="text" id="date_filter" oninput="filter();" value="{{selected_game_date}}">
-  <label for="player_filter">Filter player:</label>
-  <input type="text" id="player_filter" oninput="filter();" list="players" value="{{selected_player}}">
-  <datalist id="players">
-    {% for name in player_dict %}
-      <option value="{{name}}">
-    {% end %}
-  </datalist>
-
-
-    <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">
-      <thead id="result_head">
-        <tr>
-          <th>Date</th>
-          <th>Player</th>
-          {% for hole in holes %}
-            <th>{{hole.hole}}</th>
-          {% end %}
-          <th>Sum</th>
-          <th>par</th>
-        </tr>
-
-      </thead>
-      <tbody id="tbody">
-
-      {% for row in result_table %}
-        <tr>
-          <td class="date_cell" title="{{game_dict[row[0].game].start_time}}">{{game_dict[row[0].game].label()}}</td>
-          <td>{{player_dict[row[0].player].name}}</td>
-          {% for result in row %}
-              <td class="par{{(result.throws - hole_dict[result.hole].par) if result.throws else '' }}"
-                  value="{{result.throws}}"
-                  sorttable_customkey="{% if not result.throws %}100{% else %}{{result.throws}}{% end %}"
-                  {% if result.approaches != "" or result.puts != "" %}title="{{result.approaches}}:{{result.puts}}"{% end %}>
-                {{str(result.throws)+ '*'*result.penalty}}
-                {% if result.approaches != "" or result.puts != "" %}
-                <table class="subtable" hidden>
-                  <tr><td>{{result.approaches}}</td><td>:</td><td>{{result.puts}}</td></tr>
-                </table>
-                {% end %}
-              </td>
-          {% end %}
-          {% set row_sum = sum([res.throws or -100 for res in row]) %}
-          <td {% if row_sum < 0 %}sorttable_customkey="100"{% end %}>{{row_sum if row_sum > 0 else ""}}</td>
-          <td {% if row_sum < 0 %}sorttable_customkey="100"{% end %}>{{(row_sum - par_sum) if row_sum > 0 else "" }}</td>
-        </tr>
-
+    <label for="date_filter">Filter date:</label>
+    <input type="text" id="date_filter" oninput="filter();" value="{{selected_game_date}}">
+    <label for="player_filter">Filter player:</label>
+    <input type="text" id="player_filter" oninput="filter();" list="players" value="{{selected_player}}">
+    <datalist id="players">
+      {% for name in player_dict %}
+        <option value="{{name}}">
       {% end %}
+    </datalist>
 
-      </tbody>
+    <table id="results_table" class="sortable table table-striped table-bordered table-condensed">
+      <thead id="result_head"></thead>
+      <tbody id="tbody"></tbody>
       <tfoot id="footer">
         <tr id="min_row">
           <td></td>

@@ -56,6 +56,7 @@ class Application(tornado.web.Application):
                 (r"/data/course/(?P<course_id>[0-9]+)/holes/", HolesDataHandler),
                 (r"/data/course/(?P<course_id>[0-9]+)/rule_sets/", RuleSetsDataHandler),
                 (r"/data/course/(?P<course_id>[0-9]+)/game_times/", GameTimesDataHandler),
+                (r"/data/course/(?P<course_id>[0-9]+)/results/", ResultsDataHandler),
                 (r"/data/game/(?P<game_id>[0-9]+)/", GameDataHandler),
             ]
 
@@ -639,7 +640,7 @@ class CoursesDataHandler(BaseHandler):
 
 class HolesDataHandler(BaseHandler):
     def get(self, course_id):
-        self.write(self.db.holes_data(course_id, self.get_bool_argument('as_dict', False)))
+        self.write({'holes': self.db.holes_data(course_id, self.get_bool_argument('as_dict', False))})
 
 class GameDataHandler(BaseHandler):
     def get(self, game_id):
@@ -648,6 +649,10 @@ class GameDataHandler(BaseHandler):
 class GameTimesDataHandler(BaseHandler):
     def get(self, course_id):
         self.write(self.db.game_times_data(course_id))
+
+class ResultsDataHandler(BaseHandler):
+    def get(self, course_id):
+        self.write(self.db.course_results_data(course_id))
 
 class RuleSetsDataHandler(BaseHandler):
     def get(self, course_id):

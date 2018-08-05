@@ -65,18 +65,25 @@ function set_value(element_id, value) {
 
 
 
-function append_row(table_id, values, row_class, hidden) {
-  var table = document.getElementById(table_id);
+function append_row(table, row_data, row_class, hidden, header) {
+  if (typeof table === 'string') {
+    table = document.getElementById(table);
+  }
   var row = table.insertRow(-1);
-  var row_data = values;
   if (row_class != undefined && row_class != null) {
     row.className = row_class;
   }
-  if (row_class != undefined && row_class != null) {
+  if (hidden != undefined && hidden != null) {
     row.hidden = hidden;
   }
   for (var i = 0; i < row_data.length; i++) {
-    var cell = row.insertCell(-1);
+    if (header !== undefined && header) {
+      var cell = document.createElement('th');
+      row.appendChild(cell);
+    }
+    else {
+      var cell = row.insertCell(-1);
+    }
     var cell_data = row_data[i];
     if (cell_data != null && typeof cell_data === 'object') {
       if (cell_data.url != undefined) {
@@ -88,6 +95,12 @@ function append_row(table_id, values, row_class, hidden) {
       else {
         cell.innerHTML = cell_data.value;
       }
+      if (cell_data.class != undefined) {
+        cell.className = cell_data.class;
+      }
+      if (cell_data.hidden != undefined) {
+        cell.hidden= cell_data.hidden;
+      }
       if (cell_data.custom_key != undefined) {
         cell.setAttribute('sorttable_customkey', cell_data.custom_key);
       }
@@ -98,7 +111,14 @@ function append_row(table_id, values, row_class, hidden) {
   }
 }
 
-function toggle_selector(select_id, options, common_class) {
+function get_select_value(select) {
+  if (typeof select === 'string') {
+    select = document.getElementById(select);
+  }
+  return select.options[select.selectedIndex].value;
+}
+
+function toggle_selector(select_id, options, common_class, prefix, onchange) {
   let selector = document.getElementById(select_id);
   for (var i = 0; i < options.length; i++) {
     let option_values = options[i];
@@ -107,11 +127,15 @@ function toggle_selector(select_id, options, common_class) {
     option.value = option_values.value;
     selector.appendChild(option);
   }
-
-  selector.onchange = function(){
-    hide(common_class);
-    show(selector.value);
-  };
+  if (onchange === undefined) {
+    selector.onchange = function(){
+      hide(common_class);
+      show(prefix + selector.value);
+    };
+  }
+  else {
+    selector.onchange = onchange;
+  }
 }
 
 function rule_set_selector(course_id) {
@@ -121,9 +145,9 @@ function rule_set_selector(course_id) {
     for (var i = 0; i < json.rule_sets.length; i++) {
       var rule_set = json.rule_sets[i];
       var name = rule_set.name + ' (' + rule_set.games + ')';
-      options.push({name: name, value: 'rules' + rule_set.id})
+      options.push({name: name, value: rule_set.id})
     }
-    toggle_selector('rule_set_select', options, 'rulesToggleable');
+    toggle_selector('rule_set_select', options, 'rulesToggleable', 'rules', build_results_table);
   }
 
 }
@@ -165,5 +189,25 @@ function course_rating_ordering(rating) {
   if (rating == 'D') return '7';
   if (rating == '') return '10';
   if (rating == 'error') return '100';
+}
+
+function mode(array) {
+  if(array.length == 0)
+      return null;
+  var modeMap = {};
+  var maxEl = array[0], maxCount = 1;
+  for(var i = 0; i < array.length; i++) {
+    var el = array[i];
+    if(modeMap[el] == null)
+        modeMap[el] = 1;
+    else
+        modeMap[el]++;
+
+    if(modeMap[el] > maxCount || (modeMap[el] >= maxCount && el > maxEl)) {
+        maxEl = el;
+        maxCount = modeMap[el];
+    }
+  }
+  return maxEl;
 }
 

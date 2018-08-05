@@ -305,20 +305,6 @@ class Database(object):
         cursor.close()
 
 
-    # def get_hole_statistics(self, course, hole):
-    #     query = ("SELECT throws, player, game_date, game_of_day "
-    #             "FROM results "
-    #             "WHERE course=%s AND hole=%s AND player<>'par' "
-    #             "AND player not like 'Target%s'") % (course, hole, '%')
-    #     cursor = self._cursor()
-    #     cursor.execute(query)
-    #     results = []
-    #     for throws, player, game_date, game_of_day in cursor.fetchall():
-    #         results.append(["%s: %s #%s" % (player, game_date, game_of_day), throws])
-    #     cursor.close()
-    #     return {'rows': results}
-
-
     def get_latest_games(self):
         query = ("SELECT start_time, game_of_day, course_name, course_id, player_name, player_id, res, par "
                 "FROM (SELECT game.start_time, game.game_of_day, course.name as course_name, course.id as course_id, "
@@ -688,6 +674,7 @@ class Database(object):
                 'par': par, 'avg_par': float(avg_par), 'max_par': max_par, 'min_par': min_par,
                 'playable': playable, 'bests': course_bests,
                 'avg_length': int(avg_len) if avg_len else None,
+                'holes_data': self.holes_data(course_id),
             }
         cursor.close()
         return course
@@ -713,7 +700,7 @@ class Database(object):
             else:
                 holes.append(hole)
         cursor.close()
-        return {'holes': holes}
+        return holes
 
     def bests_of_courses_data(self):
         sql = """
@@ -778,7 +765,7 @@ class Database(object):
         cursor.execute(sql)
         active, unfinished, course, start_time, end_time, game_of_day, special_rule_id = cursor.fetchone()
         game_data = {
-                'active': active, 'unfinished': unfinished, 'course_id': course,
+                'active': active, 'unfinished': unfinished, 'course_id': course, 'players': [],
                 'start_time': str(start_time), 'end_time': str(end_time), 'game_of_day': game_of_day,
             }
         special_rules = None
@@ -790,8 +777,7 @@ class Database(object):
             rule_name, rule_description = cursor.fetchone()
             special_rules = {'id': special_rule_id, 'name': rule_name, 'description': rule_description}
         game_data['special_rules'] = special_rules
-
-
+        #TODO does not work
         sql = """SELECT player.id, player.name, hole.id, hole.hole,
                         throws, penalty, approaches, puts, reported_at
                 FROM result JOIN hole ON hole.id=result.hole
@@ -836,6 +822,52 @@ class Database(object):
             else:
                 rule_sets.append({'id': rule_id, 'name': name, 'description': description, 'games': games})
         return rule_sets
+
+    def course_results_data(self, course_id):
+        results = []
+        sql = ("SELECT game.id as game_id, game.start_time, game.end_time, game_of_day, game.special_rules, "
+                    "player.id as player_id, player.name, player.member, "
+                    "result.id as result_id, result.hole as hole_id, throws, penalty, "
+                    "approaches, puts, reported_at, hole.hole as hole_num "
+                "FROM result "
+                "JOIN game ON game.id=result.game "
+                "JOIN hole ON hole.id=result.hole "
+                "JOIN player ON player.id=result.player "
+                "WHERE game.course={course_id} AND NOT game.active "
+                "ORDER BY game.start_time DESC, game_of_day DESC, name, hole.hole").format(
+                course_id=int(course_id),
+            )
+        cursor = self._cursor()
+        cursor.execute(sql)
+        all_results = []
+        game = None
+        player = None
+        previous_game, previous_player, previous_game_of_day = None, None, None
+        for (game_id, start_time, end_time, game_of_day, rules, player_id, name, member, result_id, hole_id,
+                throws, penalty, approaches, puts, reported_at, hole_num) in cursor.fetchall():
+            if previous_game != game_id:
+                if game:
+                    all_results.append(game)
+                game = {'id': game_id, 'start_time': str(start_time)[:10],
+                        'end_time': str(end_time)[:10] if end_time else None,
+                        'rules': rules, 'game_of_day': game_of_day, 'players': []}
+            if previous_player != player_id or previous_game != game_id:
+                if player:
+                    if previous_game != game_id:
+                        all_results[-1]['players'].append(player)
+                    else:
+                        game['players'].append(player)
+                player = {'id': player_id, 'name': name, 'full': True, 'member': member, 'results': []}
+            player['full'] = bool(player['full'] and throws)
+            player['results'].append({'id': result_id, 'hole': hole_id, 'hole_num': hole_num,
+                                        'reported_at': str(reported_at) if reported_at else None,
+                                    'throws': throws, 'penalty': penalty, 'approaches': approaches, 'puts': puts})
+            previous_game, previous_player, previous_game_of_day = game_id, player_id, game_of_day
+        if player:
+            game['players'].append(player)
+        if game:
+            all_results.append(game)
+        return {'games': all_results}
 
     def end_game(self, game_id, unfinished):
         query = "UPDATE player SET active=NULL WHERE active=%s"
