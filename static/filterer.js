@@ -27,6 +27,7 @@ function add_filters(table_id) {
     var header = headers[i];
     var filter_cell = filter_row.insertCell(-1);
     var input = document.createElement('input');
+    input.autocomplete = "off";
     input.size = "5";
     filter_inputs.push(input);
     input.addEventListener("input", filter);

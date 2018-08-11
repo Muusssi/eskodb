@@ -58,14 +58,9 @@
 
   <div id="table_div">
     <label for="date_filter">Filter date:</label>
-    <input type="text" id="date_filter" oninput="filter();" value="{{selected_game_date}}">
+    <input type="text" id="date_filter" oninput="filter();" value="{{selected_game_date}}" autocomplete="off">
     <label for="player_filter">Filter player:</label>
-    <input type="text" id="player_filter" oninput="filter();" list="players" value="{{selected_player}}">
-    <datalist id="players">
-      {% for name in player_dict %}
-        <option value="{{name}}">
-      {% end %}
-    </datalist>
+    <input type="text" id="player_filter" oninput="filter();" list="players" value="{{selected_player}}" autocomplete="off">
 
     <table id="results_table" class="sortable table table-striped table-bordered table-condensed">
       <thead id="result_head"></thead>
