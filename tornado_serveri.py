@@ -46,6 +46,7 @@ class Application(tornado.web.Application):
                 (r"/game/(?P<game_id>[^\/]+)/", GameHandler),
                 (r"/cup/new/", NewCupHandler),
                 (r"/eskocup/(?P<year>[^\/]+)/", EsKoCupHandler),
+                (r"/hole_map/", HoleMapHandler),
 
                 (r"/game_stats", StatsTableHandler),
 
@@ -598,6 +599,11 @@ class EsKoCupHandler(BaseHandler):
                     active_games=models.games({'active':True}),
                     user=self.get_current_user(),
                 )
+
+class HoleMapHandler(BaseHandler):
+
+    def get(self):
+        self.render('hole_map.html')
 
 
 class GraphHandler(BaseHandler):
