@@ -1,10 +1,25 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.1/p5.js"></script>
-    <script src="{{static_url("hole_map.js")}}"></script>
-  </head>
-  <body>
-    <input id="scale_input" type="number" value="3" onchange="update_scale();">
-  </body>
-</html>
+{% extends esko_template.html %}
+
+{% block title_block %}Hole map{% end %}
+
+{% block head %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.1/p5.js"></script>
+  <script src="{{static_url("hole_map.js")}}"></script>
+  <script type="text/javascript">
+    window.onload = function() {
+      ajax_get("/data/hole/{{hole_id}}/map/", handleMapData);
+      ajax_get("/data/hole/{{hole_id}}/", handleHoleData);
+    }
+  </script>
+{% end %}
+{% block body %}
+  <div>
+    <button type="button" onclick="zoom_in();">Zoom in</button>
+    <button type="button" onclick="zoom_out();">Zoom out</button>
+    <button type="button" onclick="post_map();">Save</button>
+    <h3 id="hole_num"></h3>
+  </div>
+
+  <p>Length on map: <span id="estimated_length">xxx</span>m</p>
+  <p>Official length: <span id="official_length">xxx</span>m</p>
+{% end %}

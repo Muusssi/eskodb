@@ -24,6 +24,14 @@ function ajax_get(url, dataHandler) {
   });
 }
 
+
+function post_object(url, object) {
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", url, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.send(JSON.stringify(object));
+}
+
 function set_loading_message(msg) {
   let loading_msg_p = document.getElementById("loading_message");
   if (loading_msg_p != null) loading_msg_p.innerHTML = msg;
@@ -58,9 +66,15 @@ function show(class_name) {
   }
 }
 
+function set_html(element, value) {
+  if (typeof element == 'string') element = document.getElementById(element);
+  element.innerHTML = value;
+}
 
-function set_value(element_id, value) {
-  document.getElementById(element_id).value = value;
+
+function set_value(element, value) {
+  if (typeof element == 'string') element = document.getElementById(element);
+  element.value = value;
 }
 
 

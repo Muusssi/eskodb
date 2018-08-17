@@ -24,7 +24,6 @@ CREATE TABLE course (
     playable boolean default true,
     CONSTRAINT courses_differ UNIQUE(name, holes, version)
 );
--- ALTER TABLE course ADD COLUMN playable boolean default true;
 
 
 CREATE TABLE hole (
@@ -44,7 +43,14 @@ CREATE TABLE hole (
     island boolean default false,
     CONSTRAINT holes_differ UNIQUE(course, hole)
 );
--- ALTER TABLE hole ADD COLUMN elevation elevation_types;
+
+CREATE TABLE hole_map_item (
+    id serial PRIMARY KEY,
+    hole integer REFERENCES hole(id) ON DELETE CASCADE,
+    type text,
+    x int,
+    y int
+);
 
 CREATE TABLE cup (
     id serial PRIMARY KEY,

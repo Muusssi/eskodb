@@ -33,6 +33,7 @@ function course_data_table(course_data) {
   var len_row = ['Pituus'];
   var height_row = ['Korkeusero'];
   var ob_row = ['OB'];
+  var map_row = [''];
   var par_sum = 0;
   var len_sum = 0;
   for (var i = 0; i < holes.length; i++) {
@@ -43,6 +44,9 @@ function course_data_table(course_data) {
     par_row.push(hole.par);
     len_row.push(hole.length);
     height_row.push(hole.height);
+    var link = 'Add map';
+    if (hole.map) link = 'map';
+    map_row.push({value: link, url: '/hole/'+hole.id+'/map/edit'})
     var ob = '';
     if (hole.ob_area) ob += ' ob';
     if (hole.mando) ob += ' mando';
@@ -57,5 +61,5 @@ function course_data_table(course_data) {
   append_row('holes_info', len_row);
   append_row('holes_info', height_row);
   append_row('holes_info', ob_row);
-
+  append_row('holes_info', map_row);
 }

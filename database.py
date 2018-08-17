@@ -683,17 +683,24 @@ class Database(object):
         holes = {} if as_dict else []
         cursor = self._cursor()
         sql = """
-            SELECT id, course, hole, description, par,
-                length, height, elevation, type, hole_terrain,
+            SELECT hole.id, course, hole.hole, description, par,
+                length, height, elevation, hole.type, hole_terrain,
+                ob_area, mando, gate, island, count(*)
+            FROM hole
+            LEFT OUTER JOIN hole_map_item ON hole.id=hole_map_item.hole
+            WHERE course=%s
+            GROUP BY hole.id, course, hole.hole, description, par,
+                length, height, elevation, hole.type, hole_terrain,
                 ob_area, mando, gate, island
-            FROM hole WHERE course=%s ORDER BY hole"""
+            ORDER BY hole.hole;"""
         cursor.execute(sql, (course_id, ))
         for (hole_id, course, hole, description, par, length, height, elevation, hole_type,
-            terrain, ob_area, mando, gate, island) in cursor.fetchall():
+            terrain, ob_area, mando, gate, island, map_item_count) in cursor.fetchall():
             hole = {
                     'id': hole_id, 'course': course, 'hole': hole, 'description': description, 'par': par,
                     'length': length, 'height': height, 'elevation': elevation, 'hole_type': hole_type,
                     'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island,
+                    'map': True if map_item_count > 1 else False,
                 }
             if as_dict:
                 holes[hole_id] = hole
@@ -701,6 +708,53 @@ class Database(object):
                 holes.append(hole)
         cursor.close()
         return holes
+
+    def hole_data(self, hole_id):
+        cursor = self._cursor()
+        sql = """SELECT id, course, hole, description, par,
+                    length, height, elevation, type, hole_terrain,
+                    ob_area, mando, gate, island
+                FROM hole WHERE id=%s ORDER BY hole"""
+        cursor.execute(sql, (hole_id, ))
+        (hole_id, course, hole, description, par, length, height, elevation, hole_type,
+            terrain, ob_area, mando, gate, island) = cursor.fetchone()
+        hole = {
+                'id': hole_id, 'course': course, 'hole': hole, 'description': description, 'par': par,
+                'length': length, 'height': height, 'elevation': elevation, 'hole_type': hole_type,
+                'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island,
+            }
+        cursor.close()
+        return hole
+
+    def hole_map_data(self, hole_id):
+        items = []
+        anchors = []
+        cursor = self._cursor()
+        sql = "SELECT type, x, y FROM hole_map_item WHERE hole=%s ORDER BY type, id;"
+        cursor.execute(sql, (hole_id, ))
+        for item_type, x, y in cursor.fetchall():
+            if item_type in ('anchor', 'hole'):
+                anchors.append({'type': item_type, 'x': x, 'y': y})
+            else:
+                items.append({'type': item_type, 'x': x, 'y': y})
+        cursor.close()
+        return {'items': items, 'anchors': anchors}
+
+    def update_map_data(self, hole_id, items):
+        cursor = self._cursor()
+        delete_query = "DELETE FROM hole_map_item WHERE hole=%s"
+        cursor.execute(delete_query, (hole_id, ))
+        values = []
+        place_holders = []
+        for item in items:
+            values.append(item['type'])
+            values.append(item['x'])
+            values.append(item['y'])
+            values.append(hole_id)
+            place_holders.append('(%s,%s,%s,%s)')
+        sql = "INSERT INTO hole_map_item(type, x, y, hole) VALUES {};".format(','.join(place_holders))
+        cursor.execute(sql, tuple(values))
+        cursor.close()
 
     def bests_of_courses_data(self):
         sql = """

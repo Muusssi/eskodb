@@ -46,7 +46,7 @@ class Application(tornado.web.Application):
                 (r"/game/(?P<game_id>[^\/]+)/", GameHandler),
                 (r"/cup/new/", NewCupHandler),
                 (r"/eskocup/(?P<year>[^\/]+)/", EsKoCupHandler),
-                (r"/hole_map/", HoleMapHandler),
+                (r"/hole/(?P<hole_id>[^\/]+)/map/edit", EditHoleMapHandler),
 
                 (r"/game_stats", StatsTableHandler),
 
@@ -58,6 +58,8 @@ class Application(tornado.web.Application):
                 (r"/data/course/(?P<course_id>[0-9]+)/rule_sets/", RuleSetsDataHandler),
                 (r"/data/course/(?P<course_id>[0-9]+)/game_times/", GameTimesDataHandler),
                 (r"/data/course/(?P<course_id>[0-9]+)/results/", ResultsDataHandler),
+                (r"/data/hole/(?P<hole_id>[0-9]+)/", HoleDataHandler),
+                (r"/data/hole/(?P<hole_id>[0-9]+)/map/", HoleMapDataHandler),
                 (r"/data/game/(?P<game_id>[0-9]+)/", GameDataHandler),
             ]
 
@@ -600,10 +602,16 @@ class EsKoCupHandler(BaseHandler):
                     user=self.get_current_user(),
                 )
 
-class HoleMapHandler(BaseHandler):
-
-    def get(self):
-        self.render('hole_map.html')
+class EditHoleMapHandler(BaseHandler):
+    def get(self, hole_id):
+        self.render('hole_map.html',
+                hole_id=hole_id,
+                # For template
+                all_players=models.players(),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user(),
+            )
 
 
 class GraphHandler(BaseHandler):
@@ -647,6 +655,18 @@ class CoursesDataHandler(BaseHandler):
 class HolesDataHandler(BaseHandler):
     def get(self, course_id):
         self.write({'holes': self.db.holes_data(course_id, self.get_bool_argument('as_dict', False))})
+
+class HoleDataHandler(BaseHandler):
+    def get(self, hole_id):
+        self.write(self.db.hole_data(hole_id))
+
+class HoleMapDataHandler(BaseHandler):
+    def get(self, hole_id):
+        self.write(self.db.hole_map_data(hole_id))
+
+    def post(self, hole_id):
+        data = json.loads(self.request.body)
+        self.db.update_map_data(hole_id, data['items'])
 
 class GameDataHandler(BaseHandler):
     def get(self, game_id):
