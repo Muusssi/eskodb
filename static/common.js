@@ -25,10 +25,18 @@ function ajax_get(url, dataHandler) {
 }
 
 
-function post_object(url, object) {
+function post_object(url, object, callback) {
   var xhr = new XMLHttpRequest();
   xhr.open("POST", url, true);
   xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      callback();
+    }
+    else {
+      console.log(xhr);
+    }
+  };
   xhr.send(JSON.stringify(object));
 }
 

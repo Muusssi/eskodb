@@ -33,8 +33,10 @@ function setup() {
 function draw() {}
 
 function post_map() {
-  post_object('/data/hole/'+ hole.id + '/map/', {'items': anchors});
-  window.location = '/course/' + hole.course + '/';
+  post_object('/data/hole/'+ hole.id + '/map/', {'items': anchors}, move_to_course_page);
+  function move_to_course_page() {
+    window.location = '/course/' + hole.course + '/';
+  }
 }
 
 function update() {
