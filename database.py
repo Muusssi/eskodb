@@ -858,6 +858,13 @@ class Database(object):
         game_data['results'] = results
         return game_data
 
+    def new_rule_set(self, name, description):
+        sql = "INSERT INTO special_rules(name, description) VALUES (%s,%s) RETURNING id;"
+        cursor = self._cursor()
+        cursor.execute(sql, (name, description))
+        (rule_id, ) = cursor.fetchone()
+        return rule_id
+
     def course_rule_sets(self, course_id):
         rule_sets = []
         sql = ("SELECT game.special_rules, name, description, count(*) "

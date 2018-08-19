@@ -47,6 +47,7 @@ class Application(tornado.web.Application):
                 (r"/cup/new/", NewCupHandler),
                 (r"/eskocup/(?P<year>[^\/]+)/", EsKoCupHandler),
                 (r"/hole/(?P<hole_id>[^\/]+)/map/edit", EditHoleMapHandler),
+                (r"/rule/new", NewRuleHandler),
 
                 (r"/game_stats", StatsTableHandler),
 
@@ -613,6 +614,42 @@ class EditHoleMapHandler(BaseHandler):
                 user=self.get_current_user(),
             )
 
+class NewRuleHandler(BaseHandler):
+    def get(self):
+        self.render("new_rules.html",
+                message="",
+                name='',
+                description='',
+                # For template
+                all_players=models.players(),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user(),
+            )
+
+    def post(self):
+        name = self.get_argument('name', '')
+        description = self.get_argument('description', '')
+        if name:
+            try:
+                self.db.new_rule_set(name, description)
+                self.redirect('/')
+                return
+            except Exception as e:
+                message="Nimi on varattu."
+        else:
+            message="Nimi puuttuu."
+
+        self.render("new_rules.html",
+            message=message,
+            name=name,
+            description=description,
+            # For template
+            all_players=models.players(),
+            course_name_dict=self.db.course_name_dict(),
+            active_games=models.games({'active':True}),
+            user=self.get_current_user(),
+        )
 
 class GraphHandler(BaseHandler):
 

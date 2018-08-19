@@ -69,9 +69,10 @@ CREATE TABLE eskocup_course (
 
 CREATE TABLE special_rules (
     id serial PRIMARY KEY,
-    name text NOT NULL,
+    name text NOT NULL UNIQUE,
     description text
 );
+-- ALTER TABLE special_rules ADD CONSTRAINT unique_rule_name UNIQUE(name);
 
 CREATE TABLE game (
     id serial PRIMARY KEY,

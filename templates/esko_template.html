@@ -59,7 +59,15 @@
               <li><a href="/eskocup/2017/">2017</a></li>
             </ul>
           </li>
-          <li><a id="new_player_btn" href="/game_stats">Stats</a></li>
+          <li>
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Others
+            <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="/rule/new">New rules</a></li>
+              <li><a id="new_player_btn" href="/game_stats">Stats</a></li>
+            </ul>
+          </li>
+
           {% if user and user.priviledges in ('hallitus', 'admin') %}
             <li><a href="/players">Pelaajat</a></li>
           {% end %}

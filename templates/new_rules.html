@@ -1,0 +1,14 @@
+{% extends esko_template.html %}
+{% block title_block %}New special rules{% end %}
+{% block body %}
+
+  <p class="error_message">{{message}}</p>
+  <form method="post">
+    <label>Nimi</label>
+    <input type="text" name="name" value="{{name}}">
+    <label>Kuvaus</label>
+    <textarea name="description" rows="8" cols="50">{{description}}</textarea>
+
+    <input type="submit" value="Submit" method="POST">
+  </form>
+{% end %}
