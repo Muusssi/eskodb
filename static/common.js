@@ -233,3 +233,34 @@ function mode(array) {
   return maxEl;
 }
 
+const PAR_COLORING_RGB = {
+  '-2': [0, 102, 255],
+  '-1': [0, 255, 0],
+  '0': [0, 153, 51],
+  '1': [255, 255, 0],
+  '2': [255, 153, 51],
+  '3': [255, 0, 0],
+  '4': [204, 0, 153],
+  '5': [255, 153, 187],
+  '6': [0, 0, 0],
+}
+
+function sliding_par_color(par) {
+  if (par > 6) {
+    return "#000000";
+  }
+  else {
+    let low = Math.floor(par);
+    let high = Math.ceil(par);
+    let point = (par - low)/(high - low);
+    let low_rgb = PAR_COLORING_RGB[low.toString()];
+    if (low == high) {
+      return 'rgb(' + low_rgb.join(',') + ')';
+    }
+    let high_rgb = PAR_COLORING_RGB[high.toString()];
+    let r = low_rgb[0] + point*(high_rgb[0] - low_rgb[0]);
+    let g = low_rgb[1] + point*(high_rgb[1] - low_rgb[1]);
+    let b = low_rgb[2] + point*(high_rgb[2] - low_rgb[2]);
+    return "rgb("+Math.round(r)+','+Math.round(g)+','+Math.round(b)+')';
+  }
+}

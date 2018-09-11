@@ -4,7 +4,7 @@
 
 {% block head %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.1/p5.js"></script>
-  <script src="{{static_url("hole_map.js")}}"></script>
+  <script src="{{static_url('hole_map.js')}}"></script>
   <script type="text/javascript">
     window.onload = function() {
       ajax_get("/data/hole/{{hole_id}}/map/", handleMapData);

@@ -20,10 +20,9 @@ div.flex_container {
 }
 
 .par-3 {
-    background-color: silver;
-    color: gold;
+    background-color: #c0c0c0;
+    color: #ffd700;
 }
-
 .par-2 {
     background-color: #0066ff;
 }
@@ -48,7 +47,7 @@ div.flex_container {
 .par5 {
     background-color: #ff99bb;
 }
-.par6, .par7, .par8, .par9,
+.par5_5, .par6, .par7, .par8, .par9,
 .par10, .par11, .par12, .par13 {
     color: #000000;
     background-color: #000000;

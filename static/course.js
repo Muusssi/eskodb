@@ -153,7 +153,7 @@ function filter() {
     var valuesOnRow = filtered_rows[i].length;
     var avg = filtered_rows[i].reduce(function(a, b) { return a + b; }, 0).toFixed(2);
     avg_row.cells[i + 2].innerHTML = (avg/valuesOnRow).toFixed(2);
-    avg_row.cells[i + 2].className = "par"+(Math.round(avg/valuesOnRow) - holes[i].par);
+    avg_row.cells[i + 2].style.backgroundColor = sliding_par_color(avg/valuesOnRow - holes[i].par);
     avg_sum += avg/valuesOnRow;
     var median = filtered_rows[i][Math.floor(filtered_rows[i].length/2)];
     median_row.cells[i + 2].innerHTML = median;
@@ -172,6 +172,7 @@ function filter() {
   min_row.cells[holes.length + 3].innerHTML = min_sum - course_par;
   avg_row.cells[holes.length + 2].innerHTML = avg_sum.toFixed(2);
   avg_row.cells[holes.length + 3].innerHTML = (avg_sum - course_par).toFixed(2);
+  avg_row.cells[holes.length + 3].style.backgroundColor = sliding_par_color((avg_sum - course_par)/course.holes);
   mode_row.cells[holes.length + 2].innerHTML = mode_sum;
   mode_row.cells[holes.length + 3].innerHTML = mode_sum - course_par;
   median_row.cells[holes.length + 2].innerHTML = median_sum;
