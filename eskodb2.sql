@@ -41,6 +41,7 @@ CREATE TABLE hole (
     mando boolean default false,
     gate boolean default false,
     island boolean default false,
+    esko_rating real default NULL,
     CONSTRAINT holes_differ UNIQUE(course, hole)
 );
 
@@ -96,6 +97,7 @@ CREATE TABLE player (
     user_name text UNIQUE default NULL,
     password text default NULL,
     priviledges priviledge default NULL,
+    esko_rating real default NULL,
     active integer REFERENCES game(id) ON DELETE CASCADE
 );
 

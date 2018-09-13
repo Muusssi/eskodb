@@ -32,6 +32,7 @@ function course_data_table(course_data) {
   var par_row = ['par'];
   var len_row = ['Pituus'];
   var height_row = ['Korkeusero'];
+  var rating_row = ['Rating'];
   var ob_row = ['OB'];
   var map_row = [''];
   var par_sum = 0;
@@ -52,14 +53,17 @@ function course_data_table(course_data) {
     if (hole.mando) ob += ' mando';
     if (hole.island) ob += ' island';
     ob_row.push(ob);
+    rating_row.push(hole.rating);
   }
   title_row.push('');
   par_row.push(par_sum);
   len_row.push(len_sum);
+  rating_row.push(course_data.rating);
   append_row('holes_info', title_row, '', false, true);
   append_row('holes_info', par_row);
   append_row('holes_info', len_row);
   append_row('holes_info', height_row);
+  append_row('holes_info', rating_row);
   append_row('holes_info', ob_row);
   append_row('holes_info', map_row);
 }

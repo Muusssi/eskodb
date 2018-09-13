@@ -241,25 +241,6 @@ class Database(object):
         cursor.close()
         return name_dict
 
-    def game_times(self, course_id):
-        sql = ("SELECT min(end_time-start_time), avg(end_time-start_time), max(end_time-start_time), pools.size "
-                "FROM game JOIN (SELECT count(*) as size, game FROM result JOIN hole ON hole.id=result.hole "
-                "WHERE hole.hole=1 AND hole.course=%s GROUP BY game) AS pools ON pools.game=game.id "
-                "WHERE game.course=%s GROUP BY pools.size ORDER BY pools.size")
-        cursor = self._cursor()
-        cursor.execute(sql, (course_id, course_id))
-        times = []
-        for min_time, avg_time, max_time, pool_size in cursor.fetchall():
-            if min_time:
-                min_time = ':'.join(str(min_time).split('.')[0].split(':')[:2])
-                avg_time = ':'.join(str(avg_time).split('.')[0].split(':')[:2])
-                max_time = ':'.join(str(max_time).split('.')[0].split(':')[:2])
-                times.append((min_time, avg_time, max_time, pool_size))
-        cursor.close()
-        if not times:
-            times.append(("###", "###", "###", 0))
-        return times
-
     def game_times_data(self, course_id):
         sql = """SELECT size, rules, count(*), min(game_time), avg(game_time), max(game_time)
                 FROM (
@@ -612,10 +593,11 @@ class Database(object):
     def players_data(self, as_dict=False):
         players = {} if as_dict else []
         cursor = self._cursor()
-        sql = "SELECT id, name, member, active FROM player ORDER BY name"
+        sql = "SELECT id, name, member, active, esko_rating FROM player ORDER BY name"
         cursor.execute(sql)
-        for player_id, name, member, active in cursor.fetchall():
-            player = {'name': name, 'id': player_id, 'member': member, 'active': active}
+        for player_id, name, member, active, rating in cursor.fetchall():
+            player = {'name': name, 'id': player_id, 'member': member, 'active': active,
+                      'rating': int(rating*1000) if rating else None}
             if as_dict:
                 players[player_id] = player
             else:
@@ -628,21 +610,21 @@ class Database(object):
         course_bests = self.bests_of_courses_data()
         cursor = self._cursor()
         sql = """
-            SELECT course.id, name, official_name, holes, version, course.description, town,
+            SELECT course.id, name, official_name, holes, version, course.description, town, sum(esko_rating),
                     sum(length) as length, avg(length), max(length), min(length),
                     sum(par) as par, avg(par), max(par), min(par), playable
             FROM course JOIN hole ON hole.course=course.id
             GROUP BY course.id, name, official_name, holes, version, course.description, town
             ORDER BY name, holes, version"""
         cursor.execute(sql)
-        for (course_id, name, official_name, holes, version, description, town,
+        for (course_id, name, official_name, holes, version, description, town, rating,
             length, avg_len, longest, shortest, par, avg_par, max_par, min_par, playable) in cursor.fetchall():
             course = {
                     'name': name, 'id': course_id, 'official_name': official_name,
                     'holes': holes, 'version': str(version), 'town': town,
                     'length': length, 'longest': longest, 'shortest': shortest,
                     'par': par, 'avg_par': float(avg_par), 'max_par': max_par, 'min_par': min_par,
-                    'playable': playable,
+                    'playable': playable, 'rating': int(rating*1000) if rating else None,
                     'avg_length': int(avg_len) if avg_len else None,
                     'best': course_bests[course_id] if course_id in course_bests else None,
                 }
@@ -657,7 +639,7 @@ class Database(object):
         course_bests = self.course_bests_data(course_id)
         cursor = self._cursor()
         sql = """
-            SELECT course.id, name, official_name, holes, version, course.description, town,
+            SELECT course.id, name, official_name, holes, version, course.description, town, sum(esko_rating),
                     sum(length) as length, avg(length), max(length), min(length),
                     sum(par) as par, avg(par), max(par), min(par), playable
             FROM course JOIN hole ON hole.course=course.id
@@ -665,14 +647,14 @@ class Database(object):
             GROUP BY course.id, name, official_name, holes, version, course.description, town
             ORDER BY name, holes, version""".format(course_id=int(course_id))
         cursor.execute(sql)
-        (course_id, name, official_name, holes, version, description, town,
+        (course_id, name, official_name, holes, version, description, town, rating,
             length, avg_len, longest, shortest, par, avg_par, max_par, min_par, playable) = cursor.fetchone()
         course = {
                 'name': name, 'id': course_id, 'official_name': official_name,
                 'holes': holes, 'version': str(version), 'town': town,
                 'length': length, 'longest': longest, 'shortest': shortest,
                 'par': par, 'avg_par': float(avg_par), 'max_par': max_par, 'min_par': min_par,
-                'playable': playable, 'bests': course_bests,
+                'playable': playable, 'bests': course_bests, 'rating': int(rating*1000) if rating else None,
                 'avg_length': int(avg_len) if avg_len else None,
                 'holes_data': self.holes_data(course_id),
             }
@@ -685,21 +667,22 @@ class Database(object):
         sql = """
             SELECT hole.id, course, hole.hole, description, par,
                 length, height, elevation, hole.type, hole_terrain,
-                ob_area, mando, gate, island, count(*)
+                ob_area, mando, gate, island, esko_rating, count(*)
             FROM hole
             LEFT OUTER JOIN hole_map_item ON hole.id=hole_map_item.hole
             WHERE course=%s
             GROUP BY hole.id, course, hole.hole, description, par,
                 length, height, elevation, hole.type, hole_terrain,
-                ob_area, mando, gate, island
+                ob_area, mando, gate, island, esko_rating
             ORDER BY hole.hole;"""
         cursor.execute(sql, (course_id, ))
         for (hole_id, course, hole, description, par, length, height, elevation, hole_type,
-            terrain, ob_area, mando, gate, island, map_item_count) in cursor.fetchall():
+            terrain, ob_area, mando, gate, island, rating, map_item_count) in cursor.fetchall():
             hole = {
                     'id': hole_id, 'course': course, 'hole': hole, 'description': description, 'par': par,
                     'length': length, 'height': height, 'elevation': elevation, 'hole_type': hole_type,
                     'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island,
+                    'rating': int(rating*1000) if rating else None,
                     'map': True if map_item_count > 1 else False,
                 }
             if as_dict:
@@ -713,15 +696,16 @@ class Database(object):
         cursor = self._cursor()
         sql = """SELECT id, course, hole, description, par,
                     length, height, elevation, type, hole_terrain,
-                    ob_area, mando, gate, island
+                    ob_area, mando, gate, island, esko_rating
                 FROM hole WHERE id=%s ORDER BY hole"""
         cursor.execute(sql, (hole_id, ))
         (hole_id, course, hole, description, par, length, height, elevation, hole_type,
-            terrain, ob_area, mando, gate, island) = cursor.fetchone()
+            terrain, ob_area, mando, gate, island, rating) = cursor.fetchone()
         hole = {
                 'id': hole_id, 'course': course, 'hole': hole, 'description': description, 'par': par,
                 'length': length, 'height': height, 'elevation': elevation, 'hole_type': hole_type,
                 'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island,
+                'rating': int(rating*1000) if rating else None,
             }
         cursor.close()
         return hole
@@ -952,7 +936,107 @@ class Database(object):
             cursor.execute(query, (unfinished, game_id))
         cursor.close()
 
+    def calculate_esko_ratings(self):
+        player_data = self.players_data(as_dict=True)['players']
+        courses_data = self.courses_data(as_dict=True)['courses']
+        query = ("SELECT EXTRACT('month' FROM game.start_time), game.course, player.id, hole.hole, throws - hole.par "
+                "FROM result "
+                "JOIN game ON result.game=game.id "
+                "JOIN hole ON result.hole=hole.id "
+                "JOIN player ON result.player=player.id "
+                "WHERE special_rules IS NULL AND throws IS NOT NULL AND player.member "
+                "ORDER BY game.start_time, hole.hole;")
+        cursor = self._cursor()
+        cursor.execute(query)
+        hole_ratings = {}
+        played = {}
+        evidence = defaultdict(lambda: 0)
+        players = defaultdict(lambda: 0)
+        previous_year = None
+
+        for year, course, player, hole, result in cursor.fetchall():
+            if course not in hole_ratings:
+                hole_ratings[course] = defaultdict(lambda: 0)
+                played[course] = defaultdict(lambda: 0)
+            if not previous_year:
+                previous_year = year
+
+            # if year != previous_year:
+            #     print '-- month-- ', int(year)
+            #     pratings = []
+            #     for player in players:
+            #         pratings.append((players[player], player_data[player]['name']))
+            #     pratings.sort()
+            #     for r in pratings:
+            #         print r[1], r[0]
+            #     previous_year = year
+
+            diff = result - (hole_ratings[course][hole] + players[player])
+            if result < 5:
+                if played[course][hole] >= 10:
+                    if evidence[player] < 50:
+                        players[player] += 0.1*diff
+                    else:
+                        players[player] += 0.01*diff
+                if evidence[player] >= 50:
+                    if played[course][hole] < 10:
+                        hole_ratings[course][hole] += 0.5*diff
+                    else:
+                        hole_ratings[course][hole] += 0.01*diff
+
+            # if player == 19 and year != previous_year:
+            #     print year, players[player]
+            #     previous_year = year
+
+            # if course == 38 and year != previous_year:
+            #     print int(year), sum([hole_ratings[course][hole] for hole in hole_ratings[course]])
+            #     previous_year = year
+
+            played[course][hole] += 1.0
+            evidence[player] += 1.0
+            #previous_year = year
+
+        cursor.close()
+
+        # print '---- final ----'
+        # pratings = []
+        # for player in players:
+        #     pratings.append((players[player], player_data[player]['name']))
+        # pratings.sort()
+        # for r in pratings:
+        #     print r[1], r[0]
+
+        # rated_courses = []
+        # for course in hole_ratings:
+        #     data = (sum([hole_ratings[course][hole] for hole in hole_ratings[course]]),
+        #             courses_data[course]['name'],
+        #             courses_data[course]['holes'])
+        #     rated_courses.append(data)
+        # rated_courses.sort()
+        # for course in rated_courses:
+        #     print course
+
+        # print "Puolari"
+        # for hole in hole_ratings[38]:
+        #     print hole,  hole_ratings[38][hole]
+
+        # print "Nummela"
+        # for hole in hole_ratings[1]:
+        #     print hole,  hole_ratings[1][hole]
+
+        player_update = "UPDATE player SET esko_rating=%s WHERE id=%s"
+        course_update = "UPDATE hole SET esko_rating=%s WHERE course=%s AND hole=%s"
+        cursor = self._cursor()
+        for player in players:
+            cursor.execute(player_update, (players[player], player))
+        for course in hole_ratings:
+            for hole in hole_ratings[course]:
+                cursor.execute(course_update, (hole_ratings[course][hole], course, hole))
+        cursor.close()
+
+
+
 
 if __name__ == '__main__':
     db = Database('eskodb2', 'localhost', 'esko', 'foo')
-
+    db.calculate_esko_ratings()

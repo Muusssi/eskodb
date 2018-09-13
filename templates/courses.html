@@ -24,6 +24,7 @@
           {'value': course.name, 'url': "/course/" + course.id + "/"},
           course.holes,
           {'value': rating, 'custom_key': course_rating_ordering(rating)},
+          course.rating,
           course.length,
           course.par,
           best,
@@ -49,6 +50,7 @@
         <th>Nimi</th>
         <th class="sorttable_numeric">Väyliä</th>
         <th class="sorttable_numeric">Luokitus</th>
+        <th class="sorttable_numeric">Rating</th>
         <th class="sorttable_numeric">Pituus</th>
         <th class="sorttable_numeric">par</th>
         <th>Ennätys</th>
