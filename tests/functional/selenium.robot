@@ -1,6 +1,7 @@
 *** Settings ***
 Documentation     Simple example using SeleniumLibrary.
 Library           SeleniumLibrary
+Default Tags      selenium
 
 *** Variables ***
 ${LOGIN URL}        http://localhost:8887

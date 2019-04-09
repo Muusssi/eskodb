@@ -99,6 +99,8 @@ def initialize_test_database():
 
 
 
+if __name__ == '__main__':
+    initialize_test_database()
 
 
 

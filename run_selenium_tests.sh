@@ -6,13 +6,16 @@ psql test_template -U esko -c "DROP DATABASE test_eskodb;" > ${DB_LOG}
 psql test_template -U esko -c "CREATE DATABASE test_eskodb;" >> ${DB_LOG}
 psql test_eskodb -U esko -f backups/latest.sql >> ${DB_LOG}
 
-pwd=$(pwd)
-export PYTHONPATH=${pwd}/tests/:${pwd}
+export PYTHONPATH=$(pwd)/tests/:$(pwd)
 
 python tornado_serveri.py tests/test_config.json &
 SERVER_PID=$!
 
-robot --outputdir=tests/functional/selenium/results tests/functional/selenium.robot
+robot --outputdir=tests/functional/selenium/results \
+      --pythonpath /Users/tommioinonen/git/TestArchiver/test_archiver \
+      --listener ArchiverListener:esko_test_results:postgresql \
+      tests/functional/selenium.robot
+
 TEST_RESULT=$?
 echo ${TEST_RESULT}
 

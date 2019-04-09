@@ -936,7 +936,20 @@ class Database(object):
             cursor.execute(query, (unfinished, game_id))
         cursor.close()
 
-    def calculate_esko_ratings(self):
+    def calculate_esko_ratings(self, use_old_hole_ratings=False):
+        sql = "SELECT course, hole, esko_rating FROM hole ORDER BY course, hole;"
+        hole_ratings = {}
+        played = {}
+        if use_old_hole_ratings:
+            cursor = self._cursor()
+            cursor.execute(sql)
+            for course, hole, rating in cursor.fetchall():
+                if course not in hole_ratings:
+                    hole_ratings[course] = defaultdict(lambda: 0)
+                    played[course] = defaultdict(lambda: 0)
+                hole_ratings[course][hole] = rating if rating else 0
+            cursor.close()
+
         player_data = self.players_data(as_dict=True)['players']
         courses_data = self.courses_data(as_dict=True)['courses']
         query = ("SELECT EXTRACT('month' FROM game.start_time), game.course, player.id, hole.hole, throws - hole.par "
@@ -948,14 +961,12 @@ class Database(object):
                 "ORDER BY game.start_time, hole.hole;")
         cursor = self._cursor()
         cursor.execute(query)
-        hole_ratings = {}
-        played = {}
         evidence = defaultdict(lambda: 0)
         players = defaultdict(lambda: 0)
         previous_year = None
 
         for year, course, player, hole, result in cursor.fetchall():
-            if course not in hole_ratings:
+            if not use_old_hole_ratings and course not in hole_ratings:
                 hole_ratings[course] = defaultdict(lambda: 0)
                 played[course] = defaultdict(lambda: 0)
             if not previous_year:
@@ -980,9 +991,9 @@ class Database(object):
                         players[player] += 0.01*diff
                 if evidence[player] >= 50:
                     if played[course][hole] < 10:
-                        hole_ratings[course][hole] += 0.5*diff
+                        hole_ratings[course][hole] += 0.3*diff
                     else:
-                        hole_ratings[course][hole] += 0.01*diff
+                        hole_ratings[course][hole] += 0.02*diff
 
             # if player == 19 and year != previous_year:
             #     print year, players[player]
@@ -998,13 +1009,13 @@ class Database(object):
 
         cursor.close()
 
-        # print '---- final ----'
-        # pratings = []
-        # for player in players:
-        #     pratings.append((players[player], player_data[player]['name']))
-        # pratings.sort()
-        # for r in pratings:
-        #     print r[1], r[0]
+        print('---- final ----')
+        pratings = []
+        for player in players:
+            pratings.append((players[player], player_data[player]['name']))
+        pratings.sort()
+        for r in pratings:
+            print(r[1], r[0])
 
         # rated_courses = []
         # for course in hole_ratings:
@@ -1031,12 +1042,16 @@ class Database(object):
             cursor.execute(player_update, (players[player], player))
         for course in hole_ratings:
             for hole in hole_ratings[course]:
-                cursor.execute(course_update, (hole_ratings[course][hole], course, hole))
+                if played[course][hole] >= 3:
+                    cursor.execute(course_update, (hole_ratings[course][hole], course, hole))
+                else:
+                    cursor.execute(course_update, (None, course, hole))
         cursor.close()
 
 
 
 
 if __name__ == '__main__':
-    db = Database('eskodb2', 'localhost', 'esko', 'foo')
+    db = Database('eskodb', 'eskodb.cum1youvcyyq.eu-central-1.rds.amazonaws.com', 'esko', 'kopsupullo')
+    #db = Database('eskodb2', 'localhost', 'esko', 'foo')
     db.calculate_esko_ratings()
