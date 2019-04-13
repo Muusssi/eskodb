@@ -1052,6 +1052,4 @@ class Database(object):
 
 
 if __name__ == '__main__':
-    db = Database('eskodb', 'eskodb.cum1youvcyyq.eu-central-1.rds.amazonaws.com', 'esko', 'kopsupullo')
-    #db = Database('eskodb2', 'localhost', 'esko', 'foo')
-    db.calculate_esko_ratings()
+    pass
