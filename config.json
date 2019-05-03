@@ -1,7 +1,7 @@
 {
     "user": "esko",
     "password": "foo",
-    "database": "eskodb2",
+    "database": "eskodb",
     "host": "localhost",
     "cookie": "SuperSalainen",
     "port": "8888",

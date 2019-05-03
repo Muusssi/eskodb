@@ -28,6 +28,28 @@ def cup_results_query(year, first_month, last_month):
                 year=int(year),
             )
 
+def new_cup_results_query(year, begin_date, end_date):
+    return """
+            SELECT DISTINCT ON (player, course) player, course, res, start_time::date
+            FROM (
+                SELECT sum(throws - hole.par) as res, result.player, game.course, game.start_time,
+                        count(nullif(throws IS NULL, false)) as unfinished
+                FROM result
+                JOIN hole ON hole.id=result.hole
+                JOIN game ON game.id=result.game
+                WHERE game.course IN (SELECT course FROM eskocup_course WHERE year={year})
+                  AND game.start_time >= '{begin_date}'
+                  AND game.start_time <= '{end_date}'
+                GROUP BY player, game.id, game.course
+                ORDER BY player, game.course, res DESC
+            ) as results
+            WHERE results.unfinished=0
+            ORDER BY player, course, res;""".format(
+                    year=int(year),
+                    begin_date=begin_date,
+                    end_date=end_date,
+                )
+
 def datetime_to_hour_minutes(dt):
     return str(dt).split('.')[0][:-3]
 
@@ -347,6 +369,40 @@ class Database(object):
 
         cursor.close()
         return bests
+
+    def cup_results_2019(self, first_stage=False):
+        last_month = 6 if first_stage else 9
+        cursor = self._cursor()
+        if first_stage:
+            cursor.execute(new_cup_results_query(2019, '2019-04-15', '2019-06-15'))
+        else:
+            cursor.execute(new_cup_results_query(2019, '2019-04-15', '2019-09-15'))
+        results = defaultdict(lambda : (1000, None))
+        for player, course, res, date in cursor.fetchall():
+            key = (player, course)
+            results[key] = (res, date)
+        cursor.close()
+        return results
+
+    def cup_results_2019_with_handicaps(self, previous_results):
+        # TODO
+        course_bests = {}
+        for player, course in previous_results:
+            result, date = previous_results[(player, course)]
+            if course in course_bests:
+                if course_bests[course] > result:
+                    course_bests[course] = result
+            else:
+                course_bests[course] = result
+        cursor = self._cursor()
+        cursor.execute(cup_results_query(2018, 7, 9))
+        results = defaultdict(lambda : (1000, 1000, 1000, None))
+        for player, course, res, date in cursor.fetchall():
+            key = (player, course)
+            handicap = previous_results[key][0] if key in previous_results else course_bests[course]
+            results[key] = (int(res - handicap), int(handicap), int(res), date)
+        cursor.close()
+        return results
 
     def cup_results_2018(self, first_stage=False):
         last_month = 6 if first_stage else 9
