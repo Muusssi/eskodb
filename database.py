@@ -40,6 +40,7 @@ def new_cup_results_query(year, begin_date, end_date):
                 WHERE game.course IN (SELECT course FROM eskocup_course WHERE year={year})
                   AND game.start_time >= '{begin_date}'
                   AND game.start_time <= '{end_date}'
+                  AND game.special_rules IS NULL
                 GROUP BY player, game.id, game.course
                 ORDER BY player, game.course, res DESC
             ) as results
