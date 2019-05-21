@@ -2,6 +2,7 @@ import psycopg2
 import datetime
 from collections import defaultdict
 import json
+import sys
 
 GAME_TEMPLATE = "%s #%s"
 
@@ -1106,7 +1107,11 @@ class Database(object):
         cursor.close()
 
 
-
+def load_config_file(config_file):
+    with open(config_file, 'r') as f:
+        return json.load(f)
 
 if __name__ == '__main__':
-    pass
+    config = load_config_file(sys.argv[1])
+    db = Database(config['database'], config['host'], config['user'], config['password'])
+    db.calculate_esko_ratings()
