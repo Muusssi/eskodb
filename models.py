@@ -154,30 +154,14 @@ def holes(criteria={}, order_by="hole"):
         hole_list.append(Hole(values))
     return hole_list
 
-def hole_dict(criteria={}, order_by='hole'):
-    _hole_dict = {}
-    for values in DATABASE.fetch_rows(Hole.TABLE_NAME, Hole.fields, criteria, 'hole'):
-        hole = Hole(values)
-        _hole_dict[hole.id] = hole
-    return _hole_dict
-
-def holes_and_dict(criteria={}, order_by='hole'):
-    _hole_dict = {}
-    hole_list = []
-    for values in DATABASE.fetch_rows(Hole.TABLE_NAME, Hole.fields, criteria, 'hole'):
-        hole = Hole(values)
-        _hole_dict[hole.id] = hole
-        hole_list.append(hole)
-    return hole_list, _hole_dict
-
 class Hole(BaseModel):
 
     TABLE_NAME = 'hole'
 
     fields = (
             'id',
-            'course',
-            'hole',
+            #'course',
+            #'hole_number',
             'length',
             'height',
             'description',
@@ -192,8 +176,8 @@ class Hole(BaseModel):
 
     integer_fields = (
             'id',
-            'course',
-            'hole',
+            #'course',
+            #'hole_number',
             'length',
             'height',
             'par',

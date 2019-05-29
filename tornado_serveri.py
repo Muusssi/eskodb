@@ -62,6 +62,7 @@ class Application(tornado.web.Application):
                 (r"/data/hole/(?P<hole_id>[0-9]+)/", HoleDataHandler),
                 (r"/data/hole/(?P<hole_id>[0-9]+)/map/", HoleMapDataHandler),
                 (r"/data/game/(?P<game_id>[0-9]+)/", GameDataHandler),
+                (r"/data/game/(?P<game_id>[0-9]+)/previous_results/", PreviousResultsDataHandler),
             ]
 
         settings = dict(
@@ -184,7 +185,6 @@ class MainPageHandler(BaseHandler):
 class CoursesHandler(BaseHandler):
     def get(self):
         self.render("courses.html",
-                courses=models.courses(),
                 # For template
                 all_players=models.players(),
                 course_name_dict=self.db.course_name_dict(),
@@ -208,12 +208,9 @@ class PlayerHandler(BaseHandler):
 class CourseHandler(BaseHandler):
     def get(self, course_id):
         selected_player = self.get_argument("player", "")
-        holes, hole_dict = models.holes_and_dict({'course':course_id}, 'hole')
-        par_sum = sum([hole.par for hole in holes])
         self.render("course.html",
                 selected_game_date=self.get_argument("game_date", ""),
                 selected_player=selected_player,
-                # player_dict=models.player_dict(),
                 course=models.course(course_id),
                 # For template
                 all_players=models.players(),
@@ -262,12 +259,10 @@ class NewCourseHandler(BaseHandler):
 
 class UpdateHolesHandler(BaseHandler):
     def get(self, course_id):
-        course = models.course(course_id)
         self.render("update_holes.html",
                 terrains=self.db.terrains(),
                 hole_types=self.db.hole_types(),
-                course=course,
-                holes=models.holes({'course':course.id}),
+                course=models.course(course_id),
                 message="",
                 # For template
                 all_players=models.players(),
@@ -286,6 +281,7 @@ class UpdateHolesHandler(BaseHandler):
                     for i in range(len(values_list)):
                         values_list[i][field] = values[i]
             for values in values_list:
+                print(values)
                 hole = models.Hole(values)
                 hole.save()
             self.redirect('/course/%s/' % course.id)
@@ -446,18 +442,14 @@ class NewGameHandler(BaseHandler):
 
 
 class GameHandler(BaseHandler):
+    # DOING
     def get(self, game_id):
         game = models.game(game_id)
         course=models.course(game.course)
-        holes=models.holes({'course':course.id})
-        par_sum = sum([hole.par for hole in holes])
-        self.render("game2.html",
+        self.render("game.html",
                 players=models.players({'active':game_id}),
                 course=course,
-                holes=holes,
                 game=game,
-                par_sum=par_sum,
-                current_hole=self.db.next_hole(game_id),
                 # For template
                 all_players=models.players(),
                 course_name_dict=self.db.course_name_dict(),
@@ -468,17 +460,14 @@ class GameHandler(BaseHandler):
     def post(self, game_id):
         results = self.get_arguments("result")
         if results:
-            models.update_game_results(results,
+            self.db.update_game_results(results,
                     self.get_arguments("player"),
                     self.get_arguments("throws"),
                     self.get_arguments("penalty"),
                     self.get_arguments("approaches"),
                     self.get_arguments("puts"),
                 )
-        data = {'results': self.db.game_results(game_id)}
-        if self.get_argument('previous_hole_results', False):
-            data['previous'] = self.db.previous_hole_results(game_id)
-        self.write(data)
+        self.write({'results': self.db.game_results(game_id)})
 
 class EndGameHandler(BaseHandler):
     def get(self, game_id):
@@ -719,6 +708,10 @@ class GameDataHandler(BaseHandler):
 class GameTimesDataHandler(BaseHandler):
     def get(self, course_id):
         self.write(self.db.game_times_data(course_id))
+
+class PreviousResultsDataHandler(BaseHandler):
+    def get(self, game_id):
+        self.write(self.db.previous_hole_stats(game_id))
 
 class ResultsDataHandler(BaseHandler):
     def get(self, course_id):

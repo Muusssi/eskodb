@@ -1,5 +1,5 @@
 *** Settings ***
-Library         REST    http://localhost:8887
+Library         REST    http://localhost:8888
 
 *** Test cases ***
 
@@ -28,13 +28,13 @@ Rule sets return valid data
     GET         /data/course/1/rule_sets/
     Validate rule set data object   $.rule_sets[*]
 
-Results return valid data
-    GET         /data/course/1/results/
-    Validate game result data object    $.games[*]
+# Results return valid data
+#     GET         /data/course/1/results/
+#     Validate game result data object    $.games[*]
 
 Hole returns valid data
     GET         /data/hole/1/
-    Validate holes data object  $
+    Validate hole data object  $
 
 # Game times return valid data
 #     GET         /data/course/1/game_times/
@@ -60,6 +60,16 @@ Validate holes data object
     Object      ${json_path}
     Integer     ${json_path}.course
     Integer     ${json_path}.hole
+    Integer     ${json_path}.id
+    Integer     ${json_path}.par
+    Boolean     ${json_path}.island
+    Boolean     ${json_path}.mando
+    Boolean     ${json_path}.ob_area
+    Boolean     ${json_path}.island
+
+Validate hole data object
+    [Arguments]     ${json_path}
+    Object      ${json_path}
     Integer     ${json_path}.id
     Integer     ${json_path}.par
     Boolean     ${json_path}.island

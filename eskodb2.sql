@@ -25,11 +25,15 @@ CREATE TABLE course (
     CONSTRAINT courses_differ UNIQUE(name, holes, version)
 );
 
+CREATE TABLE hole_mapping (
+    course integer REFERENCES course(id) ON DELETE CASCADE,
+    hole integer REFERENCES hole(id) ON DELETE CASCADE,
+    hole_number int,
+    PRIMARY KEY (course, hole, hole_number)
+);
 
 CREATE TABLE hole (
     id serial PRIMARY KEY,
-    course integer REFERENCES course(id) ON DELETE CASCADE,
-    hole integer,
     length integer default 0,
     height integer default 0,
     description text,

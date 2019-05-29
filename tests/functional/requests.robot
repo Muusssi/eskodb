@@ -2,7 +2,7 @@
 Library  RequestsLibrary
 
 *** Variables ***
-${localhost}    http://localhost:8887
+${localhost}    http://localhost:8888
 
 *** Test cases ***
 Page should work without login

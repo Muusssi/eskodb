@@ -4,6 +4,8 @@ from collections import defaultdict
 import json
 import sys
 
+import sql_queries
+
 GAME_TEMPLATE = "%s #%s"
 
 def cup_results_query(year, first_month, last_month):
@@ -133,19 +135,6 @@ class Database(object):
         cursor.execute(sql, (game_id, tuple(player_ids)))
         cursor.close()
 
-    def next_hole(self, game_id):
-        sql = ("SELECT max(hole.hole) FROM result JOIN hole ON result.hole=hole.id "
-                "WHERE game=%s AND result.throws IS NOT NULL")
-        cursor = self._cursor()
-        cursor.execute(sql, (game_id, ))
-        (res, ) = cursor.fetchone()
-        if res:
-            hole = int(res)+1
-        else:
-            hole = 1
-        cursor.close()
-        return hole
-
     def fetch_rows(self, table, fields, criteria={}, order_by="", join_rule="", additional_where=""):
         sql = "SELECT %s FROM %s" % (','.join(['%s.%s' % (table, col) for col in fields]), table)
         if join_rule:
@@ -185,75 +174,33 @@ class Database(object):
 
     def generate_empty_results(self, game, player_ids):
         cursor = self._cursor()
-        sql = "SELECT id FROM hole WHERE course=%s ORDER BY hole"
-        cursor.execute(sql, (game.course, ))
+        cursor.execute(sql_queries.holes_of_course(game.course))
         hole_ids = []
         for (hole_id, ) in cursor.fetchall():
             hole_ids.append(hole_id)
 
-        sql = "INSERT INTO result(game, player, hole,reported_at) VALUES %s"
+        sql = "INSERT INTO result(game, player, hole, reported_at) VALUES {}"
         values = []
         for player_id in player_ids:
             for hole_id in hole_ids:
-                values.append("(%s,'%s',%s,null)" % (game.id, player_id, hole_id))
-        sql = sql % ','.join(values)
+                values.append("({},{},{},null)".format(game.id, player_id, hole_id))
+        sql = sql.format(','.join(values))
         cursor.execute(sql)
         cursor.close()
 
-    def game_results(self, game_id):
+    def previous_hole_stats(self, game_id):
         cursor = self._cursor()
-        sql = ("SELECT result.id, result.player, result.throws, result.penalty, result.approaches, result.puts "
-                "FROM result JOIN hole on hole.id=result.hole JOIN player ON player.id=result.player "
-                "WHERE result.game=%s ORDER BY player.name, hole.hole")
-        cursor.execute(sql, (game_id, ))
-        result_table = []
-        row = []
-        current_player = None
-        for result_id, player, throws, penalty, approaches, puts in cursor.fetchall():
-            if not current_player:
-                current_player = player
-            if current_player != player:
-                result_table.append(row)
-                row = []
-                current_player = player
-            row.append([throws, penalty, approaches, puts, result_id])
-        if row:
-            result_table.append(row)
+        cursor.execute("SELECT special_rules FROM game WHERE id={}".format(int(game_id)))
+        (special_rules, ) = cursor.fetchone()
+        cursor.execute(sql_queries.previous_hole_stats(game_id, special_rules))
+        results = {}
+        for player, hole, hole_id, avg, minimum, count in cursor.fetchall():
+            avg = float(avg) if avg else None
+            if player not in results:
+                results[player] = {}
+            results[player][hole_id] = {'hole': hole, 'avg': avg, 'min': minimum, 'count': count}
         cursor.close()
-        return result_table
-
-    def previous_hole_results(self, game_id, special_rules=None):
-        cursor = self._cursor()
-        if special_rules == None:
-            special_rules_filter = "AND game.special_rules IS NULL "
-        else:
-            special_rules_filter = "AND game.special_rules={rule_id} ".format(rule_id=special_rules)
-        sql = ("SELECT player.name, hole.hole, avg(throws), min(throws) "
-                "FROM result JOIN game ON result.game=game.id "
-                "JOIN hole ON result.hole=hole.id JOIN player ON result.player=player.id "
-                "WHERE game.course IN (SELECT course FROM game WHERE id={game_id}) "
-                "{special_rules_filter} "
-                "AND result.player IN (SELECT player FROM result WHERE game={game_id}) "
-                "GROUP BY player.name, hole.hole ORDER BY player.name, hole.hole;").format(
-                game_id=game_id,
-                special_rules_filter=special_rules_filter,
-            )
-        cursor.execute(sql)
-        result_table = []
-        row = []
-        current_player = None
-        for player, hole, avg, minimum in cursor.fetchall():
-            if not current_player:
-                current_player = player
-            if current_player != player:
-                result_table.append(row)
-                row = []
-                current_player = player
-            row.append([float(avg) if avg else None, minimum])
-        if row:
-            result_table.append(row)
-        cursor.close()
-        return result_table
+        return results
 
     def course_name_dict(self):
         sql = "SELECT name, holes, id FROM course"
@@ -266,16 +213,8 @@ class Database(object):
         return name_dict
 
     def game_times_data(self, course_id):
-        sql = """SELECT size, rules, count(*), min(game_time), avg(game_time), max(game_time)
-                FROM (
-                    SELECT game.id, count(*) as size, end_time - start_time as game_time,
-                        (CASE WHEN special_rules IS NULL THEN 0 ELSE special_rules END) as rules
-                    FROM result JOIN game ON game.id=result.game JOIN hole ON hole.id=result.hole
-                    WHERE game.course={course_id} AND NOT game.unfinished AND hole.hole=1 AND end_time IS NOT NULL
-                    GROUP BY game.id
-                ) AS games GROUP BY rules, size ORDER BY rules, size""".format(course_id=int(course_id))
         cursor = self._cursor()
-        cursor.execute(sql)
+        cursor.execute(sql_queries.game_times(course_id))
         game_times = {}
         for size, rules, games, min_time, avg_time, max_time in cursor.fetchall():
             times = {
@@ -309,55 +248,23 @@ class Database(object):
         cursor.execute(sql, (game_id, game_id))
         cursor.close()
 
-
     def get_latest_games(self):
-        query = ("SELECT start_time, game_of_day, course_name, course_id, player_name, player_id, res, par "
-                "FROM (SELECT game.start_time, game.game_of_day, course.name as course_name, course.id as course_id, "
-                "player.name as player_name, player.id as player_id, "
-                "sum(result.throws) as res, sum(result.throws) - pars.sum as par, "
-                "count(nullif(throws IS NULL, false)) as partial "
-                "FROM result JOIN game ON result.game=game.id JOIN player ON player.id=result.player "
-                "JOIN course ON game.course=course.id JOIN ( "
-                    "SELECT course.id as course, sum(par) as sum "
-                    "FROM hole JOIN course ON hole.course=course.id "
-                    "GROUP BY course.id "
-                ") as pars ON pars.course=course.id "
-                "WHERE game.start_time > (date 'today' -14) AND game.active=false "
-                "GROUP BY game.start_time, game.game_of_day, course.name, course.id, player.name, player.id, pars.sum "
-                "ORDER BY game.start_time desc, game.game_of_day desc) AS latest_results WHERE partial=0")
         cursor = self._cursor()
-        cursor.execute(query)
+        cursor.execute(sql_queries.LATEST_GAMES)
         results = cursor.fetchall()
         cursor.close()
         return results
 
     def get_active_results(self):
-        query = ("SELECT game.start_time, game.game_of_day, game.id, course.name, player.name, "
-                "sum(result.throws) as res, sum(result.throws - par) as par, count(throws), course.holes "
-                "FROM result JOIN hole ON result.hole=hole.id JOIN game ON result.game=game.id "
-                    "JOIN player ON player.id=result.player JOIN course ON course.id=game.course "
-                "WHERE game.active=true "
-                "GROUP BY game.start_time, game.game_of_day, game.id, course.name, course.id, player.name;")
         cursor = self._cursor()
-        cursor.execute(query)
+        cursor.execute(sql_queries.ACTIVE_RESULTS)
         results = cursor.fetchall()
         cursor.close()
         return results
 
     def get_course_bests(self):
-        query = ("SELECT totals.course, totals.player, min(totals.res) as best, "
-                "EXTRACT(year FROM totals.start_time) as season FROM ( "
-                "SELECT game.course, result.player, game.start_time, game.game_of_day, sum(result.throws) as res, "
-                "count(nullif(throws IS NULL, false)) as partial "
-                "FROM result JOIN game ON game.id=result.game "
-                "WHERE active=false AND special_rules IS NULL "
-                "GROUP BY game.course, result.player, game.start_time, game.game_of_day "
-                "ORDER BY game.course, result.player, res DESC) as totals "
-                "WHERE partial=0 "
-                "GROUP BY course, player, season "
-                "ORDER BY course, player, season;")
         cursor = self._cursor()
-        cursor.execute(query)
+        cursor.execute(sql_queries.COURSE_BESTS)
         bests = defaultdict(lambda : None)
         for course, player, best, season in cursor.fetchall():
             if not bests[(course, player)] or bests[(course, player)] > best:
@@ -437,30 +344,8 @@ class Database(object):
         return results
 
     def cup_results_2017(self):
-        sql = ("SELECT cup, player, cup_results.course, game, LEAST(cup_max, summa-pars.par) as res, time "
-                "FROM ( "
-                    "SELECT course.id as course, sum(par) as par "
-                    "FROM hole JOIN course ON hole.course=course.id "
-                    "GROUP BY course.id "
-                ") as pars JOIN ( "
-                    "SELECT DISTINCT ON (cup, player) cup, player, course, game, cup_max, summa, time FROM ( "
-                        "SELECT cup.id as cup, player.id as player, course.id as course, game.id as game, "
-                               "cup.max_par as cup_max, sum(throws) as summa, game.start_time as time "
-                        "FROM course JOIN cup ON cup.course=course.id "
-                                    "JOIN game ON game.course=course.id "
-                                        "AND EXTRACT(year FROM game.start_time)=cup.year "
-                                        "AND EXTRACT(month FROM game.start_time)=cup.month "
-                                    "JOIN result ON result.game=game.id "
-                                    "JOIN player ON result.player=player.id "
-                        "WHERE player.member=true AND game.unfinished=false AND game.active=false "
-                        "GROUP BY cup.id, player.id, course.id, game.id, cup.max_par "
-                        "ORDER BY course.name, summa "
-                    ") as results "
-                    "ORDER BY cup, player, summa "
-                ") as cup_results ON cup_results.course=pars.course "
-                "ORDER BY cup, res")
         cursor = self._cursor()
-        cursor.execute(sql)
+        cursor.execute(sql_queries.CUP_RESULTS_2017)
         results = defaultdict(lambda : (None,None,None,None))
         points = defaultdict(lambda : 0)
         current_cup = None
@@ -500,35 +385,7 @@ class Database(object):
 
     def player_stats(self, player_id):
         cursor = self._cursor()
-        sql = (
-            "SELECT course.id, course.name, course.holes, course.version, "
-                "par, count, best.start_time::date, throws, throws - par "
-            "FROM course "
-            "JOIN ("
-                "SELECT DISTINCT ON (course) course, throws, start_time "
-                "FROM ("
-                    "SELECT course, sum(throws) as throws, start_time, "
-                        "count(nullif(throws IS NULL, false)) as incomplete "
-                    "FROM result "
-                    "JOIN game ON game.id=result.game "
-                    "WHERE result.player=%s GROUP BY game.id "
-                ") AS results "
-                "WHERE incomplete=0 "
-                "ORDER BY course, throws "
-            ") AS best ON course.id=best.course "
-            "JOIN (SELECT course, sum(par) as par FROM hole GROUP BY course) "
-             "AS pars ON pars.course=course.id "
-            "JOIN ( "
-                "SELECT course, count(*) FROM ("
-                    "SELECT course, game.id, "
-                        "count(nullif(throws IS NULL, false)) as incomplete "
-                    "FROM game JOIN result ON game.id=result.game "
-                    "WHERE result.player=%s GROUP BY course, game.id "
-                ") AS games "
-                "WHERE incomplete=0 GROUP BY course "
-            ") AS game_count ON game_count.course=course.id "
-            "ORDER BY course.name, course.version;")
-        cursor.execute(sql, (player_id, player_id))
+        cursor.execute(sql_queries.player_stats(player_id))
         stats = cursor.fetchall()
         cursor.close()
         return stats
@@ -536,7 +393,7 @@ class Database(object):
 
     def graphdata(self, course_id, player_id, averaged):
         cursor = self._cursor()
-        sql = "SELECT sum(par) FROM hole WHERE course=%s"
+        sql = "SELECT sum(par) FROM hole JOIN hole_mapping ON hole.id=hole_mapping.hole WHERE course=%s"
         cursor.execute(sql, (course_id, ))
         (par, ) = cursor.fetchone()
         items = []
@@ -667,14 +524,7 @@ class Database(object):
         courses = {} if as_dict else []
         course_bests = self.bests_of_courses_data()
         cursor = self._cursor()
-        sql = """
-            SELECT course.id, name, official_name, holes, version, course.description, town, sum(esko_rating),
-                    sum(length) as length, avg(length), max(length), min(length),
-                    sum(par) as par, avg(par), max(par), min(par), playable
-            FROM course JOIN hole ON hole.course=course.id
-            GROUP BY course.id, name, official_name, holes, version, course.description, town
-            ORDER BY name, holes, version"""
-        cursor.execute(sql)
+        cursor.execute(sql_queries.COURSES_DATA)
         for (course_id, name, official_name, holes, version, description, town, rating,
             length, avg_len, longest, shortest, par, avg_par, max_par, min_par, playable) in cursor.fetchall():
             course = {
@@ -696,15 +546,7 @@ class Database(object):
     def course_data(self, course_id):
         course_bests = self.course_bests_data(course_id)
         cursor = self._cursor()
-        sql = """
-            SELECT course.id, name, official_name, holes, version, course.description, town, sum(esko_rating),
-                    sum(length) as length, avg(length), max(length), min(length),
-                    sum(par) as par, avg(par), max(par), min(par), playable
-            FROM course JOIN hole ON hole.course=course.id
-            WHERE course.id={course_id}
-            GROUP BY course.id, name, official_name, holes, version, course.description, town
-            ORDER BY name, holes, version""".format(course_id=int(course_id))
-        cursor.execute(sql)
+        cursor.execute(sql_queries.course_data(course_id))
         (course_id, name, official_name, holes, version, description, town, rating,
             length, avg_len, longest, shortest, par, avg_par, max_par, min_par, playable) = cursor.fetchone()
         course = {
@@ -722,24 +564,13 @@ class Database(object):
     def holes_data(self, course_id, as_dict=False):
         holes = {} if as_dict else []
         cursor = self._cursor()
-        sql = """
-            SELECT hole.id, course, hole.hole, description, par,
-                length, height, elevation, hole.type, hole_terrain,
-                ob_area, mando, gate, island, esko_rating, count(*)
-            FROM hole
-            LEFT OUTER JOIN hole_map_item ON hole.id=hole_map_item.hole
-            WHERE course=%s
-            GROUP BY hole.id, course, hole.hole, description, par,
-                length, height, elevation, hole.type, hole_terrain,
-                ob_area, mando, gate, island, esko_rating
-            ORDER BY hole.hole;"""
-        cursor.execute(sql, (course_id, ))
+        cursor.execute(sql_queries.holes_data(course_id))
         for (hole_id, course, hole, description, par, length, height, elevation, hole_type,
             terrain, ob_area, mando, gate, island, rating, map_item_count) in cursor.fetchall():
             hole = {
                     'id': hole_id, 'course': course, 'hole': hole, 'description': description, 'par': par,
                     'length': length, 'height': height, 'elevation': elevation, 'hole_type': hole_type,
-                    'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island,
+                    'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island, 'gate': gate,
                     'rating': int(rating*1000) if rating else None,
                     'map': True if map_item_count > 1 else False,
                 }
@@ -752,17 +583,13 @@ class Database(object):
 
     def hole_data(self, hole_id):
         cursor = self._cursor()
-        sql = """SELECT id, course, hole, description, par,
-                    length, height, elevation, type, hole_terrain,
-                    ob_area, mando, gate, island, esko_rating
-                FROM hole WHERE id=%s ORDER BY hole"""
-        cursor.execute(sql, (hole_id, ))
-        (hole_id, course, hole, description, par, length, height, elevation, hole_type,
+        cursor.execute(sql_queries.hole_data(hole_id))
+        (hole_id, description, par, length, height, elevation, hole_type,
             terrain, ob_area, mando, gate, island, rating) = cursor.fetchone()
         hole = {
-                'id': hole_id, 'course': course, 'hole': hole, 'description': description, 'par': par,
+                'id': hole_id, 'description': description, 'par': par,
                 'length': length, 'height': height, 'elevation': elevation, 'hole_type': hole_type,
-                'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island,
+                'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island, 'gate': gate,
                 'rating': int(rating*1000) if rating else None,
             }
         cursor.close()
@@ -799,23 +626,8 @@ class Database(object):
         cursor.close()
 
     def bests_of_courses_data(self):
-        sql = """
-            SELECT DISTINCT ON (course) course, res, name, player_id, start_time::date
-            FROM (
-                SELECT game.course, game.start_time, player.name, player.id as player_id,
-                    sum(throws - par) as res,
-                    count(nullif(throws IS NULL, false)) as incomplete
-                FROM result
-                JOIN game ON game.id=result.game
-                JOIN hole ON hole.id=result.hole
-                JOIN player ON player.id=result.player
-                WHERE game.special_rules IS NULL
-                GROUP BY game.id, player.name, player.id
-            ) AS results
-            WHERE incomplete=0
-            ORDER BY course, res, start_time;"""
         cursor = self._cursor()
-        cursor.execute(sql)
+        cursor.execute(sql_queries.BESTS_OF_COURSES)
         bests = {}
         for course_id, res, name, player_id, game_date in cursor.fetchall():
             bests[course_id] = {'name': name, 'player_id': player_id, 'result': res, 'date': str(game_date)}
@@ -823,24 +635,8 @@ class Database(object):
         return bests
 
     def course_bests_data(self, course_id):
-        sql = """
-            SELECT DISTINCT ON (rules, season) season, rules, res, name, player_id, start_time::date
-            FROM (
-                SELECT game.start_time, player.name, player.id as player_id,
-                    EXTRACT(year FROM start_time) as season, sum(throws - par) as res,
-                    (CASE WHEN special_rules IS NULL THEN 0 ELSE special_rules END) as rules,
-                    count(nullif(throws IS NULL, false)) as incomplete
-                FROM result
-                JOIN game ON game.id=result.game
-                JOIN hole ON hole.id=result.hole
-                JOIN player ON player.id=result.player
-                WHERE game.course={course_id}
-                GROUP BY game.id, player.name, player.id
-            ) AS results
-            WHERE incomplete=0
-            ORDER BY rules, season, res, start_time;""".format(course_id=int(course_id))
         cursor = self._cursor()
-        cursor.execute(sql)
+        cursor.execute(sql_queries.course_bests(course_id))
         bests = {}
         for season, rules, res, name, player_id, game_date in cursor.fetchall():
             season = int(season)
@@ -854,16 +650,50 @@ class Database(object):
         cursor.close()
         return bests
 
+    def game_results(self, game_id):
+        cursor = self._cursor()
+        cursor.execute(sql_queries.game_results(game_id))
+        players = []
+        results = []
+        player = None
+        previous_player = None
+        for (result_id, player_id, name, hole_id, hole,
+             throws, penalty, approaches, puts, reported_at) in cursor.fetchall():
+            if previous_player != player_id:
+                if player:
+                    players.append(player)
+                player = {'player_id': player_id, 'name': name, 'results': []}
+            result = {'id': result_id, 'hole_id': hole_id, 'hole': hole,
+                      'throws': throws, 'penalty': penalty, 'approaches': approaches, 'puts': puts,
+                      'reported_at': str(reported_at) if reported_at else None}
+            player['results'].append(result)
+            previous_player = player_id
+        if player:
+            players.append(player)
+        cursor.close()
+        return players
+
+    def update_game_results(self, result_ids, player_ids, throws, penalties, approaches, puts):
+        cursor = self._cursor()
+        for i in range(len(result_ids)):
+            values = (
+                    throws[i] if throws[i] else None,
+                    penalties[i] if penalties[i] else None,
+                    approaches[i] if approaches[i] else None,
+                    puts[i] if puts[i] else None,
+                    result_ids[i] if result_ids[i] else None,
+                )
+            cursor.execute(sql_queries.UPDATE_RESULT, values)
+        cursor.close()
+
     def game_data(self, game_id):
         cursor = self._cursor()
         sql = """SELECT active, unfinished, course, start_time, end_time, game_of_day, special_rules
                 FROM game WHERE id={game_id}""".format(game_id=int(game_id))
         cursor.execute(sql)
         active, unfinished, course, start_time, end_time, game_of_day, special_rule_id = cursor.fetchone()
-        game_data = {
-                'active': active, 'unfinished': unfinished, 'course_id': course, 'players': [],
-                'start_time': str(start_time), 'end_time': str(end_time), 'game_of_day': game_of_day,
-            }
+        game_data = {'id': game_id, 'active': active, 'unfinished': unfinished, 'course_id': course,
+                     'start_time': str(start_time), 'end_time': str(end_time), 'game_of_day': game_of_day}
         special_rules = None
         if special_rule_id:
             sql = "SELECT name, description FROM special_rules WHERE id={rules_id}".format(
@@ -873,31 +703,8 @@ class Database(object):
             rule_name, rule_description = cursor.fetchone()
             special_rules = {'id': special_rule_id, 'name': rule_name, 'description': rule_description}
         game_data['special_rules'] = special_rules
-        #TODO does not work
-        sql = """SELECT player.id, player.name, hole.id, hole.hole,
-                        throws, penalty, approaches, puts, reported_at
-                FROM result JOIN hole ON hole.id=result.hole
-                JOIN player ON player.id=result.player
-                WHERE game={game_id} ORDER BY player.name, hole.hole""".format(game_id=int(game_id))
-        cursor.execute(sql)
-        results = []
-        player_results = []
-        previous_player = None
-        for player_id, name, hole_id, hole, throws, penalty, approaches, puts, reported_at in cursor.fetchall():
-            result = {
-                    'player_id': player_id, 'name': name, 'hole_id': hole_id, 'hole': hole,
-                    'throws': throws, 'penalty': penalty, 'approaches': approaches, 'puts': puts,
-                    'reported_at': str(reported_at),
-                }
-            if not previous_player:
-                previous_player = player_id
-            if previous_player != player_id:
-                results.append(player_results)
-                player_results = []
-            player_results.append(result)
-            previous_player = player_id
         cursor.close()
-        game_data['results'] = results
+        game_data['players'] = self.game_results(game_id)
         return game_data
 
     def new_rule_set(self, name, description):
@@ -928,20 +735,8 @@ class Database(object):
 
     def course_results_data(self, course_id):
         results = []
-        sql = ("SELECT game.id as game_id, game.start_time, game.end_time, game_of_day, game.special_rules, "
-                    "player.id as player_id, player.name, player.member, "
-                    "result.id as result_id, result.hole as hole_id, throws, penalty, "
-                    "approaches, puts, reported_at, hole.hole as hole_num "
-                "FROM result "
-                "JOIN game ON game.id=result.game "
-                "JOIN hole ON hole.id=result.hole "
-                "JOIN player ON player.id=result.player "
-                "WHERE game.course={course_id} AND NOT game.active "
-                "ORDER BY game.start_time DESC, game_of_day DESC, name, hole.hole").format(
-                course_id=int(course_id),
-            )
         cursor = self._cursor()
-        cursor.execute(sql)
+        cursor.execute(sql_queries.course_results(course_id))
         all_results = []
         game = None
         player = None
@@ -995,7 +790,10 @@ class Database(object):
         cursor.close()
 
     def calculate_esko_ratings(self, use_old_hole_ratings=False):
-        sql = "SELECT course, hole, esko_rating FROM hole ORDER BY course, hole;"
+        print("EsKo rating calculator not implemented!")
+        exit()
+        # TODO: use hole mapping
+        sql = "SELECT course, hole, esko_rating FROM hole JOIN  ORDER BY course, hole;"
         hole_ratings = {}
         played = {}
         if use_old_hole_ratings:

@@ -82,6 +82,7 @@ function set_html(element, value) {
 
 function set_value(element, value) {
   if (typeof element == 'string') element = document.getElementById(element);
+  if (value == null) value = "";
   element.value = value;
 }
 
@@ -125,6 +126,12 @@ function append_row(table, row_data, row_class, hidden, header) {
       }
       if (cell_data.custom_key != undefined) {
         cell.setAttribute('sorttable_customkey', cell_data.custom_key);
+      }
+      if (cell_data.onclick != undefined) {
+        cell.addEventListener("click", cell_data.onclick);
+        if (cell_data.onclick_arg != undefined) {
+          cell.setAttribute('onclick_arg', cell_data.onclick_arg);
+        }
       }
     }
     else {
