@@ -48,7 +48,11 @@ function update_result_table(json) {
         sum += result.throws;
         par = result.throws - hole.par;
         par_sum += par;
-        values.push({'value': result.throws, 'class': 'par' + par});
+        var penalties = "";
+        for (var p = 0; p < result.penalty; p++) {
+          penalties += "*";
+        }
+        values.push({'value': result.throws.toString() + penalties, 'class': 'par' + par});
       }
       else {
         values.push(result.throws);
