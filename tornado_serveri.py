@@ -585,11 +585,13 @@ class EsKoCupHandler(BaseHandler):
                     user=self.get_current_user(),
                 )
         else:
-            first_stage_results = self.db.cup_results_2019(True)
+            first_stage_results, first_stage_points = self.db.cup_results_2019(True)
+            overall_results, _ = self.db.cup_results_2019()
             self.render("esko_cup2019.html",
                     players=models.players({'member':True}, 'name'),
-                    results=self.db.cup_results_2019(),
+                    results=overall_results,
                     first_stage_results=first_stage_results,
+                    first_stage_points=first_stage_points,
                     #handicap_results=self.db.cup_results_2019_with_handicaps(first_stage_results),
                     cup_courses=models.cup_courses(2019),
                     # For template

@@ -152,6 +152,56 @@ JOIN (
 ORDER BY cup, res
 """.format(course_pars=COURSE_PARS)
 
+def cup_results_query(year, first_month, last_month):
+    return """
+SELECT DISTINCT ON (player, course) player, course, res, start_time::date
+FROM (
+    SELECT sum(throws - hole.par) as res, result.player, game.course, game.start_time,
+            count(nullif(throws IS NULL, false)) as unfinished
+    FROM result
+    JOIN hole ON hole.id=result.hole
+    JOIN game ON game.id=result.game
+    WHERE game.course IN (SELECT course FROM eskocup_course WHERE year={year})
+      AND EXTRACT(month FROM game.start_time) >= {first_month}
+      AND EXTRACT(month FROM game.start_time) <= {last_month}
+      AND EXTRACT(year FROM game.start_time) = {year}
+    GROUP BY player, game.id, game.course
+    ORDER BY player, game.course, res DESC
+) as results
+WHERE results.unfinished=0
+ORDER BY player, course, res""".format(
+        first_month=int(first_month),
+        last_month=int(last_month),
+        year=int(year),
+    )
+
+def new_cup_results_query(year, begin_date, end_date):
+    return """
+SELECT * FROM (
+    SELECT DISTINCT ON (player, course) player, course, res, start_time::date
+    FROM (
+        SELECT sum(throws - hole.par) as res, result.player, game.course, game.start_time,
+                count(nullif(throws IS NULL, false)) as unfinished
+        FROM result
+        JOIN hole ON hole.id=result.hole
+        JOIN game ON game.id=result.game
+        WHERE game.course IN (SELECT course FROM eskocup_course WHERE year={year})
+          AND game.start_time >= '{begin_date}'
+          AND game.start_time <= '{end_date}'
+          AND game.special_rules IS NULL
+        GROUP BY player, game.id, game.course
+        ORDER BY game.course, res DESC
+    ) as results
+    WHERE results.unfinished=0
+    ORDER BY player, course, res
+) AS cup_results
+ORDER BY course, res
+""".format(
+        year=int(year),
+        begin_date=begin_date,
+        end_date=end_date,
+    )
+
 def player_stats(player_id):
     return """
 SELECT course.id, course.name, course.holes, course.version,

@@ -8,51 +8,7 @@ import sql_queries
 
 GAME_TEMPLATE = "%s #%s"
 
-def cup_results_query(year, first_month, last_month):
-    return """
-            SELECT DISTINCT ON (player, course) player, course, res, start_time::date
-            FROM (
-                SELECT sum(throws - hole.par) as res, result.player, game.course, game.start_time,
-                        count(nullif(throws IS NULL, false)) as unfinished
-                FROM result
-                JOIN hole ON hole.id=result.hole
-                JOIN game ON game.id=result.game
-                WHERE game.course IN (SELECT course FROM eskocup_course WHERE year={year})
-                  AND EXTRACT(month FROM game.start_time) >= {first_month}
-                  AND EXTRACT(month FROM game.start_time) <= {last_month}
-                  AND EXTRACT(year FROM game.start_time) = {year}
-                GROUP BY player, game.id, game.course
-                ORDER BY player, game.course, res DESC
-            ) as results
-            WHERE results.unfinished=0
-            ORDER BY player, course, res;""".format(
-                first_month=int(first_month),
-                last_month=int(last_month),
-                year=int(year),
-            )
 
-def new_cup_results_query(year, begin_date, end_date):
-    return """
-            SELECT DISTINCT ON (player, course) player, course, res, start_time::date
-            FROM (
-                SELECT sum(throws - hole.par) as res, result.player, game.course, game.start_time,
-                        count(nullif(throws IS NULL, false)) as unfinished
-                FROM result
-                JOIN hole ON hole.id=result.hole
-                JOIN game ON game.id=result.game
-                WHERE game.course IN (SELECT course FROM eskocup_course WHERE year={year})
-                  AND game.start_time >= '{begin_date}'
-                  AND game.start_time <= '{end_date}'
-                  AND game.special_rules IS NULL
-                GROUP BY player, game.id, game.course
-                ORDER BY player, game.course, res DESC
-            ) as results
-            WHERE results.unfinished=0
-            ORDER BY player, course, res;""".format(
-                    year=int(year),
-                    begin_date=begin_date,
-                    end_date=end_date,
-                )
 
 def datetime_to_hour_minutes(dt):
     return str(dt).split('.')[0][:-3]
@@ -283,15 +239,32 @@ class Database(object):
         last_month = 6 if first_stage else 9
         cursor = self._cursor()
         if first_stage:
-            cursor.execute(new_cup_results_query(2019, '2019-04-15', '2019-06-15'))
+            cursor.execute(sql_queries.new_cup_results_query(2019, '2019-04-15', '2019-07-15'))
         else:
-            cursor.execute(new_cup_results_query(2019, '2019-04-15', '2019-09-15'))
+            cursor.execute(sql_queries.new_cup_results_query(2019, '2019-04-15', '2019-10-15'))
         results = defaultdict(lambda : (1000, None))
+        point_dict = defaultdict(lambda : 0.0)
+        previous_course, previous_result = None, None
+        points_to_share = []
+        tiees = []
+        available_points = [20, 17, 15, 13, 12, 11, 10, 9, 8, 7, 6]
         for player, course, res, date in cursor.fetchall():
             key = (player, course)
             results[key] = (res, date)
+            # cup points
+            if previous_course != course:
+                available_points = [20, 17, 15, 13, 12, 11, 10, 9, 8, 7, 6]
+            points = available_points.pop(0) if len(available_points) > 0 else 5
+            if previous_result != res or previous_course != course:
+                for tiee in tiees:
+                    point_dict[tiee] = sum(points_to_share)/float(len(tiees))
+                points_to_share = []
+                tiees = []
+            tiees.append(key)
+            points_to_share.append(points)
+            previous_course, previous_result = course, res
         cursor.close()
-        return results
+        return results, point_dict
 
     def cup_results_2019_with_handicaps(self, previous_results):
         # TODO
@@ -304,7 +277,7 @@ class Database(object):
             else:
                 course_bests[course] = result
         cursor = self._cursor()
-        cursor.execute(cup_results_query(2018, 7, 9))
+        cursor.execute(sql_queries.cup_results_query(2018, 7, 9))
         results = defaultdict(lambda : (1000, 1000, 1000, None))
         for player, course, res, date in cursor.fetchall():
             key = (player, course)
@@ -316,7 +289,7 @@ class Database(object):
     def cup_results_2018(self, first_stage=False):
         last_month = 6 if first_stage else 9
         cursor = self._cursor()
-        cursor.execute(cup_results_query(2018, 4, last_month))
+        cursor.execute(sql_queries.cup_results_query(2018, 4, last_month))
         results = defaultdict(lambda : (1000, None))
         for player, course, res, date in cursor.fetchall():
             key = (player, course)
@@ -334,7 +307,7 @@ class Database(object):
             else:
                 course_bests[course] = result
         cursor = self._cursor()
-        cursor.execute(cup_results_query(2018, 7, 9))
+        cursor.execute(sql_queries.cup_results_query(2018, 7, 9))
         results = defaultdict(lambda : (1000, 1000, 1000, None))
         for player, course, res, date in cursor.fetchall():
             key = (player, course)
