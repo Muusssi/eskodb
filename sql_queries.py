@@ -185,11 +185,13 @@ SELECT * FROM (
         FROM result
         JOIN hole ON hole.id=result.hole
         JOIN game ON game.id=result.game
+        JOIN player ON result.player=player.id
         WHERE game.course IN (SELECT course FROM eskocup_course WHERE year={year})
           AND game.start_time >= '{begin_date}'
           AND game.start_time <= '{end_date}'
           AND game.special_rules IS NULL
-        GROUP BY player, game.id, game.course
+          AND player.member
+        GROUP BY result.player, game.id, game.course
         ORDER BY game.course, res DESC
     ) as results
     WHERE results.unfinished=0
