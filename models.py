@@ -293,6 +293,9 @@ class Player(BaseModel):
             'active',
         )
 
+    def is_team(self):
+        return '&' in self.name
+
     def set_password(self):
         self._values['password'] = pbkdf2_sha256.encrypt(self.password, rounds=200000, salt_size=16)
 

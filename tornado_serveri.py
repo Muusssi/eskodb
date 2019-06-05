@@ -442,7 +442,7 @@ class NewGameHandler(BaseHandler):
 
 
 class GameHandler(BaseHandler):
-    # DOING
+
     def get(self, game_id):
         game = models.game(game_id)
         course=models.course(game.course)
@@ -556,11 +556,12 @@ class EsKoCupHandler(BaseHandler):
 
     def get(self, year):
         year = int(year)
+        membership_filter = "id IN (SELECT player FROM membership WHERE year={})"
         if year == 2017:
             results, points = self.db.cup_results_2017()
             self.render("esko_cup2017.html",
                     cups=models.cups({'name': 'EsKo Cup', 'year':2017}, 'month'),
-                    players=models.players({'member':True}, 'name'),
+                    players=models.players({}, 'name', additional_where=membership_filter.format(2017)),
                     course_dict=self.db.course_name_dict(),
                     results=results,
                     points=points,
@@ -573,7 +574,7 @@ class EsKoCupHandler(BaseHandler):
         elif year == 2018:
             first_stage_results = self.db.cup_results_2018(True)
             self.render("esko_cup2018.html",
-                    players=models.players({'member':True}, 'name'),
+                    players=models.players({}, 'name', additional_where=membership_filter.format(2018)),
                     results=self.db.cup_results_2018(),
                     first_stage_results=first_stage_results,
                     handicap_results=self.db.cup_results_2018_with_handicaps(first_stage_results),
@@ -588,7 +589,7 @@ class EsKoCupHandler(BaseHandler):
             first_stage_results, first_stage_points = self.db.cup_results_2019(True)
             overall_results, _ = self.db.cup_results_2019()
             self.render("esko_cup2019.html",
-                    players=models.players({'member':True}, 'name'),
+                    players=models.players({}, 'name', additional_where=membership_filter.format(2019)),
                     results=overall_results,
                     first_stage_results=first_stage_results,
                     first_stage_points=first_stage_points,

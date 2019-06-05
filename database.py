@@ -239,9 +239,9 @@ class Database(object):
         last_month = 6 if first_stage else 9
         cursor = self._cursor()
         if first_stage:
-            cursor.execute(sql_queries.new_cup_results_query(2019, '2019-04-15', '2019-07-15'))
+            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-07-15'))
         else:
-            cursor.execute(sql_queries.new_cup_results_query(2019, '2019-04-15', '2019-10-15'))
+            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-10-15'))
         results = defaultdict(lambda : (1000, None))
         point_dict = defaultdict(lambda : 0.0)
         previous_course, previous_result = None, None
@@ -268,28 +268,12 @@ class Database(object):
 
     def cup_results_2019_with_handicaps(self, previous_results):
         # TODO
-        course_bests = {}
-        for player, course in previous_results:
-            result, date = previous_results[(player, course)]
-            if course in course_bests:
-                if course_bests[course] > result:
-                    course_bests[course] = result
-            else:
-                course_bests[course] = result
-        cursor = self._cursor()
-        cursor.execute(sql_queries.cup_results_query(2018, 7, 9))
-        results = defaultdict(lambda : (1000, 1000, 1000, None))
-        for player, course, res, date in cursor.fetchall():
-            key = (player, course)
-            handicap = previous_results[key][0] if key in previous_results else course_bests[course]
-            results[key] = (int(res - handicap), int(handicap), int(res), date)
-        cursor.close()
-        return results
+        pass
 
     def cup_results_2018(self, first_stage=False):
-        last_month = 6 if first_stage else 9
+        last_month = '2018-07-01' if first_stage else '2018-10-01'
         cursor = self._cursor()
-        cursor.execute(sql_queries.cup_results_query(2018, 4, last_month))
+        cursor.execute(sql_queries.cup_results_query(2018, '2018-04-01', last_month))
         results = defaultdict(lambda : (1000, None))
         for player, course, res, date in cursor.fetchall():
             key = (player, course)
@@ -307,7 +291,7 @@ class Database(object):
             else:
                 course_bests[course] = result
         cursor = self._cursor()
-        cursor.execute(sql_queries.cup_results_query(2018, 7, 9))
+        cursor.execute(sql_queries.cup_results_query(2018, '2018-07-01', '2018-10-01'))
         results = defaultdict(lambda : (1000, 1000, 1000, None))
         for player, course, res, date in cursor.fetchall():
             key = (player, course)

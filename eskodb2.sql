@@ -105,6 +105,12 @@ CREATE TABLE player (
     active integer REFERENCES game(id) ON DELETE CASCADE
 );
 
+CREATE TABLE membership (
+    player integer NOT NULL REFERENCES player(id) ON DELETE CASCADE,
+    year integer NOT NULL,
+    PRIMARY KEY (player, year)
+);
+
 CREATE TABLE player_group (
     id serial PRIMARY KEY,
     name text NOT NULL CHECK (name <> ''),
