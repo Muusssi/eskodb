@@ -22,6 +22,7 @@
     function handle_course_data(json) {
       course = json;
       holes = json.holes_data;
+      fill_image_link_list(course.images, 'course_image');
       course_data_table(course);
       ajax_get('/data/game/{{game.id}}/', handle_game_data);
     }
@@ -38,8 +39,11 @@
 {% block body %}
   <h1>{{ course.name }}
     <a class="btn btn-info" href="#" onclick="toggle_by_id('holes_info');">Väylien tiedot</a>
+    <a class="btn btn-info" href="#" onclick="add_hole_image()">Lisää väylä kartta</a>
   </h1>
   <p id="loading_message"></p>
+
+  <div><ul id="image_links"></ul></div>
 
   <table id="holes_info" class="table table-bordered table-condensed" hidden></table>
 

@@ -228,15 +228,24 @@ ORDER BY name, holes, version
 
 def course_data(course_id):
     return """
-SELECT course.id, name, official_name, holes, version, course.description, town, sum(esko_rating),
-       sum(length) as length, avg(length), max(length), min(length),
-       sum(par) as par, avg(par), max(par), min(par), playable
+SELECT course.id, name, official_name, holes, version, course.description, town,
+       sum(esko_rating) as esko_rating, sum(length) as length, avg(length) as avg_length,
+       max(length) as max_length, min(length) as min_length,
+       sum(par) as par, avg(par) as avg_apr, max(par) as max_par, min(par) as min_par, playable
 FROM course
 JOIN hole_mapping ON hole_mapping.course=course.id
 JOIN hole ON hole.id=hole_mapping.hole
 WHERE course.id={course_id}
 GROUP BY course.id, name, official_name, holes, version, course.description, town
 ORDER BY name, holes, version
+""".format(course_id=int(course_id))
+
+def course_images_info(course_id):
+    return """
+SELECT id, description, timestamp
+FROM course_image
+WHERE course={course_id}
+ORDER BY timestamp DESC
 """.format(course_id=int(course_id))
 
 def holes_data(course_id):
@@ -262,6 +271,15 @@ SELECT id, description, par,
 FROM hole
 WHERE id={hole_id} ORDER BY hole
 """.format(hole_id=int(hole_id))
+
+def hole_image_data_for_course(course_id):
+    return """
+SELECT id, hole_image.hole, hole_number, description, timestamp
+FROM hole_image
+JOIN hole_mapping ON hole_image.hole=hole_mapping.hole
+WHERE hole_mapping.course={course_id}
+ORDER BY hole_number, timestamp DESC
+""".format(course_id=int(course_id))
 
 BESTS_OF_COURSES = """
 SELECT DISTINCT ON (course) course, res, name, player_id, start_time::date

@@ -59,8 +59,12 @@ class Application(tornado.web.Application):
                 (r"/data/course/(?P<course_id>[0-9]+)/rule_sets/", RuleSetsDataHandler),
                 (r"/data/course/(?P<course_id>[0-9]+)/game_times/", GameTimesDataHandler),
                 (r"/data/course/(?P<course_id>[0-9]+)/results/", ResultsDataHandler),
+                (r"/data/course/(?P<course_id>[0-9]+)/upload_image/", CourseImageUploadHandler),
+                (r"/data/course_image/(?P<image_id>[0-9]+)/", CourseImageHandler),
                 (r"/data/hole/(?P<hole_id>[0-9]+)/", HoleDataHandler),
                 (r"/data/hole/(?P<hole_id>[0-9]+)/map/", HoleMapDataHandler),
+                (r"/data/hole/(?P<hole_id>[0-9]+)/upload_image/", HoleImageUploadHandler),
+                (r"/data/hole_image/(?P<image_id>[0-9]+)/", HoleImageHandler),
                 (r"/data/game/(?P<game_id>[0-9]+)/", GameDataHandler),
                 (r"/data/game/(?P<game_id>[0-9]+)/previous_results/", PreviousResultsDataHandler),
             ]
@@ -243,7 +247,6 @@ class NewCourseHandler(BaseHandler):
             self.db.generate_default_holes(course.id, course.holes)
             self.redirect("/holes/%s/update" % course.id)
         except Exception as e:
-            raise e
             self.render("new_course.html",
                 tittle="Uusi rata",
                 terrains=self.db.terrains(),
@@ -694,6 +697,74 @@ class HolesDataHandler(BaseHandler):
 class HoleDataHandler(BaseHandler):
     def get(self, hole_id):
         self.write(self.db.hole_data(hole_id))
+
+class ImageUploadHandler(BaseHandler):
+    def posted_image_data(self):
+        fileinfo = self.request.files['filearg'][0]
+        desc = self.get_argument('description')
+        fname = fileinfo['filename']
+        extension = fname.split('.')[-1]
+        if extension in ('png', 'jpg', 'jpeg'):
+            return desc, fileinfo['body'], extension
+        else:
+            return desc, None, extension
+
+class HoleImageUploadHandler(ImageUploadHandler):
+    def get(self, hole_id):
+        self.render('upload_image.html',
+                message="",
+                linked_to="hole id {}".format(hole_id),
+                default_desc="Opaste",
+                redirect_to=self.get_argument('redirect_to', '/')
+            )
+
+    def post(self, hole_id):
+        desc, data, file_type = self.posted_image_data()
+        if data:
+            self.db.store_hole_image(hole_id, desc, data, file_type)
+            self.redirect(self.get_argument('redirect_to', '/'))
+        else:
+            self.render('upload_image.html',
+                    message="Error: Unsupported filetype '{}'! Only PNG or JPG are supported.".format(file_type),
+                    linked_to="hole id {}".format(hole_id),
+                    default_desc=desc,
+                    redirect_to=self.get_argument('redirect_to', '/')
+                )
+
+class CourseImageUploadHandler(ImageUploadHandler):
+    def get(self, course_id):
+        course = models.course(course_id)
+        self.render('upload_image.html',
+                message="",
+                linked_to="{} {}".format(course.name, course.holes),
+                default_desc="Ratakartta",
+                redirect_to=self.get_argument('redirect_to', '/')
+            )
+
+    def post(self, course_id):
+        desc, data, file_type = self.posted_image_data()
+        if data:
+            self.db.store_course_image(course_id, desc, data, file_type)
+            self.redirect(self.get_argument('redirect_to', '/'))
+        else:
+            self.render('upload_image.html',
+                    message="Error: Unsupported filetype '{}'! Only PNG or JPG are supported.".format(file_type),
+                    linked_to="{} {}".format(course.name, course.holes),
+                    default_desc=desc,
+                    redirect_to=self.get_argument('redirect_to', '/')
+                )
+
+class HoleImageHandler(BaseHandler):
+    def get(self, image_id):
+        image_data, file_type = self.db.get_hole_image(image_id)
+        self.set_header('Content-Type', 'image/{}'.format(file_type))
+        self.write(bytes(image_data))
+
+class CourseImageHandler(BaseHandler):
+    def get(self, image_id):
+        image_data, file_type = self.db.get_course_image(image_id)
+        self.set_header('Content-Type', 'image/{}'.format(file_type))
+        self.write(bytes(image_data))
 
 class HoleMapDataHandler(BaseHandler):
     def get(self, hole_id):

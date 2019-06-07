@@ -515,6 +515,11 @@ class Database(object):
                 'avg_length': int(avg_len) if avg_len else None,
                 'holes_data': self.holes_data(course_id),
             }
+        cursor.execute(sql_queries.course_images_info(course_id))
+        images = []
+        for image_id, desc, timestamp in cursor.fetchall():
+            images.append({'id': image_id, 'description': desc, 'timestamp': str(timestamp)})
+        course['images'] = images
         cursor.close()
         return course
 
@@ -529,8 +534,14 @@ class Database(object):
         cursor.close()
 
     def holes_data(self, course_id, as_dict=False):
-        holes = {} if as_dict else []
         cursor = self._cursor()
+        cursor.execute(sql_queries.hole_image_data_for_course(course_id))
+        images = defaultdict(lambda: [])
+        for image_id, hole, hole_number, desc, timestamp in cursor.fetchall():
+            print(image_id, hole, hole_number, desc, timestamp)
+            images[hole].append({'id': image_id, 'description': desc, 'timestamp': str(timestamp)})
+
+        holes = {} if as_dict else []
         cursor.execute(sql_queries.holes_data(course_id))
         for (hole_id, course, hole, description, par, length, height, elevation, hole_type,
             terrain, ob_area, mando, gate, island, rating, map_item_count) in cursor.fetchall():
@@ -540,6 +551,7 @@ class Database(object):
                     'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island, 'gate': gate,
                     'rating': int(rating*1000) if rating else None,
                     'map': True if map_item_count > 1 else False,
+                    'images': images[hole_id],
                 }
             if as_dict:
                 holes[hole_id] = hole
@@ -871,6 +883,33 @@ class Database(object):
                     cursor.execute(course_update, (None, course, hole))
         cursor.close()
 
+    def store_hole_image(self, hole_id, description, image, extension):
+        sql = "INSERT INTO hole_image(hole, description, image, file_type) VALUES (%s,%s,%s,%s);"
+        cursor = self._cursor()
+        cursor.execute(sql, (hole_id, description, psycopg2.Binary(image), extension))
+        cursor.close()
+
+    def store_course_image(self, course_id, description, image, extension):
+        sql = "INSERT INTO course_image(course, description, image, file_type) VALUES (%s,%s,%s,%s);"
+        cursor = self._cursor()
+        cursor.execute(sql, (course_id, description, psycopg2.Binary(image), extension))
+        cursor.close()
+
+    def get_hole_image(self, image_id):
+        sql = "SELECT image, file_type FROM hole_image WHERE id={}".format(int(image_id))
+        cursor = self._cursor()
+        cursor.execute(sql)
+        image, file_type = cursor.fetchone()
+        cursor.close()
+        return image, file_type
+
+    def get_course_image(self, image_id):
+        sql = "SELECT image, file_type FROM course_image WHERE id={}".format(int(image_id))
+        cursor = self._cursor()
+        cursor.execute(sql)
+        image, file_type = cursor.fetchone()
+        cursor.close()
+        return image, file_type
 
 def load_config_file(config_file):
     with open(config_file, 'r') as f:

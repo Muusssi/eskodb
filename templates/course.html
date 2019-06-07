@@ -16,6 +16,7 @@
     function handle_course_data(json) {
       course = json;
       holes = json.holes_data;
+      fill_image_link_list(course.images, 'course_image');
       course_data_table(course);
       build_result_table_head(holes);
       ajax_get('/data/course/{{course.id}}/results/', handle_results);
@@ -29,10 +30,12 @@
     <a class="btn btn-info" href="#" onclick="toggle_by_id('holes_info');">Väylien tiedot</a>
     <a class="btn btn-info" href="/holes/{{course.id}}/update">Muokkaa väylien tietoja</a>
     <a class="btn btn-info" href="/course/{{course.id}}/graph">Tuloskuvaaja</a>
-    <!-- <a class="btn btn-primary" href="/full/{{course.id}}/">Lisää koko pelin tulos</a> -->
+    <a class="btn btn-info" href="/data/course/{{course.id}}/upload_image/?redirect_to=/course/{{course.id}}/">Liitä kuva</a>
     <!-- <a class="btn btn-info" href="/hole_statistics/{{course.id}}/1/">Histogrammi</a> -->
     <!-- <a class="btn btn-info" href="/probabilities/{{course.id}}/par/">Tuloksen todennäköisyydet</a> -->
   </h1>
+  <div><ul id="image_links"></ul></div>
+
   <div>
     <label for="rule_set_select">Säännöt</label>
     <select id="rule_set_select"></select>

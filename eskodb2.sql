@@ -57,6 +57,24 @@ CREATE TABLE hole_map_item (
     y int
 );
 
+CREATE TABLE hole_image (
+    id serial PRIMARY KEY,
+    hole integer NOT NULL REFERENCES hole(id) ON DELETE CASCADE,
+    description text,
+    timestamp timestamp default now(),
+    image bytea,
+    file_type text
+);
+
+CREATE TABLE course_image (
+    id serial PRIMARY KEY,
+    course integer NOT NULL REFERENCES course(id) ON DELETE CASCADE,
+    description text,
+    timestamp timestamp default now(),
+    image bytea,
+    file_type text
+);
+
 CREATE TABLE cup (
     id serial PRIMARY KEY,
     name text NOT NULL CHECK (name <> ''),

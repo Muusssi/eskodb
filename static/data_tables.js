@@ -35,6 +35,7 @@ function course_data_table(course_data) {
   var rating_row = ['Rating'];
   var ob_row = ['OB'];
   var map_row = [''];
+  var images_row = ['Images'];
   var par_sum = 0;
   var len_sum = 0;
   for (var i = 0; i < holes.length; i++) {
@@ -54,6 +55,7 @@ function course_data_table(course_data) {
     if (hole.island) ob += ' island';
     ob_row.push(ob);
     rating_row.push(hole.rating);
+    images_row.push('<ul id="image_links_'+hole.id+'"></ul>')
   }
   title_row.push('');
   par_row.push(par_sum);
@@ -66,4 +68,17 @@ function course_data_table(course_data) {
   append_row('holes_info', rating_row);
   append_row('holes_info', ob_row);
   append_row('holes_info', map_row);
+  append_row('holes_info', images_row);
+  ajax_get('/data/course/'+course_data.id+'/holes/', add_hole_image_links);
+}
+
+function add_hole_image_links(json) {
+  let holes_data = json.holes;
+  for (var i = 0; i < holes_data.length; i++) {
+    var hole = holes_data[i];
+    fill_image_link_list(hole.images, 'hole_image', 'image_links_'+hole.id);
+    var links_list = document.getElementById('image_links_'+hole.id);
+    var url = '/data/hole/'+hole.id+'/upload_image/?redirect_to='+window.location;
+    links_list.appendChild(link_list_item('Add hole image', url));
+  }
 }

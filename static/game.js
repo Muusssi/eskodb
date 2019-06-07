@@ -194,3 +194,7 @@ function end_game() {
   }
 };
 
+function add_hole_image() {
+  var hole = holes[current_hole - 1];
+  window.location = '/data/hole/'+hole.id+'/upload_image/?redirect_to=/game/'+game.id+'/';
+}

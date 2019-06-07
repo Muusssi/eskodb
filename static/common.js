@@ -181,6 +181,41 @@ function rule_set_selector(course_id) {
 
 }
 
+function link_list_item(text, url) {
+  var li = document.createElement('li');
+  var link = document.createElement('a');
+  link.href = url;
+  link.innerHTML = text;
+  li.appendChild(link);
+  return li;
+}
+
+function fill_image_link_list(image_info, type, link_list_id) {
+  if (image_info.length > 0) {
+    var link_list = null;
+    if (link_list_id === undefined) {
+      link_list = document.getElementById('image_links');
+    }
+    else {
+      link_list = document.getElementById(link_list_id);
+    }
+    for (var i = 0; i < image_info.length; i++) {
+      var link_data = image_info[i];
+      var li = document.createElement('li');
+      var link = document.createElement('a');
+      link.href = '/data/' + type + '/' + link_data.id + '/';
+      link.target = '_blank';
+      if (link_data.description != "") {
+        link.innerHTML = link_data.description;
+      }
+      else {
+        link.innerHTML = 'Kuva';
+      }
+      li.appendChild(link);
+      link_list.appendChild(li);
+    }
+  }
+}
 
 function course_rating(holes, length, par) {
   if (length == null || length < 100) {
