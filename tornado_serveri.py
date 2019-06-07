@@ -239,8 +239,8 @@ class NewCourseHandler(BaseHandler):
         values = [self.get_argument(field, None) for field in models.Course.fields]
         course = models.Course(values)
         try:
-            course.save()
-            models.generate_default_holes(course)
+            course_id = course.save()
+            self.db.generate_default_holes(course.id, course.holes)
             self.redirect("/holes/%s/update" % course.id)
         except Exception as e:
             raise e
@@ -281,7 +281,6 @@ class UpdateHolesHandler(BaseHandler):
                     for i in range(len(values_list)):
                         values_list[i][field] = values[i]
             for values in values_list:
-                print(values)
                 hole = models.Hole(values)
                 hole.save()
             self.redirect('/course/%s/' % course.id)

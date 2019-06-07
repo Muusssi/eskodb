@@ -518,6 +518,16 @@ class Database(object):
         cursor.close()
         return course
 
+    def generate_default_holes(self, course_id, holes):
+        cursor = self._cursor()
+        hole_sql = "INSERT INTO hole(length, height) VALUES (NULL, NULL) RETURNING id"
+        mapping_sql = "INSERT INTO hole_mapping(course, hole, hole_number) VALUES ({},{},{})"
+        for hole_number in range(1, holes + 1):
+            cursor.execute(hole_sql)
+            (hole_id, ) = cursor.fetchone()
+            cursor.execute(mapping_sql.format(int(course_id), hole_id, hole_number))
+        cursor.close()
+
     def holes_data(self, course_id, as_dict=False):
         holes = {} if as_dict else []
         cursor = self._cursor()
@@ -869,4 +879,5 @@ def load_config_file(config_file):
 if __name__ == '__main__':
     config = load_config_file(sys.argv[1])
     db = Database(config['database'], config['host'], config['user'], config['password'])
-    db.calculate_esko_ratings()
+    db.generate_default_holes(85, 18)
+    #db.calculate_esko_ratings()

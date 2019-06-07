@@ -140,14 +140,6 @@ class Course(BaseModel):
         else:
             return ""
 
-def generate_default_holes(course):
-    holes = []
-    for hole in range(1, course.holes+1):
-        new_hole = Hole({'course':course.id, 'hole':hole})
-        new_hole.save()
-        holes.append(new_hole)
-    return holes
-
 def holes(criteria={}, order_by="hole"):
     hole_list = []
     for values in DATABASE.fetch_rows(Hole.TABLE_NAME, Hole.fields, criteria, order_by):
