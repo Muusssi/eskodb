@@ -25,13 +25,6 @@ CREATE TABLE course (
     CONSTRAINT courses_differ UNIQUE(name, holes, version)
 );
 
-CREATE TABLE hole_mapping (
-    course integer REFERENCES course(id) ON DELETE CASCADE,
-    hole integer REFERENCES hole(id) ON DELETE CASCADE,
-    hole_number int,
-    PRIMARY KEY (course, hole, hole_number)
-);
-
 CREATE TABLE hole (
     id serial PRIMARY KEY,
     length integer default 0,
@@ -45,8 +38,15 @@ CREATE TABLE hole (
     mando boolean default false,
     gate boolean default false,
     island boolean default false,
-    esko_rating real default NULL,
-    CONSTRAINT holes_differ UNIQUE(course, hole)
+    esko_rating real default NULL
+);
+
+
+CREATE TABLE hole_mapping (
+    course integer REFERENCES course(id) ON DELETE CASCADE,
+    hole integer REFERENCES hole(id) ON DELETE CASCADE,
+    hole_number int,
+    PRIMARY KEY (course, hole, hole_number)
 );
 
 CREATE TABLE hole_map_item (
