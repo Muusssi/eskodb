@@ -155,7 +155,7 @@ function update_inputs() {
     var old_min = "--";
     var old_min_par = "";
     var old_results = get_previous_results(player.name, holes[current_hole-1].id);
-    if (old_results != null) {
+    if (old_results != null && old_results.avg != null) {
       var old_avg = old_results.avg.toFixed(2);
       var old_min = old_results.min;
       old_min_par = "par" + (old_min - holes[current_hole-1].par);
