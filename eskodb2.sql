@@ -120,7 +120,7 @@ CREATE TABLE player (
     password text default NULL,
     priviledges priviledge default NULL,
     esko_rating real default NULL,
-    active integer REFERENCES game(id) ON DELETE CASCADE
+    active integer
 );
 
 CREATE TABLE membership (
