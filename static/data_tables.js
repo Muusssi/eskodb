@@ -5,8 +5,9 @@ function game_times_table(course_id) {
 
   function fill_game_times_table(json) {
 
-    for (var rules_id in json) {
-      var times = json[rules_id];
+    for (var r = 0; r < json.rules.length; r++) {
+      var rules = json.rules[r];
+      var times = rules.times;
       for (var i = 0; i < times.length; i++) {
         let time_object = times[i];
         var values = [
@@ -17,7 +18,7 @@ function game_times_table(course_id) {
             time_object.games,
         ];
         var hidden = false;
-        if (rules_id != 0) {
+        if (rules.id != 0) {
             hidden = true;
         }
         append_row('game_times', values, 'rules' + rules_id + ' rulesToggleable' , hidden);

@@ -212,6 +212,7 @@ class PlayerHandler(BaseHandler):
 class CourseHandler(BaseHandler):
     def get(self, course_id):
         selected_player = self.get_argument("player", "")
+        course=models.course(course_id)
         self.render("course.html",
                 selected_game_date=self.get_argument("game_date", ""),
                 selected_player=selected_player,
@@ -780,7 +781,7 @@ class GameDataHandler(BaseHandler):
 
 class GameTimesDataHandler(BaseHandler):
     def get(self, course_id):
-        self.write(self.db.game_times_data(course_id))
+        self.write({'rules': self.db.game_times_data(course_id)})
 
 class PreviousResultsDataHandler(BaseHandler):
     def get(self, game_id):
@@ -797,7 +798,7 @@ class RuleSetsDataHandler(BaseHandler):
 
 if __name__ == "__main__":
     if (len(sys.argv) != 2):
-        print "error: missing config file"
+        print("error: missing config file")
         exit(0)
     config = load_config_file(sys.argv[1])
     httpserver = tornado.httpserver.HTTPServer(

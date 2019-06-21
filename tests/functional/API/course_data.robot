@@ -1,14 +1,10 @@
 *** Settings ***
-Library         REST    http://localhost:8888
+Library         REST    ${TARGET_URL}
+
+*** Variables ***
+${TARGET_URL}=      http://localhost:8887
 
 *** Test cases ***
-
-Players return valid data
-    GET         /data/players/
-    Array       $.players
-    Integer     $..id
-    String      $..name
-    Boolean     $..member
 
 Courses return valid data
     GET         /data/courses/
@@ -20,25 +16,24 @@ Course return valid data
     Validate course data object     $
     Validate holes data object      $.holes_data[*]
 
-Holes return valid data
+Holes of course return valid data
     GET         /data/course/1/holes/
     Validate holes data object      $.holes[*]
 
-Rule sets return valid data
+Rule sets of course return valid data
     GET         /data/course/1/rule_sets/
     Validate rule set data object   $.rule_sets[*]
-
-# Results return valid data
-#     GET         /data/course/1/results/
-#     Validate game result data object    $.games[*]
 
 Hole returns valid data
     GET         /data/hole/1/
     Validate hole data object  $
 
-# Game times return valid data
-#     GET         /data/course/1/game_times/
-#     Validate game times data objects    $.0[0]
+Course game times return valid data
+    GET         /data/course/1/game_times/
+    Object      $.rules[*]
+    Integer     $.rules[*].id
+    String      $.rules[*].name
+    Validate game times data object    $.rules[*].times[*]
 
 *** Keywords ***
 
@@ -85,7 +80,7 @@ Validate rule set data object
     String      ${json_path}.description
     Integer     ${json_path}.games
 
-Validate game times data objects
+Validate game times data object
     [Arguments]     ${json_path}
     String      ${json_path}.min
     String      ${json_path}.avg

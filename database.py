@@ -92,13 +92,14 @@ class Database(object):
         cursor.close()
 
     def fetch_rows(self, table, fields, criteria={}, order_by="", join_rule="", additional_where=""):
-        sql = "SELECT %s FROM %s" % (','.join(['%s.%s' % (table, col) for col in fields]), table)
+        criteria_fields, values = _fields_and_values(criteria)
+        sql = "SELECT %s FROM %s" % (','.join(['{}.{}'.format(table, field) for field in fields]), table)
         if join_rule:
             sql += join_rule
         if criteria or additional_where:
             sql += " WHERE "
             if criteria:
-                sql += ' AND '.join(['%s=%s' % (col, '%s') for col in criteria])
+                sql += ' AND '.join(['{}=%s'.format(field) for field in criteria_fields])
             if additional_where:
                 if criteria:
                     sql += ' AND '
@@ -106,24 +107,26 @@ class Database(object):
         if order_by:
             sql += " ORDER BY %s" % order_by
         cursor = self._cursor()
-        cursor.execute(sql, criteria.values())
+        cursor.execute(sql, values)
         rows = cursor.fetchall()
         cursor.close()
         return rows
 
     def update_row(self, table, values, row_id):
+        fields, values = _fields_and_values(values)
         sql = "UPDATE %s SET %s WHERE id=%s " % (table, ','.join(['%s=%s' % (col, '%s') for col in values]), row_id)
         cursor = self._cursor()
-        cursor.execute(sql, values.values())
+        cursor.execute(sql, values)
         cursor.close()
 
 
     def insert_row(self, table, values):
-        sql = "INSERT INTO %s(%s) VALUES (%s) RETURNING id" % (
-                table, ','.join([col for col in values]), ','.join(['%s' for col in values])
+        fields, values = _fields_and_values(values)
+        sql = "INSERT INTO {}({}) VALUES ({}) RETURNING id".format(
+                table, ','.join(fields), ','.join(['%s' for _ in values])
             )
         cursor = self._cursor()
-        cursor.execute(sql, values.values())
+        cursor.execute(sql, values)
         (row_id, ) = cursor.fetchone()
         cursor.close()
         return row_id
@@ -171,16 +174,20 @@ class Database(object):
     def game_times_data(self, course_id):
         cursor = self._cursor()
         cursor.execute(sql_queries.game_times(course_id))
-        game_times = {}
-        for size, rules, games, min_time, avg_time, max_time in cursor.fetchall():
-            times = {
+        game_times = []
+        previous_rules = None
+        for size, rules, games, min_time, avg_time, max_time, name in cursor.fetchall():
+            if not previous_rules or previous_rules['id'] != rules:
+                if previous_rules:
+                    game_times.append(previous_rules)
+                previous_rules = {'id': rules, 'name': name, 'times': []}
+
+            previous_rules['times'].append({
                     'pool': size, 'games': games, 'min': datetime_to_hour_minutes(min_time),
                     'avg': datetime_to_hour_minutes(avg_time), 'max': datetime_to_hour_minutes(max_time),
-                }
-            if rules in game_times:
-                game_times[rules].append(times)
-            else:
-                game_times[rules] = [times]
+                })
+        if previous_rules:
+            game_times.append(previous_rules)
         return game_times
 
     def player_with_games_on_course(self, course_id):
@@ -538,7 +545,6 @@ class Database(object):
         cursor.execute(sql_queries.hole_image_data_for_course(course_id))
         images = defaultdict(lambda: [])
         for image_id, hole, hole_number, desc, timestamp in cursor.fetchall():
-            print(image_id, hole, hole_number, desc, timestamp)
             images[hole].append({'id': image_id, 'description': desc, 'timestamp': str(timestamp)})
 
         holes = {} if as_dict else []
@@ -756,7 +762,7 @@ class Database(object):
         cursor.execute(query, (game_id, ))
         game_time, throws = cursor.fetchone()
         impossible_time = (
-                not game_time or game_time < datetime.timedelta(minutes=15) or game_time > datetime.timedelta(hours=4)
+                not game_time or game_time < datetime.timedelta(minutes=15) or game_time > datetime.timedelta(hours=6)
             )
         if not throws:
             query = "DELETE FROM game WHERE id=%s"
@@ -766,6 +772,12 @@ class Database(object):
                     end_time='NULL' if unfinished in (u'true', u'True') or impossible_time else 'now()'
                 )
             cursor.execute(query, (unfinished, game_id))
+        cursor.close()
+
+    def set_game_time(self, game_id, game_time):
+        sql = "UPDATE game SET end_time=(start_time + %s) WHERE id=%s"
+        cursor = self._cursor()
+        cursor.execute(sql, (game_time, game_id))
         cursor.close()
 
     def calculate_esko_ratings(self, use_old_hole_ratings=False):
@@ -910,6 +922,14 @@ class Database(object):
         image, file_type = cursor.fetchone()
         cursor.close()
         return image, file_type
+
+def _fields_and_values(criteria):
+    fields = []
+    values = []
+    for field in criteria:
+        fields.append(field)
+        values.append(criteria[field])
+    return fields, values
 
 def load_config_file(config_file):
     with open(config_file, 'r') as f:

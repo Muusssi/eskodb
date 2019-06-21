@@ -2,11 +2,11 @@
 Library  RequestsLibrary
 
 *** Variables ***
-${localhost}    http://localhost:8888
+${TARGET_URL}=      http://localhost:8887
 
 *** Test cases ***
 Page should work without login
-    [Setup]     Create session   local  ${localhost}
+    [Setup]     Create session   local  ${TARGET_URL}
     [Template]  Page status ok
     /
     /login
@@ -20,13 +20,13 @@ Page should work without login
     /eskocup/2017/
 
 Page should work and redirect to main page
-    [Setup]     Create session   local  ${localhost}
+    [Setup]     Create session   local  ${TARGET_URL}
     [Template]  Should redirect to main page
     /logout
     /restart/
 
 Page should require login
-    [Setup]     Create session   local  ${localhost}
+    [Setup]     Create session   local  ${TARGET_URL}
     [Template]  Should redirect to login
     /players
     /player/1/update
@@ -41,10 +41,10 @@ Should redirect to login
     [Arguments]  ${url}
     ${resp}=  Get Request  local  ${url}  allow_redirects=${true}
     Should be equal as strings  ${resp.status_code}  200
-    Should start with  ${resp.url}  ${localhost}/login?
+    Should start with  ${resp.url}  ${TARGET_URL}/login?
 
 Should redirect to main page
     [Arguments]  ${url}
     ${resp}=  Get Request  local  ${url}  allow_redirects=${true}
     Should be equal as strings  ${resp.status_code}  200
-    Should start with  ${resp.url}  ${localhost}/
+    Should start with  ${resp.url}  ${TARGET_URL}/

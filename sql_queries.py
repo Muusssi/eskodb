@@ -61,19 +61,24 @@ ORDER BY player.name, hole_number
 
 def game_times(course_id):
     return """
-SELECT size, rules, count(*), min(game_time), avg(game_time), max(game_time)
+SELECT size, rules, count(*), min(game_time), avg(game_time), max(game_time), name
 FROM (
     SELECT game.id, count(*) as size, end_time - start_time as game_time,
-           (CASE WHEN special_rules IS NULL THEN 0 ELSE special_rules END) as rules
+           (CASE WHEN game.special_rules IS NULL THEN 0 ELSE game.special_rules END) as rules,
+           (CASE WHEN game.special_rules IS NULL THEN 'Standard' ELSE name END) as name
     FROM result
+    JOIN hole_mapping ON result.hole=hole_mapping.hole
     JOIN game ON game.id=result.game
-    JOIN hole ON hole.id=result.hole
-    JOIN hole_mapping ON hole.id=hole_mapping.hole AND hole_mapping.course={course_id}
-    WHERE game.course={course_id} AND NOT game.unfinished AND hole_mapping.hole_number=1 AND end_time IS NOT NULL
-    GROUP BY game.id
+    LEFT OUTER JOIN special_rules ON game.special_rules=special_rules.id
+    WHERE game.course={course_id}
+        AND NOT game.unfinished
+        AND end_time IS NOT NULL
+        AND hole_mapping.course={course_id}
+        AND hole_mapping.hole_number=1
+    GROUP BY game.id, name
 ) AS games
-GROUP BY rules, size
-ORDER BY rules, size""".format(course_id=int(course_id))
+GROUP BY name, rules, size
+ORDER BY name, rules, size""".format(course_id=int(course_id))
 
 COURSE_PARS = """
 SELECT course, sum(par) as sum

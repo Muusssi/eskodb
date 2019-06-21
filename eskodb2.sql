@@ -95,7 +95,6 @@ CREATE TABLE special_rules (
     name text NOT NULL UNIQUE,
     description text
 );
--- ALTER TABLE special_rules ADD CONSTRAINT unique_rule_name UNIQUE(name);
 
 CREATE TABLE game (
     id serial PRIMARY KEY,

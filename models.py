@@ -64,16 +64,6 @@ class BaseModel(object):
         else:
             return ""
 
-    # def __setattr__(self, attr, value):
-    #     if attr == 'values':
-    #         for field in value:
-    #             self.values[field] = value[field]
-    #     elif attr not in self.__class__.fields:
-    #         raise Exception("Illegal attribute '%s'" % attr)
-    #     else:
-    #         self.values[attr] = value
-
-
     def save(self):
         try:
             if self.id:
