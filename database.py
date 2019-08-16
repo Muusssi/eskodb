@@ -242,13 +242,14 @@ class Database(object):
         cursor.close()
         return bests
 
-    def cup_results_2019(self, first_stage=False):
-        last_month = 6 if first_stage else 9
+    def cup_results_2019(self, stage=None):
         cursor = self._cursor()
-        if first_stage:
-            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-07-15'))
+        if stage == 1:
+            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-07-16'))
+        if stage == 2:
+            cursor.execute(sql_queries.cup_results_query(2019, '2019-07-15', '2019-10-16'))
         else:
-            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-10-15'))
+            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-10-16'))
         results = defaultdict(lambda : (1000, None))
         point_dict = defaultdict(lambda : 0.0)
         previous_course, previous_result = None, None
@@ -270,6 +271,9 @@ class Database(object):
             tiees.append(key)
             points_to_share.append(points)
             previous_course, previous_result = course, res
+        if tiees:
+            for tiee in tiees:
+                point_dict[tiee] = sum(points_to_share)/float(len(tiees))
         cursor.close()
         return results, point_dict
 

@@ -59,23 +59,40 @@
           {% for cup_course in cup_courses %}
             <th>{{cup_course.name}}</th>
           {% end  %}
-          <th id="points_total">Tulos</th>
+          <th class="cup6">Vaihe 1</th>
+          {% for cup_course in cup_courses %}
+            <th>{{cup_course.name}}</th>
+          {% end  %}
+          <th class="cup6">Vaihe 2</th>
+          <th id="points_total" class="cup5">Tulos</th>
         </tr>
 
       </thead>
       <tbody id="points_tbody">
         {% for player in players %}
-          {% set total_points = 0 %}
           <tr>
             <th>{{player.name}}</th>
+            {% set first_stage_points = 0 %}
             {% for cup_course in cup_courses %}
-              {% set points = first_stage_points[(player.id, cup_course.id)] %}
-              {% set total_points += points %}
+              {% set points = points_from_first_stage[(player.id, cup_course.id)] %}
+              {% set first_stage_points += points %}
               {% set points_text = int(points) if points.is_integer() else "{0:.1f}".format(points) %}
               <td sorttable_customkey="-{{points_text}}">{{ points_text }}</td>
-
             {% end %}
-            {% set total_points = int(total_points) if total_points.is_integer() else "{0:.1f}".format(total_points) %}
+            {% set first_stage_total = int(first_stage_points) if first_stage_points.is_integer() else "{0:.1f}".format(first_stage_points) %}
+            <th sorttable_customkey="-{{first_stage_total}}">{{ first_stage_total }}</th>
+
+            {% set second_stage_points = 0 %}
+            {% for cup_course in cup_courses %}
+              {% set points = points_from_second_stage[(player.id, cup_course.id)] %}
+              {% set second_stage_points += points %}
+              {% set points_text = int(points) if points.is_integer() else "{0:.1f}".format(points) %}
+              <td sorttable_customkey="-{{points_text}}">{{ points_text }}</td>
+            {% end %}
+            {% set second_stage_total = int(second_stage_points) if second_stage_points.is_integer() else "{0:.1f}".format(second_stage_points) %}
+            <th sorttable_customkey="-{{second_stage_total}}">{{ second_stage_total }}</th>
+
+            {% set total_points = int(first_stage_points + second_stage_points) if (first_stage_points + second_stage_points).is_integer() else "{0:.1f}".format(first_stage_points + second_stage_points) %}
             <td sorttable_customkey="-{{total_points}}">{{ total_points }}</td>
           </tr>
         {% end %}
