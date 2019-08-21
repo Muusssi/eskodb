@@ -245,11 +245,11 @@ class Database(object):
     def cup_results_2019(self, stage=None):
         cursor = self._cursor()
         if stage == 1:
-            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-07-16'))
-        if stage == 2:
-            cursor.execute(sql_queries.cup_results_query(2019, '2019-07-15', '2019-10-16'))
+            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-07-15'))
+        elif stage == 2:
+            cursor.execute(sql_queries.cup_results_query(2019, '2019-07-15', '2019-10-15'))
         else:
-            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-10-16'))
+            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-10-15'))
         results = defaultdict(lambda : (1000, None))
         course_bests = defaultdict(lambda : None)
         point_dict = defaultdict(lambda : 0.0)
