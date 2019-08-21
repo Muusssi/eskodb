@@ -251,6 +251,7 @@ class Database(object):
         else:
             cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-10-16'))
         results = defaultdict(lambda : (1000, None))
+        course_bests = defaultdict(lambda : None)
         point_dict = defaultdict(lambda : 0.0)
         previous_course, previous_result = None, None
         points_to_share = []
@@ -259,6 +260,8 @@ class Database(object):
         for player, course, res, date in cursor.fetchall():
             key = (player, course)
             results[key] = (res, date)
+            if not course_bests[course] or course_bests[course] > res:
+                course_bests[course] = res
             # cup points
             if previous_course != course:
                 available_points = [20, 17, 15, 13, 12, 11, 10, 9, 8, 7, 6]
@@ -275,7 +278,7 @@ class Database(object):
             for tiee in tiees:
                 point_dict[tiee] = sum(points_to_share)/float(len(tiees))
         cursor.close()
-        return results, point_dict
+        return results, point_dict, course_bests
 
     def cup_results_2019_with_handicaps(self, previous_results):
         # TODO

@@ -10,6 +10,8 @@
     window.onload = function() {
       sorttable.innerSortFunction.apply(document.getElementById("cup_total"), []);
       sorttable.innerSortFunction.apply(document.getElementById("points_total"), []);
+      sorttable.innerSortFunction.apply(document.getElementById("handicapped_total"), []);
+      sorttable.innerSortFunction.apply(document.getElementById("first_stage_total"), []);
     }
   </script>
 {% end %}
@@ -99,7 +101,82 @@
       </tbody>
     </table>
 
-  </div>
+    <h2>Tasoitetut tulokset</h2>
+    <table id="handicapped_table" class="sortable table table-striped table-bordered table-condensed table-hover">
+      <thead>
+        <tr>
+          <th></th>
+          {% for cup_course in cup_courses %}
+            <th>{{cup_course.name}}</th>
+          {% end %}
+          <th id="handicapped_total" class="cup5">Tulos</th>
+        </tr>
+
+      </thead>
+      <tbody>
+        {% for player in players %}
+          {% set total = 0 %}
+          {% set sorting_total = 0 %}
+          <tr>
+            <th>{{player.name}}</th>
+            {% for cup_course in cup_courses %}
+              {% set res, date = second_stage_results[(player.id, cup_course.id)] %}
+              {% set handicap, _ = first_stage_results[(player.id, cup_course.id)] %}
+
+              {% if handicap == 1000 %}
+                {% set handicap = course_bests[cup_course.id] %}
+              {% end %}
+
+              {% if date %}
+                {% set handicapped = res - handicap %}
+                <td onclick="see_game({{cup_course.id}}, '{{date}}', '{{player.name}}');">{{handicapped}} ({{res}} {% if handicap < 0 %}+{{-handicap}}{% else %}-{{handicap}}{% end %})</td>
+                {% set total += handicapped %}
+                {% set sorting_total += handicapped %}
+              {% else %}
+                <td sorttable_customkey="1000"></td>
+                {% set sorting_total += 1000 %}
+              {% end %}
+            {% end %}
+            <td sorttable_customkey="{{sorting_total}}">{{total}}</td>
+          </tr>
+        {% end %}
+      </tbody>
+    </table>
+
+    <h2>Ensimmäisen vaiheen tulokset</h2>
+    <table id="handicaps_table" class="sortable table table-striped table-bordered table-condensed table-hover">
+      <thead>
+        <tr>
+          <th></th>
+          {% for cup_course in cup_courses %}
+            <th>{{cup_course.name}}</th>
+          {% end %}
+          <th id="first_stage_total" class="cup5">Tulos</th>
+        </tr>
+
+      </thead>
+      <tbody>
+        {% for player in players %}
+          {% set total_res, sort_res = 0, 0 %}
+          <tr>
+            <th>{{player.name}}</th>
+            {% for cup_course in cup_courses %}
+              {% set res, date = first_stage_results[(player.id, cup_course.id)] %}
+              {% if res != 1000 %}
+                {% set total_res, sort_res = total_res + res, sort_res + res %}
+                <td onclick="see_game({{cup_course.id}}, '{{date}}', '{{player.name}}');">{{res}}</td>
+              {% else %}
+                {% set sort_res = sort_res + res %}
+                <td sorttable_customkey="{{res}}">--</td>
+              {% end %}
+            {% end %}
+            <td sorttable_customkey="{{sort_res}}">{{total_res}}</td>
+          </tr>
+
+        {% end %}
+      </tbody>
+    </table>
 
   </div>
+
 {% end %}
