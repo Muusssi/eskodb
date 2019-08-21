@@ -21,7 +21,7 @@ function game_times_table(course_id) {
         if (rules.id != 0) {
             hidden = true;
         }
-        append_row('game_times', values, 'rules' + rules_id + ' rulesToggleable' , hidden);
+        append_row('game_times', values, 'rules' + rules.id + ' rulesToggleable' , hidden);
       }
     }
   }
