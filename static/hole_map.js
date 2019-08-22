@@ -9,6 +9,7 @@ var basket_x = 0;
 var basket_y = 100;
 var debug_length_estimate = false;
 var hole = null;
+var course = null;
 
 function handleMapData(json) {
   if (json.anchors.length > 0) {
@@ -20,8 +21,16 @@ function handleMapData(json) {
 
 function handleHoleData(json) {
   hole = json;
-  set_html('hole_num', hole.hole);
+  course_id = get_url_parameter('course');
+  for (var i = 0; i < hole.included_in_courses.length; i++) {
+    if (hole.included_in_courses[i].id == int(course_id)) {
+      course = hole.included_in_courses[i];
+      set_html('hole_num', course.name + ' ' + course.holes + ': #' + course.hole_number);
+      break;
+    }
+  }
   set_html('official_length', hole.length);
+
 }
 
 function setup() {
@@ -35,7 +44,12 @@ function draw() {}
 function post_map() {
   post_object('/data/hole/'+ hole.id + '/map/', {'items': anchors}, move_to_course_page);
   function move_to_course_page() {
-    window.location = '/course/' + hole.course + '/';
+    if (course != null) {
+      window.location = '/course/' + course.id + '/';
+    }
+    else {
+      window.location = '/';
+    }
   }
 }
 

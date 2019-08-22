@@ -71,6 +71,13 @@ Validate hole data object
     Boolean     ${json_path}.mando
     Boolean     ${json_path}.ob_area
     Boolean     ${json_path}.island
+    Array       ${json_path}.included_in_courses
+    Object      ${json_path}.included_in_courses[*]
+    Integer     ${json_path}.included_in_courses[*].id
+    String      ${json_path}.included_in_courses[*].name
+    String      ${json_path}.included_in_courses[*].version
+    Integer     ${json_path}.included_in_courses[*].holes
+    Integer     ${json_path}.included_in_courses[*].hole_number
 
 Validate rule set data object
     [Arguments]     ${json_path}

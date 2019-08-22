@@ -576,14 +576,18 @@ class Database(object):
     def hole_data(self, hole_id):
         cursor = self._cursor()
         cursor.execute(sql_queries.hole_data(hole_id))
-        (hole_id, description, par, length, height, elevation, hole_type,
-            terrain, ob_area, mando, gate, island, rating) = cursor.fetchone()
-        hole = {
-                'id': hole_id, 'description': description, 'par': par,
-                'length': length, 'height': height, 'elevation': elevation, 'hole_type': hole_type,
-                'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island, 'gate': gate,
-                'rating': int(rating*1000) if rating else None,
-            }
+        hole = None
+        for (hole_id, description, par, length, height, elevation, hole_type,
+             terrain, ob_area, mando, gate, island, rating,
+             course_id, hole_number, course_name, course_holes, course_version) in cursor.fetchall():
+            if not hole:
+                hole = {'id': hole_id, 'description': description, 'par': par,
+                        'length': length, 'height': height, 'elevation': elevation, 'hole_type': hole_type,
+                        'terrain': terrain, 'ob_area': ob_area, 'mando': mando, 'island': island, 'gate': gate,
+                        'rating': int(rating*1000) if rating else None, 'included_in_courses': []}
+            course = {'id': course_id, 'hole_number': hole_number, 'name': course_name, 'holes': course_holes,
+                      'version': str(course_version)}
+            hole['included_in_courses'].append(course)
         cursor.close()
         return hole
 

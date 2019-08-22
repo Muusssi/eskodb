@@ -40,6 +40,15 @@ function post_object(url, object, callback) {
   xhr.send(JSON.stringify(object));
 }
 
+function get_url_parameter(parameter, default_value) {
+  var url = new URL(window.location);
+  var value = url.searchParams.get(parameter);
+  if (value == null && default_value !== undefined) {
+    return default_value;
+  }
+  return value;
+}
+
 function set_loading_message(msg) {
   let loading_msg_p = document.getElementById("loading_message");
   if (loading_msg_p != null) loading_msg_p.innerHTML = msg;

@@ -270,11 +270,15 @@ ORDER BY hole_number
 
 def hole_data(hole_id):
     return """
-SELECT id, description, par,
+SELECT hole.id, hole.description, par,
        length, height, elevation, type, hole_terrain,
-       ob_area, mando, gate, island, esko_rating
+       ob_area, mando, gate, island, esko_rating,
+       course.id, hole_number, course.name, course.holes, course.version
 FROM hole
-WHERE id={hole_id} ORDER BY hole
+JOIN hole_mapping ON hole_mapping.hole=hole.id
+JOIN course ON hole_mapping.course=course.id
+WHERE hole.id={hole_id} AND hole_mapping.hole={hole_id}
+ORDER BY version DESC
 """.format(hole_id=int(hole_id))
 
 def hole_image_data_for_course(course_id):

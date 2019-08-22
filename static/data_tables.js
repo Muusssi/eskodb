@@ -49,7 +49,7 @@ function course_data_table(course_data) {
     height_row.push(hole.height);
     var link = 'Add map';
     if (hole.map) link = 'map';
-    map_row.push({value: link, url: '/hole/'+hole.id+'/map/edit'})
+    map_row.push({value: link, url: '/hole/'+hole.id+'/map/edit?course=' + course_data.id})
     var ob = '';
     if (hole.ob_area) ob += ' ob';
     if (hole.mando) ob += ' mando';
