@@ -9,8 +9,8 @@ SERVER_PID=$!
 
 robot --outputdir=tests/functional/results \
       --pythonpath .:tests \
-      -e selenium \
       tests/functional/
+      #-e selenium \
 
 TEST_RESULT=$?
 echo ${TEST_RESULT}
