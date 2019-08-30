@@ -15,9 +15,7 @@ Page should work without login
     /course/1/graph
     /holes/1/update
     /player/new
-    /games/
     /game/new/
-    /cup/new/
     /eskocup/2017/
     /eskocup/2018/
     /eskocup/2019/
@@ -33,6 +31,9 @@ Page should require login
     [Template]  Should redirect to login
     /players
     /player/1/update
+    /cup/new/
+    /games/
+    /game/1/reactivate
 
 *** Keywords ***
 Page status ok

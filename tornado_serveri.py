@@ -478,11 +478,24 @@ class EndGameHandler(BaseHandler):
         self.redirect("/")
 
 class ReactivateGameHandler(BaseHandler):
+
+    @property
+    def required_priviledges(self):
+        return ('admin')
+
+    @tornado.web.authenticated
+    @authorized
     def get(self, game_id):
         self.db.reactivate_game(game_id)
         self.redirect("/game/%s/" % (game_id, ))
 
 class GamesHandler(BaseHandler):
+    @property
+    def required_priviledges(self):
+        return ('admin')
+
+    @tornado.web.authenticated
+    @authorized
     def get(self):
         self.render("games.html",
                 games=models.games({}, 'start_time desc'),
