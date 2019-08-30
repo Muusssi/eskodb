@@ -128,8 +128,8 @@ def generate_game_and_results(database, course_id, player_ids, special_rules=Non
         database.update_game_results(
                 result_ids,
                 player_ids,
-                [random.choice([2,3,3,3,3,4,4,5]) for _ in range(len(player_ids))],
-                [random.choice([0,0,0,0,0,0,1,1]) for _ in range(len(player_ids))],
+                [str(random.choice([2,3,3,3,3,4,4,5])) for _ in range(len(player_ids))],
+                [str(random.choice([0,0,0,0,0,0,1,1])) for _ in range(len(player_ids))],
                 ['' for _ in range(len(player_ids))],
                 ['' for _ in range(len(player_ids))],
             )

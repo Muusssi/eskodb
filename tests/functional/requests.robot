@@ -17,7 +17,10 @@ Page should work without login
     /player/new
     /games/
     /game/new/
+    /cup/new/
     /eskocup/2017/
+    /eskocup/2018/
+    /eskocup/2019/
 
 Page should work and redirect to main page
     [Setup]     Create session   local  ${TARGET_URL}

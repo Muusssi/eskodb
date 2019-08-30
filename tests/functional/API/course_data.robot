@@ -35,6 +35,11 @@ Course game times return valid data
     String      $.rules[*].name
     Validate game times data object    $.rules[*].times[*]
 
+Results return valid data
+    GET         /data/course/1/results/
+    Validate game result data object    $.games[*]
+
+
 *** Keywords ***
 
 Validate course data object
