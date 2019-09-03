@@ -13,7 +13,7 @@ Page should work without login
     /course/new/
     /course/1/
     /course/1/graph
-    /holes/1/update
+    /course/1/update_holes
     /player/new
     /game/new/
     /eskocup/2017/

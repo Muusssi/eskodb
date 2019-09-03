@@ -114,7 +114,7 @@ class Database(object):
 
     def update_row(self, table, values, row_id):
         fields, values = _fields_and_values(values)
-        sql = "UPDATE %s SET %s WHERE id=%s " % (table, ','.join(['%s=%s' % (col, '%s') for col in values]), row_id)
+        sql = "UPDATE {} SET {} WHERE id={} ".format(table, ','.join(['{}=%s'.format(field) for field in fields]), int(row_id))
         cursor = self._cursor()
         cursor.execute(sql, values)
         cursor.close()

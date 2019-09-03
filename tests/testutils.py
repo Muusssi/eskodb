@@ -12,6 +12,21 @@ def load_config_file(config_file):
     with open(config_file, 'r') as f:
         return json.load(f)
 
+def parse_index(index_string, offset=0):
+    index = None
+    if index_string in ('first', '1st'):
+        index = 1
+    elif index_string in ('second', '2nd'):
+        index = 2
+    elif index_string in ('third', '3rd'):
+        index = 3
+    else:
+        try:
+            index = int(index_string[:-2])
+        except ValueError:
+            raise Exception("Unable to parse index string '{}'".format(index_string))
+    return index + int(offset)
+
 def get_player_by_name(name):
     players = models.players({'name': name})
     if len(players) == 1:

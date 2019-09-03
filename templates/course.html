@@ -25,12 +25,12 @@
 {% end %}
 
 {% block body %}
-  <h1>{{ course.name }}
-    <a href="/game/new/?course={{course.id}}" class="btn btn-info">Pelaa</a>
-    <a class="btn btn-info" href="#" onclick="toggle_by_id('holes_info');">Väylien tiedot</a>
-    <a class="btn btn-info" href="/holes/{{course.id}}/update">Muokkaa väylien tietoja</a>
+  <h1><span id="course_name_span">{{ course.name }}</span>
+    <a id="play_course_btn" href="/game/new/?course={{course.id}}" class="btn btn-info">Pelaa</a>
+    <a id="holes_data_toggle" class="btn btn-info" href="#" onclick="toggle_by_id('holes_info');">Väylien tiedot</a>
+    <a id="update_holes_btn" class="btn btn-info" href="/course/{{course.id}}/update_holes">Muokkaa väylien tietoja</a>
     <a class="btn btn-info" href="/course/{{course.id}}/graph">Tuloskuvaaja</a>
-    <a class="btn btn-info" href="/data/course/{{course.id}}/upload_image/?redirect_to=/course/{{course.id}}/">Liitä kuva</a>
+    <a id="add_image_btn" class="btn btn-info" href="/data/course/{{course.id}}/upload_image/?redirect_to=/course/{{course.id}}/">Liitä kuva</a>
     <!-- <a class="btn btn-info" href="/hole_statistics/{{course.id}}/1/">Histogrammi</a> -->
     <!-- <a class="btn btn-info" href="/probabilities/{{course.id}}/par/">Tuloksen todennäköisyydet</a> -->
   </h1>

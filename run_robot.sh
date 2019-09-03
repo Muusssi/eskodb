@@ -8,9 +8,8 @@ PYTHONPATH=./ python3 tornado_serveri.py tests/test_config.json &
 SERVER_PID=$!
 
 robot --outputdir=tests/functional/results \
-      --pythonpath .:tests \
+      --pythonpath .:tests "$@" \
       tests/functional/
-      #-e selenium \
 
 TEST_RESULT=$?
 echo ${TEST_RESULT}

@@ -127,6 +127,9 @@ function append_row(table, row_data, row_class, hidden, header) {
       else {
         cell.innerHTML = cell_data.value;
       }
+      if (cell_data.id != undefined) {
+        cell.id = cell_data.id;
+      }
       if (cell_data.class != undefined) {
         cell.className = cell_data.class;
       }

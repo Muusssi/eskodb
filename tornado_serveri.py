@@ -34,7 +34,7 @@ class Application(tornado.web.Application):
                 (r"/course/(?P<course_id>[^\/]+)/", CourseHandler),
                 (r"/course/(?P<course_id>[^\/]+)/graph", GraphHandler),
                 (r"/course/(?P<course_id>[^\/]+)/graphdata", GraphDataHandler),
-                (r"/holes/(?P<course_id>[^\/]+)/update", UpdateHolesHandler),
+                (r"/course/(?P<course_id>[^\/]+)/update_holes", UpdateHolesHandler),
                 (r"/players", PlayersHandler),
                 (r"/player/new", NewPlayerHandler),
                 (r"/player/(?P<player_id>[^\/]+)/", PlayerHandler),
@@ -246,7 +246,7 @@ class NewCourseHandler(BaseHandler):
         try:
             course_id = course.save()
             self.db.generate_default_holes(course.id, course.holes)
-            self.redirect("/holes/%s/update" % course.id)
+            self.redirect("/course/%s/update_holes" % course.id)
         except Exception as e:
             self.render("new_course.html",
                 tittle="Uusi rata",
@@ -824,5 +824,6 @@ if __name__ == "__main__":
                 )
         )
     httpserver.listen(int(config['port']))
+    print('running on port: {}'.format(config['port']))
     tornado.ioloop.IOLoop.current().start()
 

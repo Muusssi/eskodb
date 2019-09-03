@@ -54,6 +54,7 @@ function course_data_table(course_data) {
     if (hole.ob_area) ob += ' ob';
     if (hole.mando) ob += ' mando';
     if (hole.island) ob += ' island';
+    if (hole.gate) ob += ' gate';
     ob_row.push(ob);
     rating_row.push(hole.rating);
     images_row.push('<ul id="image_links_'+hole.id+'"></ul>')

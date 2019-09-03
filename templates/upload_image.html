@@ -6,7 +6,7 @@
 <body>
   <h2>Upload image linked to {{linked_to}}</h2>
   <form enctype="multipart/form-data" method="post">
-  File: <input type="file" name="filearg" required/>
+  File: <input id="file_input" type="file" name="filearg" required/>
   <br />
   <textarea name="description">{{default_desc}}</textarea>
   <input type="text" name="redirect_to" value="{{redirect_to}}" hidden>

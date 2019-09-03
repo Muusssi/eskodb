@@ -13,12 +13,12 @@ function build_hole_input_form(json) {
 
         form.appendChild(new_text_input_div("id", hole.id, null, null, null, true));
         form.appendChild(new_text_input_div("par", hole.par, 'par', 'par_input'+hole.hole, '[0-9]'));
-        form.appendChild(new_text_input_div("length", hole.length, 'length', null, '[0-9]+'));
-        form.appendChild(new_text_input_div("height", hole.height, 'height', null, '-?[0-9]+'));
-        form.appendChild(new_checkbox_div("ob_area", hole.ob_area, 'OB area'));
-        form.appendChild(new_checkbox_div("mando", hole.mando, 'Mando'));
-        form.appendChild(new_checkbox_div("gate", hole.gate, 'Gate'));
-        form.appendChild(new_checkbox_div("island", hole.island, 'Island'));
+        form.appendChild(new_text_input_div("length", hole.length, 'length', 'length_input'+hole.hole, '[0-9]+'));
+        form.appendChild(new_text_input_div("height", hole.height, 'height', 'height_input'+hole.hole, '-?[0-9]+'));
+        form.appendChild(new_checkbox_div("ob_area", hole.ob_area, 'OB area', 'ob_area_cb'+hole.hole));
+        form.appendChild(new_checkbox_div("mando", hole.mando, 'Mando', 'mando_cb'+hole.hole));
+        form.appendChild(new_checkbox_div("gate", hole.gate, 'Gate', 'gate_cb'+hole.hole));
+        form.appendChild(new_checkbox_div("island", hole.island, 'Island', 'island_cb'+hole.hole));
     }
 }
 
@@ -58,9 +58,6 @@ function new_checkbox_div(name, value, label, id) {
     input.name = name;
     input.value = value;
     input.hidden = true;
-    if (id != undefined && id != null) {
-        input.id = id;
-    }
     div.appendChild(input);
 
     var cb = document.createElement('input');
@@ -71,8 +68,10 @@ function new_checkbox_div(name, value, label, id) {
     else {
         cb.checked = false;
     }
-    console.log(cb);
     cb.addEventListener("change", function() {toggle_boolean_input(input)});
+    if (id != undefined && id != null) {
+        cb.id = id;
+    }
     div.appendChild(cb);
     return div;
 }
