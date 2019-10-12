@@ -1,13 +1,11 @@
 <html>
   <head>
-    <title>Esko - {% block title_block %}{% end %}</title>
+    <title>EsKo - {% block title_block %}{% end %}</title>
     <link rel="stylesheet" type="text/css" href="{{static_url("style.css")}}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="{{static_url("jquery.min.js")}}"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="{{static_url("bootstrap/css/bootstrap.min.css")}}">
+    <script src="{{static_url("bootstrap/js/bootstrap.min.js")}}"></script>
 
     <script src={{static_url("sorttable.js")}}></script>
     <script src={{static_url("common.js")}}></script>
