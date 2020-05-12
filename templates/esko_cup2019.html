@@ -1,6 +1,6 @@
 {% extends esko_template.html %}
 
-{% block title_block %}EsKo Cup 2019{% end %}
+{% block title_block %}EsKo Cup {{year}}{% end %}
 
 {% block head %}
   <script type="text/javascript">
@@ -17,7 +17,7 @@
 {% end %}
 
 {% block body %}
-  <h1>EsKo Cup 2019</h1>
+  <h1>EsKo Cup {{year}}</h1>
 
   <div id="table_div">
     <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">

@@ -8,7 +8,10 @@ import sql_queries
 
 GAME_TEMPLATE = "%s #%s"
 
-
+CUP_DATES = {
+    2019: ('2019-04-15', '2019-07-15', '2019-10-15'),
+    2020: ('2020-05-12', '2020-08-02', '2020-10-18'),
+}
 
 def datetime_to_hour_minutes(dt):
     return str(dt).split('.')[0][:-3]
@@ -242,14 +245,15 @@ class Database(object):
         cursor.close()
         return bests
 
-    def cup_results_2019(self, stage=None):
+    def cup_results_2019_rules(self, year, stage=None):
+        # TODO
         cursor = self._cursor()
         if stage == 1:
-            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-07-15'))
+            cursor.execute(sql_queries.cup_results_query(year, CUP_DATES[year][0], CUP_DATES[year][1]))
         elif stage == 2:
-            cursor.execute(sql_queries.cup_results_query(2019, '2019-07-15', '2019-10-15'))
+            cursor.execute(sql_queries.cup_results_query(year, CUP_DATES[year][1], CUP_DATES[year][2]))
         else:
-            cursor.execute(sql_queries.cup_results_query(2019, '2019-04-15', '2019-10-15'))
+            cursor.execute(sql_queries.cup_results_query(year, CUP_DATES[year][0], CUP_DATES[year][2]))
         results = defaultdict(lambda : (1000, None))
         course_bests = defaultdict(lambda : None)
         point_dict = defaultdict(lambda : 0.0)
@@ -279,10 +283,6 @@ class Database(object):
                 point_dict[tiee] = sum(points_to_share)/float(len(tiees))
         cursor.close()
         return results, point_dict, course_bests
-
-    def cup_results_2019_with_handicaps(self, previous_results):
-        # TODO
-        pass
 
     def cup_results_2018(self, first_stage=False):
         last_month = '2018-07-01' if first_stage else '2018-10-01'

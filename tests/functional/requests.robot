@@ -19,6 +19,7 @@ Page should work without login
     /eskocup/2017/
     /eskocup/2018/
     /eskocup/2019/
+    /eskocup/2020/
 
 Page should work and redirect to main page
     [Setup]     Create session   local  ${TARGET_URL}
