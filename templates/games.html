@@ -11,15 +11,18 @@
     <th>Aloitus</th>
     <th>#</th>
     <th></th>
+    <th></th>
   </tr>
   {% for game in games %}
     <tr>
       <td>{{game.id}}</td>
       <td>{{game.active}}</td>
       <td>{{game.unfinished}}</td>
+      <td>{{course_name_dict[game.course]}}</td>
       <td>{{game.start_time}}</td>
       <td>{{game.game_of_day}}</td>
       <td><a href="/game/{{game.id}}/reactivate">Aktivoi</a></td>
+      <td><a href="/game/{{game.id}}/change_course">Vaihda rataa</a></td>
     </tr>
   {% end %}
 </table>

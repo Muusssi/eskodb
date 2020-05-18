@@ -370,6 +370,48 @@ WHERE result.game={game_id}
 ORDER BY player.name, hole_number
 """.format(game_id=int(game_id))
 
+def merge_hole_results(course1, hole1, course2, hole2):
+    return """
+UPDATE result SET hole=(SELECT hole
+                        FROM hole_mapping
+                        WHERE course={course1_id}
+                          AND hole_number={hole_1})
+WHERE hole=(SELECT hole
+            FROM hole_mapping
+            WHERE course={course2_id} AND hole_number={hole_2})
+""".format(course1_id=int(course1),
+           course2_id=int(course2),
+           hole_1=int(hole1),
+           hole_2=int(hole2))
+
+def merge_holes(course1, hole1, course2, hole2):
+    return """
+UPDATE hole_mapping SET hole=(SELECT hole
+                              FROM hole_mapping
+                              WHERE course={course1_id}
+                                AND hole_number={hole_1})
+WHERE course={course2_id} AND hole_number={hole_2}
+""".format(course1_id=int(course1),
+           course2_id=int(course2),
+           hole_1=int(hole1),
+           hole_2=int(hole2))
+
+def move_results(game_id, old_course, new_course, hole):
+    return """
+UPDATE result SET hole=(SELECT hole
+                        FROM hole_mapping
+                        WHERE course={new_course}
+                          AND hole_number={hole_number})
+WHERE hole=(SELECT hole
+            FROM hole_mapping
+            WHERE course={old_course}
+              AND hole_number={hole_number})
+  AND game={game_id}
+""".format(game_id=int(game_id),
+           old_course=int(old_course),
+           new_course=int(new_course),
+           hole_number=int(hole))
+
 if __name__ == '__main__':
     print(previous_hole_stats(888, 1))
 

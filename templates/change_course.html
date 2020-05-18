@@ -1,0 +1,15 @@
+{% extends esko_template.html %}
+{% block title_block %}Pelit{% end %}
+{% block body %}
+
+<form method="post">
+  <label>New course</label>
+  <select name="new_course">
+    {% for course in courses %}
+      <option value="{{course.id}}">{{course.name}} {{course.holes}}, {{course.version}}</option>
+    {% end %}
+  </select>
+  <input type="submit" value="Submit" method="POST">
+</form>
+
+{% end %}

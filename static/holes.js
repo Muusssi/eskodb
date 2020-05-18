@@ -27,6 +27,7 @@ function new_text_input_div(name, value, label, id, pattern, hidden) {
     if (label != undefined && label != null) {
         var label_elem = document.createElement('label');
         label_elem.innerHTML = label;
+        label_elem.htmlFor = id;
         div.appendChild(label_elem);
     }
     var input = document.createElement('input');
@@ -51,6 +52,7 @@ function new_checkbox_div(name, value, label, id) {
     if (label != undefined && label != null) {
         var label_elem = document.createElement('label');
         label_elem.innerHTML = label;
+        label_elem.htmlFor = id;
         div.appendChild(label_elem);
     }
     var input = document.createElement('input');
@@ -84,5 +86,45 @@ function toggle_boolean_input(element) {
     else {
         element.value = 'true';
     }
+}
 
+
+function build_hole_reuse_form(json) {
+    new_holes = json.holes;
+    console.log(old_holes);
+    console.log(new_holes);
+    var form = document.getElementById('reuse_holes_form');
+
+    for (var i = 0; i < new_holes.length; i++) {
+        var hole = new_holes[i];
+
+        var header = document.createElement('h3');
+        header.innerHTML = hole.hole;
+        form.appendChild(header);
+
+        var select = document.createElement('select');
+        select.name = "hole";
+        var option_selected = false;
+        for (var j = 0; j < old_holes.length; j++) {
+            var old_hole = old_holes[j];
+            var option = document.createElement('option');
+            option.text = "Vanhan radan " + old_hole.hole;
+            option.value = old_hole.hole;
+            if (old_hole.hole == hole.hole) {
+                option.selected = true;
+                option_selected = true;
+            }
+            select.add(option);
+        }
+
+        var option = document.createElement('option');
+        option.text = "Uusi väylä";
+        option.value = 'new';
+        if (!option_selected) {
+            option.selected = true;
+        }
+        select.add(option);
+
+        form.appendChild(select);
+    }
 }

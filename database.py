@@ -246,7 +246,6 @@ class Database(object):
         return bests
 
     def cup_results_2019_rules(self, year, stage=None):
-        # TODO
         cursor = self._cursor()
         if stage == 1:
             cursor.execute(sql_queries.cup_results_query(year, CUP_DATES[year][0], CUP_DATES[year][1]))
@@ -545,6 +544,21 @@ class Database(object):
             cursor.execute(hole_sql)
             (hole_id, ) = cursor.fetchone()
             cursor.execute(mapping_sql.format(int(course_id), hole_id, hole_number))
+        cursor.close()
+
+    def merge_holes(self, course1, hole1, course2, hole2):
+        cursor = self._cursor()
+        cursor.execute(sql_queries.merge_hole_results(course1, hole1, course2, hole2))
+        cursor.execute(sql_queries.merge_holes(course1, hole1, course2, hole2))
+        cursor.close()
+
+    def change_course(self, game_id, old_course, new_course, holes):
+        cursor = self._cursor()
+        sql = "UPDATE game set course={new_course} WHERE id={game_id}".format(new_course=int(new_course),
+                                                                              game_id=int(game_id))
+        cursor.execute(sql)
+        for hole_index in range(holes):
+            cursor.execute(sql_queries.move_results(game_id, old_course, new_course, hole_index + 1))
         cursor.close()
 
     def holes_data(self, course_id, as_dict=False):

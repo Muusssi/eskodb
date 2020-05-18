@@ -31,22 +31,25 @@ class Application(tornado.web.Application):
                 (r"/restart/", RestartHandler),
                 (r"/courses", CoursesHandler),
                 (r"/course/new/", NewCourseHandler),
-                (r"/course/(?P<course_id>[^\/]+)/", CourseHandler),
-                (r"/course/(?P<course_id>[^\/]+)/graph", GraphHandler),
-                (r"/course/(?P<course_id>[^\/]+)/graphdata", GraphDataHandler),
-                (r"/course/(?P<course_id>[^\/]+)/update_holes", UpdateHolesHandler),
+                (r"/course/(?P<course_id>[0-9]+)/", CourseHandler),
+                (r"/course/(?P<course_id>[0-9]+)/new_layout", NewCourseHandler),
+                (r"/course/(?P<course_id>[0-9]+)/graph", GraphHandler),
+                (r"/course/(?P<course_id>[0-9]+)/graphdata", GraphDataHandler),
+                (r"/course/(?P<course_id>[0-9]+)/update_holes", UpdateHolesHandler),
+                (r"/course/(?P<course_id>[0-9]+)/reuse_holes_from/(?P<old_course_id>[0-9]+)/", ReuseHolesHandler),
                 (r"/players", PlayersHandler),
                 (r"/player/new", NewPlayerHandler),
-                (r"/player/(?P<player_id>[^\/]+)/", PlayerHandler),
-                (r"/player/(?P<player_id>[^\/]+)/update", UpdatePlayerHandler),
+                (r"/player/(?P<player_id>[0-9]+)/", PlayerHandler),
+                (r"/player/(?P<player_id>[0-9]+)/update", UpdatePlayerHandler),
                 (r"/games/", GamesHandler),
                 (r"/game/new/", NewGameHandler),
-                (r"/game/end/(?P<game_id>[^\/]+)/", EndGameHandler),
-                (r"/game/(?P<game_id>[^\/]+)/reactivate", ReactivateGameHandler),
-                (r"/game/(?P<game_id>[^\/]+)/", GameHandler),
+                (r"/game/end/(?P<game_id>[0-9]+)/", EndGameHandler),
+                (r"/game/(?P<game_id>[0-9]+)/reactivate", ReactivateGameHandler),
+                (r"/game/(?P<game_id>[0-9]+)/change_course", ChangeCourseHandler),
+                (r"/game/(?P<game_id>[0-9]+)/", GameHandler),
                 (r"/cup/new/", NewCupHandler),
-                (r"/eskocup/(?P<year>[^\/]+)/", EsKoCupHandler),
-                (r"/hole/(?P<hole_id>[^\/]+)/map/edit", EditHoleMapHandler),
+                (r"/eskocup/(?P<year>[0-9]+)/", EsKoCupHandler),
+                (r"/hole/(?P<hole_id>[0-9]+)/map/edit", EditHoleMapHandler),
                 (r"/rule/new", NewRuleHandler),
 
                 (r"/game_stats", StatsTableHandler),
@@ -96,6 +99,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         user_id = self.get_secure_cookie('user')
         if user_id:
+            user_id = user_id.decode('utf-8')
             self.current_user = models.player(user_id)
             return self.current_user
         self.clear_cookie('user')
@@ -153,6 +157,7 @@ class LoginHandler(BaseHandler):
         else:
             self.render("login.html",
                     message="Wrong password or user name.",
+                    all_players=models.players(),
                     course_name_dict=self.db.course_name_dict(),
                     active_games=models.games({'active':True}),
                     user=self.get_current_user(),
@@ -227,11 +232,14 @@ class CourseHandler(BaseHandler):
 
 
 class NewCourseHandler(BaseHandler):
-    def get(self):
+    def get(self, course_id=None):
+        course = models.course(course_id) if course_id else models.Course([])
         self.render("new_course.html",
                 tittle="Uusi rata",
                 terrains=self.db.terrains(),
-                course=None,
+                course=course,
+                new_layout=True,
+                use_old_holes=bool(course_id),
                 message="",
                 # For template
                 all_players=models.players(),
@@ -240,18 +248,25 @@ class NewCourseHandler(BaseHandler):
                 user=self.get_current_user(),
             )
 
-    def post(self):
+    def post(self, course_id=None):
         values = [self.get_argument(field, None) for field in models.Course.fields]
         course = models.Course(values)
+        use_old_holes = self.get_argument('use_old_holes', False)
         try:
-            course_id = course.save()
+            course.save()
             self.db.generate_default_holes(course.id, course.holes)
-            self.redirect("/course/%s/update_holes" % course.id)
+            if use_old_holes:
+                self.redirect("/course/{}/reuse_holes_from/{}/".format(course.id, course_id))
+            else:
+                self.redirect("/course/{}/update_holes".format(course.id))
         except Exception as e:
+            raise e
             self.render("new_course.html",
                 tittle="Uusi rata",
                 terrains=self.db.terrains(),
                 course=course,
+                new_layout=True,
+                use_old_holes=use_old_holes,
                 message="Rata on jo tietokannassa!",
                 # For template
                 all_players=models.players(),
@@ -261,11 +276,41 @@ class NewCourseHandler(BaseHandler):
             )
 
 
+class ReuseHolesHandler(BaseHandler):
+    def get(self, course_id, old_course_id):
+        self.render("reuse_holes.html",
+                old_course=models.course(old_course_id),
+                new_course=models.course(course_id),
+                message="",
+                # For template
+                all_players=models.players(),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user(),
+            )
+
+    def post(self, course_id, old_course_id):
+        hole_mappings = self.get_arguments('hole')
+        if len([x for x in hole_mappings if x != 'new']) != len(set([x for x in hole_mappings if x != 'new'])):
+            self.render("reuse_holes.html",
+                old_course=models.course(old_course_id),
+                new_course=models.course(course_id),
+                message="Error: Same hole can not be in the new course twice.",
+                # For template
+                all_players=models.players(),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user())
+        else:
+            for hole in range(len(hole_mappings)):
+                if hole_mappings[hole] != 'new':
+                    self.db.merge_holes(old_course_id, hole_mappings[hole], course_id, hole + 1)
+            self.redirect("/course/{}/update_holes".format(course_id))
+
+
 class UpdateHolesHandler(BaseHandler):
     def get(self, course_id):
         self.render("update_holes.html",
-                terrains=self.db.terrains(),
-                hole_types=self.db.hole_types(),
                 course=models.course(course_id),
                 message="",
                 # For template
@@ -481,7 +526,7 @@ class ReactivateGameHandler(BaseHandler):
 
     @property
     def required_priviledges(self):
-        return ('admin')
+        return ('admin',)
 
     @tornado.web.authenticated
     @authorized
@@ -489,10 +534,38 @@ class ReactivateGameHandler(BaseHandler):
         self.db.reactivate_game(game_id)
         self.redirect("/game/%s/" % (game_id, ))
 
+class ChangeCourseHandler(BaseHandler):
+    @property
+    def required_priviledges(self):
+        return ('admin',)
+
+    @tornado.web.authenticated
+    @authorized
+    def get(self, game_id):
+        game = models.game(game_id)
+        old_course = models.course(game.course)
+        self.render("change_course.html",
+                game=game,
+                old_course=old_course,
+                courses=models.courses({'holes': old_course.holes}),
+                # For template
+                all_players=models.players(),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active':True}),
+                user=self.get_current_user(),
+            )
+
+    def post(self, game_id):
+        new_course = self.get_argument('new_course')
+        game = models.game(game_id)
+        old_course = models.course(game.course)
+        self.db.change_course(game_id, old_course.id, new_course, old_course.holes)
+        self.redirect('/course/{}/'.format(new_course))
+
 class GamesHandler(BaseHandler):
     @property
     def required_priviledges(self):
-        return ('admin')
+        return ('admin',)
 
     @tornado.web.authenticated
     @authorized

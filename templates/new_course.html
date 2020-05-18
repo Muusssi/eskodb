@@ -5,8 +5,8 @@
   <p class="error_message">{{message}}</p>
   <form method="post">
 
-    {% if hasattr(course, 'id') %}
-      <input type="text" name="id" value="{{course.id}}" hidden>
+    {% if course.id and not new_layout %}
+      <input type="text" name="id" value="{{course.id}}" >
     {% end %}
 
     <label for="name_input">Radan nimi</label>
@@ -25,11 +25,16 @@
       {% end %}
       required><br>
 
-    <label for="description_input">Rata kuvaus</label>
+    <label for="description_input">Ratakuvaus</label>
     <input type="text" name="description" id="description_input"
       {% if hasattr(course, 'description') %}
         value="{{course.description}}"
       {% end %}><br>
+
+    {% if course %}
+      <label for="use_old_holes_cbx">Linkitä vanhoja väyliä</label>
+      <input id="use_old_holes_cbx" type="checkbox" name="use_old_holes" {% if use_old_holes %}checked{% end %}><br>
+    {% end %}
 
 
     <label for="course_terrain_input">Radan maasto</label>

@@ -4,19 +4,26 @@
 {% block head %}
   <script src={{static_url("holes.js")}}></script>
   <script type="text/javascript">
-  var holes = null;
+
+  var old_holes = null;
+  var new_holes = null;
 
   window.onload = function() {
-    ajax_get('/data/course/{{course.id}}/holes/', build_hole_input_form);
+    ajax_get('/data/course/{{old_course.id}}/holes/', get_new_course_holes);
+  }
+
+  function get_new_course_holes(json) {
+    old_holes = json.holes;
+    ajax_get('/data/course/{{new_course.id}}/holes/', build_hole_reuse_form);
   }
   </script>
 {% end %}
 
 {% block body %}
-
+  <h2>Vanhat väylät uudella radalla</h2>
   <p class="error_message">{{message}}</p>
   <form method="post">
-    <div id="holes_form"></div>
+    <div id="reuse_holes_form" style="padding-bottom: 2em;"></div>
     <input type="submit" value="Submit" method="POST">
   </form>
 {% end %}
