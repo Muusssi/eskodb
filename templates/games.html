@@ -1,12 +1,24 @@
 {% extends esko_template.html %}
 {% block title_block %}Pelit{% end %}
+
+{% block head %}
+
+<script type="text/javascript">
+  window.onload = function() {
+    add_filters('game_table');
+    console.log('Done');
+  }
+</script>
+{% end %}
+
 {% block body %}
 
-<table class="sortable table table-striped table-bordered table-condensed table-hover">
+<table id="game_table" class="sortable table table-bordered table-condensed table-hover">
   <tr>
     <th>Id</th>
     <th>Aktivinen</th>
     <th>Kesken</th>
+    <th>Rata id</th>
     <th>Rata</th>
     <th>Aloitus</th>
     <th>#</th>
@@ -16,8 +28,9 @@
   {% for game in games %}
     <tr>
       <td>{{game.id}}</td>
-      <td>{{game.active}}</td>
-      <td>{{game.unfinished}}</td>
+      <td>{% if game.active %}yes{% end %}</td>
+      <td>{% if game.unfinished %}yes{% end %}</td>
+      <td>{{game.course}}</td>
       <td>{{course_name_dict[game.course]}}</td>
       <td>{{game.start_time}}</td>
       <td>{{game.game_of_day}}</td>

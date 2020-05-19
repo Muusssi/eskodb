@@ -36,6 +36,7 @@ class Application(tornado.web.Application):
                 (r"/course/(?P<course_id>[0-9]+)/graph", GraphHandler),
                 (r"/course/(?P<course_id>[0-9]+)/graphdata", GraphDataHandler),
                 (r"/course/(?P<course_id>[0-9]+)/update_holes", UpdateHolesHandler),
+                (r"/course/(?P<course_id>[0-9]+)/close", CloseCourseHandler),
                 (r"/course/(?P<course_id>[0-9]+)/reuse_holes_from/(?P<old_course_id>[0-9]+)/", ReuseHolesHandler),
                 (r"/players", PlayersHandler),
                 (r"/player/new", NewPlayerHandler),
@@ -533,6 +534,19 @@ class ReactivateGameHandler(BaseHandler):
     def get(self, game_id):
         self.db.reactivate_game(game_id)
         self.redirect("/game/%s/" % (game_id, ))
+
+class CloseCourseHandler(BaseHandler):
+
+    @property
+    def required_priviledges(self):
+        return ('admin',)
+
+    @tornado.web.authenticated
+    @authorized
+    def get(self, course_id):
+        course = models.course(course_id)
+        course.close()
+        self.redirect("/course/{}/".format(course_id))
 
 class ChangeCourseHandler(BaseHandler):
     @property

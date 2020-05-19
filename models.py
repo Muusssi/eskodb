@@ -130,6 +130,10 @@ class Course(BaseModel):
         else:
             return ""
 
+    def close(self):
+        self._values['playable'] = not self.playable
+        self.save()
+
 def holes(criteria={}, order_by="hole"):
     hole_list = []
     for values in DATABASE.fetch_rows(Hole.TABLE_NAME, Hole.fields, criteria, order_by):
@@ -277,6 +281,9 @@ class Player(BaseModel):
 
     def is_team(self):
         return '&' in self.name
+
+    def is_admin(self):
+        return self.priviledges == 'admin'
 
     def set_password(self):
         self._values['password'] = pbkdf2_sha256.encrypt(self.password, rounds=200000, salt_size=16)
