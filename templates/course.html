@@ -26,7 +26,7 @@
 
 {% block body %}
   <h1><span id="course_name_span">{{ course.name }}</span>
-    <button type="button" id="play_course_btn" href="/game/new/?course={{course.id}}" class="btn btn-info" {% if not course.playable %}disabled{% end %}>Pelaa</button>
+    <a id="play_course_btn" {% if not course.playable %}disabled{% else %}href="/game/new/?course={{course.id}}"{% end %} class="btn btn-info" >Pelaa</a>
     <a id="holes_data_toggle" class="btn btn-info" href="#" onclick="toggle_by_id('holes_info');">Väylien tiedot</a>
     <a id="update_holes_btn" class="btn btn-info" href="/course/{{course.id}}/update_holes">Muokkaa väylien tietoja</a>
     <a id="new_layout_btn" class="btn btn-info" href="/course/{{course.id}}/new_layout">Uusi layout</a>

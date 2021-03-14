@@ -19,6 +19,10 @@ Should be on update course page
     Location Should Contain     ${MAIN_PAGE_URL}course/
     Location Should Contain     /update
 
+Should be on reuse holes page
+    Location Should Contain     ${MAIN_PAGE_URL}course/
+    Location Should Contain     /reuse_holes_from/
+
 Should be on course page for '${course_name}'
     Location Should Contain     ${MAIN_PAGE_URL}course/
     Element Text Should Be      course_name_span  ${course_name}
@@ -146,6 +150,9 @@ Press new course
 
 Press update holes
     Click Element   update_holes_btn
+
+Press new layout
+    Click Element   new_layout_btn
 
 Press add image
     Click Element   add_image_btn

@@ -1,6 +1,7 @@
 *** Settings ***
 Library             SeleniumLibrary
 Force Tags          selenium
+Suite Setup         Set selenium variables
 Suite Teardown      Close All Browsers
 Resource            selenium_keywords.robot
 
@@ -169,6 +170,7 @@ Browse the courses list
     Course list should contain  B-Rata
     Course list should not contain  A-Rata
     Clear course name filter
+    Course list is fully populated
 
 Edit a course
     [Setup]         Open EsKodb
@@ -230,10 +232,31 @@ Edit a course
     Hole info should say that total length is  1244
     Hole info should say that total par is  39
 
+New layout for course
+    # TODO
+    [Setup]         Open EsKodb
+    [Teardown]      Close Browser
+    Navigate to courses page
+    Open course page for  A-Rata
+    Press new layout
+
+    Type 'Longer course A' as the new course name
+    Type '21' as the new course hole count
+    Submit Form
+
+    Should be on reuse holes page
+    Submit Form
+
+    Should be on update course page
+    Submit Form
+
+    Should be on course page for 'Longer course A'
+    Hole info should say that first hole par is 2
+    Hole info should say that first hole length is 45
+
 Upload an image linked to course
     [Setup]         Open EsKodb
     [Teardown]      Close Browser
-    [Tags]          new
     Navigate to courses page
     Open course page for  A-Rata
     Press add image
@@ -249,3 +272,10 @@ Upload an image linked to course
     Switch Window  MAIN
     Should be on course page for 'A-Rata'
 
+
+
+*** Keywords ***
+
+Set selenium variables
+    Log  foo
+    #Set Selenium Speed  0.1 seconds
