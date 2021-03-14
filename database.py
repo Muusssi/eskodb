@@ -36,6 +36,10 @@ class Database(object):
         self._conn.autocommit = True
 
     def _cursor(self):
+        try:
+            return self._conn.cursor()
+        except psycopg2.InterfaceError:
+            self.reconnect()
         return self._conn.cursor()
 
     def _close_connection(self):
