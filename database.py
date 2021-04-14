@@ -1,8 +1,9 @@
-import psycopg2
 import datetime
-from collections import defaultdict
 import json
 import sys
+from collections import defaultdict
+
+import psycopg2
 
 import sql_queries
 
@@ -11,6 +12,7 @@ GAME_TEMPLATE = "%s #%s"
 CUP_DATES = {
     2019: ('2019-04-15', '2019-07-15', '2019-10-15'),
     2020: ('2020-05-12', '2020-08-02', '2020-10-18'),
+    2021: ('2021-04-12', '2021-07-05', '2021-09-26'),
 }
 
 def datetime_to_hour_minutes(dt):
