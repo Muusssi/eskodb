@@ -159,7 +159,11 @@ JOIN (
 ORDER BY cup, res
 """.format(course_pars=COURSE_PARS)
 
+EXCLUDED_HOLES = {2021: ['47']}
+
 def cup_results_query(year, begin_date, end_date):
+    if int(year) in EXCLUDED_HOLES:
+        excluded_holes_filter = 'AND hole.id NOT IN ({})'.format(','.join(EXCLUDED_HOLES[year]))
     return """
 SELECT * FROM (
     SELECT DISTINCT ON (player, course) player, course, res, start_time::date
@@ -174,6 +178,7 @@ SELECT * FROM (
           AND game.start_time >= '{begin_date}'
           AND game.start_time <= '{end_date}'
           AND game.special_rules IS NULL
+            {excluded_holes_filter}
         GROUP BY result.player, game.id, game.course
         ORDER BY game.course, res DESC
     ) as results
@@ -181,11 +186,10 @@ SELECT * FROM (
     ORDER BY player, course, res
 ) AS cup_results
 ORDER BY course, res
-""".format(
-        year=int(year),
-        begin_date=begin_date,
-        end_date=end_date,
-    )
+""".format(year=int(year),
+           begin_date=begin_date,
+           end_date=end_date,
+           excluded_holes_filter=excluded_holes_filter if excluded_holes_filter else '')
 
 def player_stats(player_id):
     return """
