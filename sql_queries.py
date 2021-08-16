@@ -162,6 +162,7 @@ ORDER BY cup, res
 EXCLUDED_HOLES = {2021: ['47']}
 
 def cup_results_query(year, begin_date, end_date):
+    excluded_holes_filter = None
     if int(year) in EXCLUDED_HOLES:
         excluded_holes_filter = 'AND hole.id NOT IN ({})'.format(','.join(EXCLUDED_HOLES[year]))
     return """
