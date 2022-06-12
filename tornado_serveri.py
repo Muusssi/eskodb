@@ -50,6 +50,7 @@ class Application(tornado.web.Application):
                 (r"/game/(?P<game_id>[0-9]+)/", GameHandler),
                 (r"/cup/new/", NewCupHandler),
                 (r"/eskocup/(?P<year>[0-9]+)/", EsKoCupHandler),
+                (r"/competition/(?P<competition_name>[^/]+)/", CompetitionHandler),
                 (r"/hole/(?P<hole_id>[0-9]+)/map/edit", EditHoleMapHandler),
                 (r"/rule/new", NewRuleHandler),
 
@@ -708,6 +709,22 @@ class EsKoCupHandler(BaseHandler):
                     active_games=models.games({'active':True}),
                     user=self.get_current_user(),
                 )
+
+class CompetitionHandler(BaseHandler):
+
+    def get(self, competition_name):
+        participants, results, points = self.db.competition_results(competition_name)
+        self.render('competition.html',
+                    competition_name=competition_name,
+                    events=self.db.competition_events(competition_name),
+                    participants=participants,
+                    results=results,
+                    points=points,
+                    # For template
+                    all_players=models.players(),
+                    course_name_dict=self.db.course_name_dict(),
+                    active_games=models.games({'active':True}),
+                    user=self.get_current_user())
 
 class EditHoleMapHandler(BaseHandler):
     def get(self, hole_id):

@@ -192,6 +192,46 @@ ORDER BY course, res
            end_date=end_date,
            excluded_holes_filter=excluded_holes_filter if excluded_holes_filter else '')
 
+COMPETITION_EVENTS_QUERY = """
+SELECT competition.id, course.id, course.name, start_time, end_time, rounds,
+       (start_time<now() AND end_time>now()) as active, sum(par) as par
+FROM competition
+JOIN course ON course.id=competition.course
+JOIN hole_mapping ON hole_mapping.course=course.id
+JOIN hole ON hole.id=hole_mapping.hole
+WHERE competition=%s
+GROUP BY competition.id, course.id, course.name, start_time, end_time, rounds
+ORDER BY start_time;
+"""
+
+COMPETITION_RESULTS = """
+SELECT competition_id, player_id, player_name, game_date, result, attempts
+FROM (
+    SELECT DISTINCT ON (competition_id, player.id)
+           competition_id, player_id, player.name as player_name, result, attempts,
+           game.start_time::date as game_date
+    FROM (
+        SELECT registration.competition as competition_id,
+               registration.player as player_id,
+               registration.game as game_id,
+               sum(throws) as result,
+               sum(CASE WHEN throws IS NULL THEN 1 ELSE 0 END) as missing_results,
+               count(*) OVER (PARTITION BY registration.competition, registration.player) as attempts
+        FROM result
+        JOIN competition_registration as registration ON result.game=registration.game
+                                                     AND result.player=registration.player
+        JOIN competition ON registration.competition=competition.id
+        WHERE competition.competition=%s
+        GROUP BY registration.competition, registration.player, registration.game
+    ) AS raw_results
+    JOIN player ON player.id=player_id
+    JOIN game ON game.id=game_id
+    WHERE missing_results=0
+    ORDER BY competition_id, player.id, result
+) as results
+ORDER BY competition_id, result;
+"""
+
 def player_stats(player_id):
     return """
 SELECT course.id, course.name, course.holes, course.version,

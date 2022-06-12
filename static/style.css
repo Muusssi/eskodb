@@ -155,4 +155,7 @@ div#calendar {
     margin-left: 50px;
 }
 
-
+td.competition_result_final {
+    font-weight: bold;
+    text-decoration: underline;
+}

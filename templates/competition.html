@@ -1,0 +1,95 @@
+{% extends esko_template.html %}
+
+{% block title_block %}{{ competition_name }}{% end %}
+
+{% block head %}
+  <script type="text/javascript">
+    function see_game(course_id, date, player_name) {
+      window.location.href = "/course/"+course_id+"/?game_date="+date+"&player="+encodeURI(player_name);
+    }
+    window.onload = function() {
+      sorttable.innerSortFunction.apply(document.getElementById("result_total"), []);
+      sorttable.innerSortFunction.apply(document.getElementById("points_total"), []);
+    }
+  </script>
+{% end %}
+
+{% block body %}
+  <h1>{{ competition_name }}</h1>
+  <div id="table_div">
+    <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">
+      <thead id="result_head">
+        <tr>
+          <th></th>
+          {% for event in events %}
+            <th>{{ event['course_name'] }}</th>
+          {% end %}
+          <th id="result_total">Tulos</th>
+        </tr>
+
+      </thead>
+      <tbody id="tbody">
+        {% for player_name in participants %}
+          {% set total = 0 %}
+          <tr>
+            <th>{{ player_name }}</th>
+            {% for event in events %}
+              {% set result, game_date, attempts = results[event['id']][player_name] %}
+              {% if result is not None %}
+                {% set total += result - event['par'] %}
+                <td onclick="see_game({{ event['course_id'] }}, '{{ game_date }}', '{{ player_name }}');"
+                    {% if attempts >= event['rounds'] %}class="competition_result_final"{% end %}>
+                  {{ result - event['par'] }}
+                </td>
+              {% else %}
+                <td></td>
+              {% end %}
+
+            {% end %}
+            <th>{{ total }}</th>
+          </tr>
+        {% end %}
+      </tbody>
+    </table>
+
+  </div>
+
+  {% if competition_name.startswith('EsKo Cup 20') %}
+    <h2>Pistekisa</h2>
+    <div id="table_div">
+      <table id="results_table" class="sortable table table-striped table-bordered table-condensed table-hover">
+        <thead id="result_head">
+          <tr>
+            <th></th>
+            {% for event in events %}
+              <th>{{ event['course_name'] }}</th>
+            {% end %}
+            <th id="points_total">Tulos</th>
+          </tr>
+
+        </thead>
+        <tbody id="tbody">
+          {% for player_name in participants %}
+            {% set total = 0 %}
+            <tr>
+              <th>{{ player_name }}</th>
+              {% for event in events %}
+                {% set player_points = points[event['id']][player_name] %}
+                {% if player_points is not None %}
+                  {% set total += player_points %}
+                  <td sorttable_customkey="{{ -player_points }}">{{ player_points }}</td>
+                {% else %}
+                  <td></td>
+                {% end %}
+
+              {% end %}
+              <th sorttable_customkey="{{ -total }}">{{ total }}</th>
+            </tr>
+          {% end %}
+        </tbody>
+      </table>
+
+    </div>
+  {% end %}
+
+{% end %}

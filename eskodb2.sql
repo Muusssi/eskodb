@@ -75,6 +75,7 @@ CREATE TABLE course_image (
     file_type text
 );
 
+-- Used for EsKo cup 2017
 CREATE TABLE cup (
     id serial PRIMARY KEY,
     name text NOT NULL CHECK (name <> ''),
@@ -84,6 +85,7 @@ CREATE TABLE cup (
     max_par integer
 );
 
+-- Used for EsKo cup 2018-2021
 CREATE TABLE eskocup_course (
     id serial PRIMARY KEY,
     course integer REFERENCES course(id) ON DELETE CASCADE,
@@ -94,6 +96,16 @@ CREATE TABLE special_rules (
     id serial PRIMARY KEY,
     name text NOT NULL UNIQUE,
     description text
+);
+
+CREATE TABLE competition (
+    id serial PRIMARY KEY,
+    competition text NOT NULL,
+    course integer REFERENCES course(id) ON DELETE CASCADE,
+    start_time timestamp DEFAULT now(),
+    end_time timestamp,
+    special_rules int REFERENCES special_rules(id) ON DELETE CASCADE DEFAULT NULL,
+    rounds integer DEFAULT 1
 );
 
 CREATE TABLE game (
@@ -134,6 +146,12 @@ CREATE TABLE player_group (
     player integer REFERENCES player(id) ON DELETE CASCADE
 );
 
+CREATE TABLE competition_registration (
+    id serial PRIMARY KEY,
+    competition integer REFERENCES competition(id) ON DELETE CASCADE,
+    player integer REFERENCES player(id) ON DELETE CASCADE,
+    game integer REFERENCES game(id) ON DELETE CASCADE
+);
 
 CREATE TABLE result (
     id serial PRIMARY KEY,

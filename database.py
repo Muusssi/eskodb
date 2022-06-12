@@ -1,3 +1,4 @@
+
 import datetime
 import json
 import sys
@@ -18,7 +19,7 @@ CUP_DATES = {
 def datetime_to_hour_minutes(dt):
     return str(dt).split('.')[0][:-3]
 
-class Database(object):
+class Database():
 
     def __init__(self, database, host, user, password):
         self._database_user = user
@@ -250,6 +251,43 @@ class Database(object):
 
         cursor.close()
         return bests
+
+    def competition_events(self, competition_name):
+        cursor = self._cursor()
+        cursor.execute(sql_queries.COMPETITION_EVENTS_QUERY, (competition_name,))
+        events = []
+        for event_id, course_id, course_name, start, end, rounds, active, par in cursor.fetchall():
+            events.append({'id': event_id, 'start': start, 'end': end, 'active': active,
+                           'rounds': rounds,
+                           'course_id': course_id, 'course_name': course_name, 'par': par})
+        cursor.close()
+        return events
+
+    def competition_results(self, competition_name):
+        cursor = self._cursor()
+        cursor.execute(sql_queries.COMPETITION_RESULTS, (competition_name,))
+        results = defaultdict(lambda: defaultdict(lambda: (None, None, 0)))
+        ties = defaultdict(lambda: defaultdict(lambda: []))
+
+        participants = set()
+        for competition_id, player_id, player_name, game_date, result, attempts in cursor.fetchall():
+            results[competition_id][player_name] = (result, str(game_date), attempts)
+            ties[competition_id][result].append(player_name)
+            participants.add(player_name)
+        cursor.close()
+
+
+        points = defaultdict(lambda: defaultdict(lambda: None))
+        for competition_id in ties:
+            available_points = [20, 17, 15, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+            for result in sorted(ties[competition_id].keys()):
+                shared_points = 0
+                for _ in ties[competition_id][result]:
+                    shared_points += available_points.pop(0) if available_points else 1
+                for player_name in ties[competition_id][result]:
+                    points[competition_id][player_name] = shared_points/len(ties[competition_id][result])
+
+        return participants, results, points
 
     def cup_results_2019_rules(self, year, stage=None):
         cursor = self._cursor()
