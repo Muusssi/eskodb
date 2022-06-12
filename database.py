@@ -263,6 +263,21 @@ class Database():
         cursor.close()
         return events
 
+    def registrations_allowed(self, course_id, rules):
+        cursor = self._cursor()
+        cursor.execute(sql_queries.registrations_allowed(course_id, rules))
+        events = defaultdict(lambda: defaultdict(lambda: True))
+        for event_id, competition, player, allowed in cursor.fetchall():
+            events[(competition, event_id)][player] = allowed
+        cursor.close()
+        return events
+
+    def register_to_event(self, event, player, game):
+        cursor = self._cursor()
+        sql = "INSERT INTO competition_registration(competition, player, game) VALUES ({}, {}, {})"
+        cursor.execute(sql.format(int(event), int(player), int(game)))
+        cursor.close()
+
     def competition_results(self, competition_name):
         cursor = self._cursor()
         cursor.execute(sql_queries.COMPETITION_RESULTS, (competition_name,))

@@ -1,0 +1,24 @@
+{% extends esko_template.html %}
+
+{% block body %}
+
+  <h2>Rekisteröidy käynnissä olevaan kisaan</h2>
+  <form method="post">
+
+    {% for player in players %}
+      <div>
+        <label for="register_{{ player.id }}">{{ player.name }}</label>
+        <select id="register_{{ player.id }}" name="register_{{ player.id }}">
+          <option value="" selected>---</option>
+          {% for competition, event_id in registrations_allowed %}
+            {% set allowed = registrations_allowed[competition, event_id][player.id] %}
+            <option {% if not allowed %}disabled{% end %}
+              value="{{ event_id }}">{{ competition }}</option>
+          {% end %}
+        </select>
+      </div>
+    {% end %}
+
+    <input type="submit" value="Jatka" method="POST">
+  </form>
+{% end %}

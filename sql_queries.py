@@ -232,6 +232,18 @@ FROM (
 ORDER BY competition_id, result;
 """
 
+def registrations_allowed(course_id, rules):
+    return """
+SELECT competition.id, competition.competition, registration.player,
+       count(registration.player) OVER (PARTITION BY registration.competition, registration.player) < rounds as allowed
+FROM competition
+LEFT OUTER JOIN competition_registration as registration ON registration.competition=competition.id
+WHERE start_time<now() AND end_time>now()
+  AND course={course_id}
+  {rules_filter};
+""".format(course_id=int(course_id),
+           rules_filter='AND special_rules={}'.format(int(rules)) if rules else '')
+
 def player_stats(player_id):
     return """
 SELECT course.id, course.name, course.holes, course.version,

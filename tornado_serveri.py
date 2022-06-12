@@ -1,10 +1,12 @@
+
+import json
+import os
+import sys
+from datetime import date, datetime
+
 import tornado.ioloop
 import tornado.web
 import tornado.httpserver
-import os
-import sys
-import json
-from datetime import date, datetime
 
 import database as db
 import models
@@ -47,6 +49,7 @@ class Application(tornado.web.Application):
                 (r"/game/end/(?P<game_id>[0-9]+)/", EndGameHandler),
                 (r"/game/(?P<game_id>[0-9]+)/reactivate", ReactivateGameHandler),
                 (r"/game/(?P<game_id>[0-9]+)/change_course", ChangeCourseHandler),
+                (r"/game/(?P<game_id>[0-9]+)/register", RegisterToEventHandler),
                 (r"/game/(?P<game_id>[0-9]+)/", GameHandler),
                 (r"/cup/new/", NewCupHandler),
                 (r"/eskocup/(?P<year>[0-9]+)/", EsKoCupHandler),
@@ -422,7 +425,7 @@ class UpdatePlayerHandler(BaseHandler):
             elif not (player.password or player.user_name):
                 player.values['password'] = None
                 player.values['user_name'] = None
-            if player.member == None:
+            if player.member is None:
                 player.values['member'] = False
             if player.save():
                 self.redirect("/")
@@ -488,8 +491,33 @@ class NewGameHandler(BaseHandler):
                 )
         else:
             game = models.new_game(course_id, player_ids, special_rules)
+            self.redirect("/game/{}/register".format(int(game.id)))
+
+class RegisterToEventHandler(BaseHandler):
+    def get(self, game_id):
+        game = models.game(game_id)
+        registrations_allowed = self.db.registrations_allowed(game.course, game.special_rules)
+        if registrations_allowed:
+            self.render(
+                "register.html",
+                players=models.players({'active': game_id}),
+                game=models.game(game_id),
+                registrations_allowed=registrations_allowed,
+                # For template
+                all_players=models.players(),
+                course_name_dict=self.db.course_name_dict(),
+                active_games=models.games({'active': True}),
+                user=self.get_current_user())
+        else:
             self.redirect("/game/{}/".format(int(game.id)))
 
+    def post(self, game_id):
+        for arg_name in self.request.arguments:
+            event_id = self.get_argument(arg_name)
+            if event_id:
+                player_id = arg_name.split('_')[1]
+                self.db.register_to_event(event_id, player_id, game_id)
+        self.redirect("/game/{}/".format(game_id))
 
 class GameHandler(BaseHandler):
 
