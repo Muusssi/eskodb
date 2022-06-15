@@ -300,7 +300,7 @@ class Database():
                 for _ in ties[competition_id][result]:
                     shared_points += available_points.pop(0) if available_points else 1
                 for player_name in ties[competition_id][result]:
-                    points[competition_id][player_name] = shared_points/len(ties[competition_id][result])
+                    points[competition_id][player_name] = float(shared_points)/len(ties[competition_id][result])
 
         return participants, results, points
 
