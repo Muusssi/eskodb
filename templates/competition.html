@@ -31,22 +31,25 @@
       <tbody id="tbody">
         {% for player_name in participants %}
           {% set total = 0 %}
+          {% set sorting_total = 0 %}
           <tr>
             <th>{{ player_name }}</th>
             {% for event in events %}
               {% set result, game_date, attempts = results[event['id']][player_name] %}
               {% if result is not None %}
                 {% set total += result - event['par'] %}
+                {% set sorting_total += result - event['par'] %}
                 <td onclick="see_game({{ event['course_id'] }}, '{{ game_date }}', '{{ player_name }}');"
-                    {% if attempts >= event['rounds'] %}class="competition_result_final"{% end %}>
+                    {% if attempts >= event['rounds'] or now > event['end'] %}class="competition_result_final"{% end %}>
                   {{ result - event['par'] }}
                 </td>
               {% else %}
-                <td></td>
+                {% set sorting_total += 1000 %}
+                <td sorttable_customkey="1000"></td>
               {% end %}
 
             {% end %}
-            <th>{{ total }}</th>
+            <th sorttable_customkey="{{ sorting_total }}">{{ total }}</th>
           </tr>
         {% end %}
       </tbody>

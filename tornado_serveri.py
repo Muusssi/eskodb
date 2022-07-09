@@ -748,6 +748,7 @@ class CompetitionHandler(BaseHandler):
                     participants=participants,
                     results=results,
                     points=points,
+                    now=datetime.now(),
                     # For template
                     all_players=models.players(),
                     course_name_dict=self.db.course_name_dict(),
