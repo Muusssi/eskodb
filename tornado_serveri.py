@@ -826,7 +826,8 @@ class GraphDataHandler(BaseHandler):
 
 class GameStatDataHandler(BaseHandler):
     def get(self):
-        self.write(self.db.throw_stats(self.request.arguments))
+        # TODO
+        self.write(self.db.throw_stats({key: self.get_arguments(key) for key in self.request.arguments}))
     post = get
 
 class PlayersDataHandler(BaseHandler):
